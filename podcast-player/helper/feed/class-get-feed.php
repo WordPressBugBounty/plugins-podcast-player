@@ -136,7 +136,11 @@ class Get_Feed {
         $podcast_data  = $store_manager->get_data( $this->feed_url );
 		$podcast_data  = $podcast_data instanceof FeedData ? $podcast_data : false;
 		if ( $this->is_fetch_required( $podcast_data ) ) {
-			return $this->fetch_podcast_data( $podcast_data );
+			if ( false === $podcast_data ) {
+				return $this->fetch_podcast_data( $podcast_data );
+			}
+			
+			Background_Jobs::add_task( $this->feed_url, 'update_podcast_data', $podcast_data );
 		}
         return $podcast_data->retrieve();
 	}
@@ -148,7 +152,7 @@ class Get_Feed {
 	 *
 	 * @param Object|false $old_podcast_data Old Podcast Feed Data.
      */
-    private function fetch_podcast_data( $old_podcast_data ) {
+    public function fetch_podcast_data( $old_podcast_data ) {
 		$store_manager = StoreManager::get_instance();
 		$last_checked  = $store_manager->get_data( $this->feed_url, 'last_checked' );
 		if ( ! empty( $last_checked ) ) {

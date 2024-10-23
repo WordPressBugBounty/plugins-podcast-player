@@ -15,6 +15,7 @@ use Podcast_Player\Helper\Core\Singleton;
 use Podcast_Player\Helper\Store\StoreManager;
 use Podcast_Player\Helper\Store\FeedData;
 use Podcast_Player\Helper\Store\ItemData;
+use Podcast_Player\Helper\Feed\Get_Feed;
 
 /**
  * Perform background tasks.
@@ -191,5 +192,39 @@ class Background_Tasks extends Singleton {
 
         $completed = array_intersect( array_keys( $imported_episodes ), $elist );
         return array( true, $completed );
+    }
+
+
+    /**
+     * Update podcast feed data.
+     *
+     * @since 7.4.4
+     *
+     * @param array $return Task result.
+     * @param array $args   Background task args.
+     */
+    public function update_podcast_data( $return, $args ) {
+        $feed_url = isset( $args['identifier'] ) ? $args['identifier'] : '';
+        $feed_url = Get_Fn::get_valid_feed_url( $feed_url );
+		
+        // Skip task and remove it from the queue if feed URL is not valid.
+        if ( empty( $feed_url ) || is_wp_error( $feed_url ) ) {
+            return ( array( true, false ) );
+		}
+
+        // Skip task and remove it from the queue if podcast data is not found.
+        $podcast_data = isset( $args['data'] ) ? $args['data'] : array();
+        if ( empty( $podcast_data ) ) {
+            return ( array( true, false ) );
+        }
+
+        $get_feed = new Get_Feed( $feed_url );
+        $data     = $get_feed->fetch_podcast_data( $podcast_data );
+
+        // Remove task from the queue if error in fetching podcast data.
+        if ( is_wp_error( $data ) ) {
+            return array( true, false );
+        }
+        return array( true, $data );
     }
 }

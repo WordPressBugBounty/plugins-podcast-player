@@ -61,6 +61,11 @@ class Feed extends Singleton {
 	 */
 	public function display_podcast( $args ) {
 
+		// Do not render podcast player on RSS feeds.
+		if ( is_feed() ) {
+			return;
+		}
+
 		// Validate podcast feed URL.
 		$args['url'] = Get_Fn::get_valid_feed_url( $args['url'] );
 		if ( is_wp_error( $args['url'] ) ) {
