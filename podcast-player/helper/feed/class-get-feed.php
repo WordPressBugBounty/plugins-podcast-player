@@ -136,11 +136,7 @@ class Get_Feed {
         $podcast_data  = $store_manager->get_data( $this->feed_url );
 		$podcast_data  = $podcast_data instanceof FeedData ? $podcast_data : false;
 		if ( $this->is_fetch_required( $podcast_data ) ) {
-			if ( false === $podcast_data ) {
-				return $this->fetch_podcast_data( $podcast_data );
-			}
-			
-			Background_Jobs::add_task( $this->feed_url, 'update_podcast_data', $podcast_data );
+			return $this->fetch_podcast_data( $podcast_data );
 		}
         return $podcast_data->retrieve();
 	}
