@@ -2,9 +2,9 @@
 Contributors: vedathemes
 Tags: podcast, podcasting, rss feed, feed to audio, podcaster
 Requires at least: 4.9
-Tested up to: 6.6
+Tested up to: 6.7
 Requires PHP: 5.6
-Stable tag: 7.4.5
+Stable tag: 7.4.6
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -98,6 +98,11 @@ Podcast player plugin (on its own) does not create and save any cookies and does
 5. Podcast player on large size container
 
 == Changelog ==
+
+= 7.4.6 =
+* Add: Filters to extend episode import feature
+* Add: Global JS functions to pause and play currently playing podcast player.
+* Modify: Hidden sticky player reappear on episode play button click.
 
 = 7.4.5 =
 * Bug Fix: Background udpate disabled temporarily as it might be creating issues.

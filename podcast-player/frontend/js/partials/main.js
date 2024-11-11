@@ -75,4 +75,17 @@ import MediaElem from './mediaelem';
 
 	if ( spodcast.length ) $( 'html, body' ).animate({ scrollTop: spodcast.offset().top - 200 }, 400 );
 	if ( settings.isPremium && settings.isSticky ) $(window).on('scroll', props.stickyonScroll.bind(props));
+
+	// Adding global functions to control the podcast player globally.
+	window.podcastPlayerPlay = () => {
+		if ( MediaElem && MediaElem.currentlyPlayingInstance ) {
+			MediaElem.currentlyPlayingInstance.media.play();
+		}
+	}
+
+	window.podcastPlayerPause = () => {
+		if ( MediaElem && MediaElem.currentlyPlayingInstance ) {
+			MediaElem.currentlyPlayingInstance.media.pause();
+		}
+	}
 })(jQuery);

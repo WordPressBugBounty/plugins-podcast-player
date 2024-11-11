@@ -130,6 +130,15 @@ class PlayEpisode {
 					}, 200);
 				}
 
+				if (! modal.hasClass('modal-view')) {
+					const modalClose  = modal.find('.pp-modal-close');
+					const controlWrap = modal.find('.pp-modal-wrapper');
+					if (modalClose.hasClass('modal-closed')) {
+						modalClose.removeClass('modal-closed');
+						controlWrap.animate({height: 'toggle'}, 400);
+					}
+				}
+
 				// Displable buttons if search window is opened.
 				if (_this.podcast.hasClass('search-opened')) {
 					_this.prevBtn.attr('disabled', true);

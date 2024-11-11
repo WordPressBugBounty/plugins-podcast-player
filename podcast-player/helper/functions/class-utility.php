@@ -204,7 +204,7 @@ class Utility {
         $taxonomy    = isset( $import_settings['taxonomy'] ) ? sanitize_text_field( $import_settings['taxonomy'] ) : '';
 
         // Get items data to be imported as WP posts.
-        $req_fields = array(
+        $req_fields = apply_filters( 'podcast_player_import_episode_fields', array(
             'title',
             'description',
             'date',
@@ -216,7 +216,7 @@ class Utility {
             'categories',
 			'episode_id',
             'post_id'
-        );
+		), $feed_key );
 
         // Get required episodes data from the feed.
 		$fdata        = Get_Fn::get_feed_data( $feed_key, array( 'elist' => $elist ), $req_fields );
@@ -228,6 +228,7 @@ class Utility {
 			return $fdata;
 		}
 
+		$furl  = isset( $fdata['furl'] ) ? $fdata['furl'] : $feed_key;
         $items = $fdata['items'];
         $items = array_slice( $items, 0, 10 );
 
@@ -254,7 +255,9 @@ class Utility {
 						'post_status'  => $post_status,
 						'post_title'   => sanitize_text_field( $item['title'] ),
 						'post_type'    => $post_type,
-					)
+					),
+					$furl,
+					$item
 				)
 			);
 
