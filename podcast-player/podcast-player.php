@@ -14,7 +14,7 @@
  * Plugin Name:       podcast player
  * Plugin URI:        https://easypodcastpro.com
  * Description:       Host your podcast episodes anywhere, display them only using podcast feed url. Use custom widget or shortcode to display podcast player anywhere on your site.
- * Version:           7.4.6
+ * Version:           7.4.7
  * Author:            vedathemes
  * Author URI:        https://easypodcastpro.com
  * License:           GPL-3.0+
@@ -29,7 +29,7 @@ if ( ! defined( 'WPINC' ) ) {
 }
 
 // Currently plugin version.
-define( 'PODCAST_PLAYER_VERSION', '7.4.6' );
+define( 'PODCAST_PLAYER_VERSION', '7.4.7' );
 
 // Define plugin constants.
 define( 'PODCAST_PLAYER_DIR', plugin_dir_path( __FILE__ ) );
@@ -85,9 +85,6 @@ spl_autoload_register(
 add_action(
 	'plugins_loaded',
 	function () {
-		// Load plugin's text domain.
-		load_plugin_textdomain( 'podcast-player', false, dirname( PODCAST_PLAYER_BASENAME ) . '/lang' );
-
 		// Register Podcast player front-end hooks.
 		Podcast_Player\Frontend\Register::init();
 
@@ -95,6 +92,14 @@ add_action(
 		Podcast_Player\Backend\Register::init();
 	},
 	8
+);
+
+add_action(
+	'init',
+	function () {
+		// Load plugin's text domain.
+		load_plugin_textdomain( 'podcast-player', false, dirname( PODCAST_PLAYER_BASENAME ) . '/lang' );
+	}	
 );
 
 // Load premium features (if exist).
