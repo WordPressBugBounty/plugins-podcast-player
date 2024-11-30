@@ -230,7 +230,8 @@ class Utility {
 
 		$furl  = isset( $fdata['furl'] ) ? $fdata['furl'] : $feed_key;
         $items = $fdata['items'];
-        $items = array_slice( $items, 0, 10 );
+		// The following create problems when importing large feeds without images. As it only imports 10 items at a time.
+        // $items = array_slice( $items, 0, 10 ); Why this has been added?
 
         // Store the original time limit
         $original_time_limit = ini_get('max_execution_time');
@@ -240,6 +241,9 @@ class Utility {
             $date    = isset( $item['timestamp'] ) ? date( 'Y-m-d H:i:s', $item['timestamp'] ) : date( 'Y-m-d H:i:s', strtotime( $item['date'] ) );
 			$post_id = self::check_if_post_exists( $post_id, $item['title'], $date, $post_type );
             if ( $post_id ) {
+				if ( ! isset( $custom_items[ $key ] ) || ! $custom_items[ $key ] instanceof ItemData ) {
+					$custom_items[ $key ] = new ItemData();
+				}
 				$custom_items[ $key ]->set( 'post_id', $post_id );
                 continue;
             }
