@@ -79,12 +79,6 @@ class Render {
 	 */
 	public function __construct( $props ) {
 
-		// TODO: Is this compatibility required anymore?
-		// Back Compatibility.
-		if ( is_array( $props ) && 6 === count( $props ) ) {
-			$props[] = '';
-		}
-
 		// Extract all props.
 		list( $title, $desc, $link, $items, $instance, $args, $data ) = $props;
 

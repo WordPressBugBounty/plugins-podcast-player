@@ -179,7 +179,7 @@ class Register {
 		$misc = Misc::get_instance();
 
 		// TODO: To be removed in the 7.5.0
-		add_action( 'pp_save_images_locally', array( $misc, 'save_images_locally' ) );
+		// add_action( 'pp_save_images_locally', array( $misc, 'save_images_locally' ) );
 
 		// TODO: Instead of cron updates, should use Background Jobs.
 		add_action( 'pp_auto_update_podcast', array( $misc, 'auto_update_podcast' ) );
@@ -216,6 +216,7 @@ class Register {
 		$inst = Background_Tasks::get_instance();
 		add_filter( 'podcast_player_bg_task_download_image', array( $inst, 'download_images' ), 10, 2 );
 		add_filter( 'podcast_player_bg_task_import_episodes', array( $inst, 'import_episodes' ), 10, 2 );
-		add_filter( 'podcast_player_bg_task_update_podcast_data', array( $inst, 'update_podcast_data' ), 10, 2 );
+		// Reverting the cron update due to user complaints regarding lots of Ajax requests causing server load.
+		// add_filter( 'podcast_player_bg_task_update_podcast_data', array( $inst, 'update_podcast_data' ), 10, 2 );
 	}
 }

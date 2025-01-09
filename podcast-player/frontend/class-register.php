@@ -151,19 +151,7 @@ class Register {
 	 * @param object $instance PP front loader instance.
 	 */
 	public static function elementor_support( $instance ) {
-		// TODO: Using action hooks here, therefore no need for conditional check.
-		if (
-			in_array(
-				'elementor/elementor.php',
-				apply_filters( 'active_plugins', get_option( 'active_plugins' ) ),
-				true
-			)
-		) {
-			add_action(
-				'elementor/preview/enqueue_scripts',
-				array( $instance, 'enqueue_elementor_resources' )
-			);
-		}
+		add_action( 'elementor/preview/enqueue_scripts', array( $instance, 'enqueue_elementor_resources' ) );
 	}
 
 	/**

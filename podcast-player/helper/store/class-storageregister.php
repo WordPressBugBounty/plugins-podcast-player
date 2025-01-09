@@ -47,6 +47,15 @@ class StorageRegister extends StoreBase {
 	protected $unique_id = '';
 
 	/**
+	 * Holds podcast source URL.
+	 *
+	 * @since 7.4.9
+	 * @access private
+	 * @var    string
+	 */
+	protected $source_url = '';
+
+	/**
 	 * Holds podcast feed URLs.
 	 *
 	 * @since  1.0.0
@@ -83,6 +92,7 @@ class StorageRegister extends StoreBase {
 		return array(
 			'object_id'   => 'int',
 			'title'       => 'title',
+			'source_url'  => 'url',
 			'feed_url'    => 'arrUrl',
 			'object_keys' => 'arrString',
 			'unique_id'   => 'string',

@@ -26,11 +26,33 @@ $feed_index = Get_Fn::get_feed_index();
 					<ul class="pp-podcasts-list">
 						<?php foreach ( $feed_index as $key => $args ) : ?>
 							<li class="pp-podcast-list-item" data-podcast="<?php echo esc_attr( $key ); ?>">
-								<span class="pp-podcast-info">
-									<span class="pp-podcast-title"><?php echo is_array( $args ) && isset( $args['title'] ) ? esc_html( $args['title'] ) : ''; ?></span>
-									<span class="pp-podcast-url"><a href="<?php echo is_array( $args ) && isset( $args['url'] ) ? esc_html( $args['url'] ) : ''; ?>" target="_blank"><?php echo is_array( $args ) && isset( $args['url'] ) ? esc_html( $args['url'] ) : ''; ?></a></span>
-								</span>
-								<span class="pp-podcast-actions">
+								<div class="pp-podcast-info">
+								<span class="pp-podcast-title"><?php echo is_array( $args ) && isset( $args['title'] ) ? esc_html( $args['title'] ) : ''; ?></span>
+									<div class="pp-podcast-source">
+										<span class="pp-podcast-url"><a href="<?php echo is_array( $args ) && isset( $args['url'] ) ? esc_html( $args['url'] ) : ''; ?>" target="_blank"><?php echo is_array( $args ) && isset( $args['url'] ) ? esc_html( $args['url'] ) : ''; ?></a></span>
+										<button class="pp-podcast-source-btn"><span class="dashicons dashicons-edit"></span></button>
+									</div>
+									<div class="pp-podcast-source-container">
+										<?php
+										$source_url = isset( $args['source_url'] ) ? $args['source_url'] : '';
+										?>
+										<div class="pp-podcast-existing-source" <?php echo empty( $source_url ) ? 'style="display: none;"' : ''; ?>>
+											<div><span style="font-weight: bold;"><?php esc_html_e( 'Existing Source URL', 'podcast-player' ); ?></span></div>
+											<div>
+												<span class="pp-podcast-existing-source-url"><?php echo esc_html( $source_url ); ?></span>
+												<a class="pp-podcast-delete-source-url" href="#"><span class="dashicons dashicons-trash"></span></a>
+											</div>
+										</div>
+										<div class="pp-podcast-new-source">
+											<div class="pp-podcast-new-source-input">
+												<input type="text" class="pp-podcast-new-source-url" placeholder="New Source URL" />
+												<button class="pp-podcast-new-source-btn"><span class="dashicons dashicons-yes-alt"></span></button>
+											</div>
+											<span class="pp-podcast-new-source-desc"><?php esc_html_e( 'If you have migrated this podcast to a new host, add new source URL here.', 'podcast-player' ); ?></span>
+										</div>
+									</div>
+								</div>
+								<div class="pp-podcast-actions">
 									<button class="pp-toolkit-buttons pp-podcast-refresh-btn button">
 										<span class="dashicons dashicons-update"></span>
 										<span class="pp-toolkit-btn-text">Update</span>
@@ -41,7 +63,7 @@ $feed_index = Get_Fn::get_feed_index();
 										<span class="pp-toolkit-btn-text">Delete</span>
 										<span class="pp-loader"></span>
 									</button>
-								</span>
+								</div>
 							</li>
 						<?php endforeach; ?>
 					</ul>

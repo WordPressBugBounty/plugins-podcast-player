@@ -36,6 +36,8 @@ class Misc extends Singleton {
 
 	/**
 	 * Save feed episode images locally.
+	 * 
+	 * TODO: Not used any more. To be removed in 7.5.0
 	 *
 	 * @since 2.9.0
 	 *
@@ -114,6 +116,8 @@ class Misc extends Singleton {
 
 	/**
 	 * Upload images locally for new feed data type.
+	 *
+	 * TODO: Not used any more. To be removed in 7.5.0
 	 *
 	 * @since 6.5.0
 	 *

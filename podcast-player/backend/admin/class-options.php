@@ -13,7 +13,10 @@ namespace Podcast_Player\Backend\Admin;
 
 use Podcast_Player\Helper\Functions\Getters as Get_Fn;
 use Podcast_Player\Helper\Functions\Utility as Utility_Fn;
+use Podcast_Player\Helper\Functions\Validation as Validation_Fn;
+use Podcast_Player\Helper\Store\FeedData;
 use Podcast_Player\Helper\Store\StoreManager;
+use Podcast_Player\Helper\Feed\Fetch_Feed;
 
 /**
  * The admin-options page of the plugin.
@@ -113,6 +116,8 @@ class Options {
 		add_action( 'podcast_player_options_page_content', array( $inst, 'display_content' ) );
 		add_action( 'wp_ajax_pp_feed_editor', array( $inst, 'feed_editor_new' ) );
 		add_action( 'wp_ajax_nopriv_pp_feed_editor', array( $inst, 'feed_editor_new' ) );
+		add_action( 'wp_ajax_pp_migrate_podcast', array( $inst, 'migrate_podcast_source' ) );
+		add_action( 'wp_ajax_pp_delete_source', array( $inst, 'delete_podcast_source' ) );
 	}
 
 	/**
@@ -176,24 +181,6 @@ class Options {
 					'default'     => '',
 					'section'     => 'optimize',
 				),
-				// 'use_mejs_audio'   => array(
-				// 	'name'        => esc_html__( 'Use old Mediaelement JS.', 'podcast-player' ),
-				// 	'id'          => 'use_mejs_audio',
-				// 	'description' => esc_html__( 'Podcast player will not use Mediaelement JS for audio podcasts. If you face any issues with the new method, enable this option. Please report the issue as well, as this option is temporary and will be removed in future updates.', 'podcast-player' ),
-				// 	'link'        => '',
-				// 	'type'        => 'checkbox',
-				// 	'default'     => '',
-				// 	'section'     => 'advanced',
-				// ),
-				// 'keep_old'         => array(
-				// 	'name'        => esc_html__( 'Keep older episodes data.', 'podcast-player' ),
-				// 	'id'          => 'keep_old',
-				// 	'description' => esc_html__( 'Keep episodes data, even if deleted from the feed. If enabled, You can manually delete this data from "Toolkit > Feed Updation Tool > Delete Podcast Data".', 'podcast-player' ),
-				// 	'link'        => '',
-				// 	'type'        => 'checkbox',
-				// 	'default'     => '',
-				// 	'section'     => 'advanced',
-				// ),
 				'check_cache_headers' => array(
 					'name'        => esc_html__( 'Vertify cache headers for feed update.', 'podcast-player' ),
 					'id'          => 'check_cache_headers',
@@ -568,7 +555,6 @@ class Options {
 		}
 
 		$store_manager = StoreManager::get_instance();
-		$time          = $fprn ? 'pp_feed_time_' . $fprn : false;
 		$message       = '';
 		$error         = '';
 
@@ -584,7 +570,6 @@ class Options {
 				}
 				break;
 			case 'reset':
-				delete_transient( $time );
 				$store_manager->delete_data( $fprn, array( 'feed_data', 'last_checked' ) );
 				$all_meta  = $store_manager->get_data( $fprn, '' );
 				if ( empty( $all_meta ) ) {
@@ -593,10 +578,6 @@ class Options {
 					$store_manager->hide_data( $fprn );
 				}
 
-				// TEMPORARY as custom data will be moved from the options table.
-				// delete_option( 'pp_feed_data_custom_' . $fprn );
-
-				// Utility_Fn::refresh_index_new();
 				$message = esc_html__( 'Podcast Deleted Successfully.', 'podcast-player' );
 				break;
 			default:
@@ -611,6 +592,113 @@ class Options {
 
 		// Ajax output to be returened.
 		$output = array( 'message' => $message );
+		echo wp_json_encode( $output );
+		wp_die();
+	}
+
+	/**
+	 * New method to handle feed editor ajax calls.
+	 *
+	 * @since 1.0.0
+	 */
+	public function migrate_podcast_source() {
+		check_ajax_referer( 'podcast-player-admin-options-ajax-nonce', 'security' );
+
+		$podcast_id = isset( $_POST['podcast_id'] ) ? sanitize_text_field( wp_unslash( $_POST['podcast_id'] ) ) : false;
+		$source_url = isset( $_POST['source_url'] ) ? wp_unslash( $_POST['source_url'] ) : false; // Sanitized in line below after validation.
+
+		if ( $source_url && Validation_Fn::is_valid_url( $source_url ) ) {
+			$source_url = esc_url( $source_url );
+		} else {
+			$output = array(
+				'error' => esc_html__( 'Invalid source URL provided.', 'podcast-player' ),
+			);
+			echo wp_json_encode( $output );
+			wp_die();
+		}
+
+		if ( ! $podcast_id ) {
+			$output = array(
+				'error' => esc_html__( 'Valid Podcast Key Not Available.', 'podcast-player' ),
+			);
+			echo wp_json_encode( $output );
+			wp_die();
+		}
+
+		$store_manager = StoreManager::get_instance();
+		$old_podcast_data = $store_manager->get_data( $podcast_id );
+
+		$obj              = new Fetch_Feed( $source_url );
+		$new_podcast_data = $obj->get_feed_data();
+		if ( is_wp_error( $new_podcast_data ) ) {
+			$output = array(
+				'error' => esc_html__( 'Source URL does not contain valid feed data.', 'podcast-player' ),
+			);
+			echo wp_json_encode( $output );
+			wp_die();
+		}
+
+		if ( $old_podcast_data && $old_podcast_data instanceof FeedData ) {
+			$old_author = $old_podcast_data->get( 'author' );
+			$old_title  = $old_podcast_data->get( 'title' );
+			$new_author = $new_podcast_data->get( 'author' );
+			$new_title  = $new_podcast_data->get( 'title' );
+			if ( $old_author !== $new_author || $old_title !== $new_title ) {
+				$output = array(
+					'error' => esc_html__( 'New Podcast data does not match with old data. Please check title and author.', 'podcast-player' ),
+				);
+				echo wp_json_encode( $output );
+				wp_die();
+			}
+		}
+
+		$is_success = $store_manager->add_podcast_source_url( $podcast_id, $source_url );
+
+		if ( ! $is_success ) {
+			$output = array(
+				'error' => esc_html__( 'Unable to update source URL.', 'podcast-player' ),
+			);
+			echo wp_json_encode( $output );
+			wp_die();
+		}
+
+		// Ajax output to be returened.
+		$output = array( 'message' => esc_html__( 'Source URL updated successfully.', 'podcast-player' ) );
+		echo wp_json_encode( $output );
+		wp_die();
+	}
+
+	/**
+	 * New method to handle feed editor ajax calls.
+	 *
+	 * @since 1.0.0
+	 */
+	public function delete_podcast_source() {
+		check_ajax_referer( 'podcast-player-admin-options-ajax-nonce', 'security' );
+
+		$podcast_id = isset( $_POST['podcast_id'] ) ? sanitize_text_field( wp_unslash( $_POST['podcast_id'] ) ) : false;
+
+		if ( ! $podcast_id ) {
+			$output = array(
+				'error' => esc_html__( 'Valid Podcast Key Not Available.', 'podcast-player' ),
+			);
+			echo wp_json_encode( $output );
+			wp_die();
+		}
+
+		$store_manager = StoreManager::get_instance();
+		$is_success = $store_manager->delete_podcast_source_url( $podcast_id );
+
+		if ( ! $is_success ) {
+			$output = array(
+				'error' => esc_html__( 'Unable to delete source URL.', 'podcast-player' ),
+			);
+			echo wp_json_encode( $output );
+			wp_die();
+		}
+
+		// Ajax output to be returened.
+		$output = array( 'message' => esc_html__( 'Source URL deleted successfully.', 'podcast-player' ) );
 		echo wp_json_encode( $output );
 		wp_die();
 	}

@@ -82,6 +82,9 @@ class StoreBase {
 	 * @param string $context 'echo' or 'sanitize'.
 	 */
 	protected function url( $val, $context ) {
+		if ( ! $val ) {
+			return '';
+		}
 		if ( 'sanitize' === $context ) {
 			return esc_url_raw( $val );
 		} else {

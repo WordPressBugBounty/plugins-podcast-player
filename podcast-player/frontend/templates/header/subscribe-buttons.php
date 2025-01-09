@@ -65,4 +65,4 @@ foreach ( $pp_sub_links as $pp_link ) {
 	);
 }
 
-echo $pp_sub_markup;
+echo $pp_sub_markup; // Contains plugin generated HTML Markup. All variables are escaped while generating the markup.

@@ -60,6 +60,11 @@ class Background_Tasks extends Singleton {
             return false;
         }, $items ) ) );
 
+        if ( empty( $in_clause ) ) {
+            // No valid items to process; return early.
+            return array( new \WP_Error( 'no-valid-items', esc_html__( 'No valid featured images found.', 'podcast-player' ) ), false );
+        }
+
         $sql           = "SELECT post_id, meta_value FROM {$wpdb->postmeta} WHERE meta_key = 'pp_featured_key' AND meta_value IN ( $in_clause )";
         $results       = $wpdb->get_results( $sql, ARRAY_A );
         $featured_keys = array_column( $results, 'post_id', 'meta_value' );

@@ -379,11 +379,6 @@ class Loader extends Singleton {
 			return true;
 		}
 
-		// $use_mejs = Get_Fn::get_Plugin_option( 'use_mejs_audio' );
-		// if ( 'yes' === $use_mejs ) {
-		// 	return true;
-		// }
-
 		return false;
 	}
 }

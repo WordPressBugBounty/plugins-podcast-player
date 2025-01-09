@@ -1,852 +1,1184 @@
 # Podcast Player.
-# Copyright (C) 2020 vedathemes
+# Copyright (C) 2025 easyprolabs
 # This file is distributed under the same license as the PACKAGE package.
-# Vedathemes <contact@vedathemes.com>, 2020.
+# easypodcastpro <contact@easypodcastpro.com>, 2025.
 #
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: podcast-player 3.3.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-07-03 04:18-0700\n"
+"POT-Creation-Date: 2025-01-09 04:18-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Last-Translator: EasyPodcastPro <contact@easypodcastpro.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: backend/admin/class-options.php:70
-msgid "Home"
+#. %s: Subcription service label
+#: backend/inc/class-widget.php:250
+#, php-format
+msgid "%s Subscription Link"
 msgstr ""
 
-#: backend/admin/class-options.php:73 backend/inc/class-misc.php:149
-msgid "Settings"
+#: backend/admin/class-options.php:484
+msgid "+ Add"
 msgstr ""
 
-#: backend/admin/class-options.php:76
-msgid "Toolkit"
+#: frontend/templates/misc/js/controls.php:32
+msgid "[...]"
 msgstr ""
 
-#: backend/admin/class-options.php:79
-msgid "FAQ"
+#: backend/admin/class-options.php:489
+msgid "Aborting Import"
 msgstr ""
 
-#: backend/admin/class-options.php:85
-msgid "Optimization"
-msgstr ""
-
-#: backend/admin/class-options.php:86
-msgid "Security"
-msgstr ""
-
-#: backend/admin/class-options.php:91
-msgid "Getting Started"
-msgstr ""
-
-#: backend/admin/class-options.php:92
-msgid "Frequently Asked Questions"
-msgstr ""
-
-#: backend/admin/class-options.php:125
-#: backend/inc/compat/backend/inc/class-options.php:195
-msgid "Image Optimization"
-msgstr ""
-
-#: backend/admin/class-options.php:127
-#: backend/inc/compat/backend/inc/class-options.php:198
-msgid "Download and serve responsive images."
-msgstr ""
-
-#: backend/admin/class-options.php:134
-msgid "Add rel attributes."
-msgstr ""
-
-#: backend/admin/class-options.php:136
-msgid "Add rel attributes to external links in episode content."
-msgstr ""
-
-#: backend/admin/class-options.php:153 backend/admin/class-options.php:154
-#: backend/admin/templates/main.php:16 backend/inc/class-widget.php:126
-#: backend/inc/compat/backend/inc/class-options.php:58
-#: backend/inc/compat/backend/inc/class-options.php:59
-#: backend/inc/compat/backend/inc/class-widget.php:127
-#: backend/inc/compat/backend/partials/pp-options-page.php:14
-msgid "Podcast Player"
-msgstr ""
-
-#: backend/admin/class-options.php:313
-msgid "Performing Action"
-msgstr ""
-
-#: backend/admin/class-options.php:314
-msgid "Please provide a valid feed url"
-msgstr ""
-
-#: backend/admin/class-options.php:334 backend/admin/class-options.php:339
-#: backend/admin/class-options.php:344 backend/admin/class-options.php:349
-msgid "How to activate  Plus plugin?"
-msgstr ""
-
-#: backend/admin/class-options.php:404
-msgid "Invalid feed key provided."
-msgstr ""
-
-#: backend/admin/class-options.php:413
-msgid "Please provide a valid feed URL"
-msgstr ""
-
-#: backend/admin/class-options.php:431
-msgid "Feed data not available. Either data already "
-msgstr ""
-
-#: backend/admin/class-options.php:431
-msgid " OR feed url is not correct."
-msgstr ""
-
-#: backend/admin/class-options.php:445
-msgid "Feed Refreshed Successfully."
-msgstr ""
-
-#: backend/admin/class-options.php:450
-msgid "Feed Reset Successfully."
-msgstr ""
-
-#: backend/admin/class-options.php:453
-msgid "Unexpected user input."
-msgstr ""
-
-#: backend/admin/templates/main.php:46
-msgid "Vedathemes"
-msgstr ""
-
-#: backend/admin/templates/main.php:46
-msgid "Y"
-msgstr ""
-
-#: backend/admin/templates/settings.php:11
-msgid ""
-"Note: To immediately reflect the changes made in this section, make sure to "
-"update your feed using feed updation tool in \"Toolkit\" section."
-msgstr ""
-
-#: backend/admin/templates/sidebar.php:17
-msgid "Upgrade to Podcast Player Pro"
-msgstr ""
-
-#: backend/admin/templates/toolkit.php:19
-msgid "Select a Feed to update / reset"
-msgstr ""
-
-#: backend/admin/templates/toolkit.php:30
-msgid "OR"
-msgstr ""
-
-#: backend/inc/class-block.php:229 backend/inc/class-shortcode.php:156
-#: backend/inc/class-widget.php:104
-#: backend/inc/compat/backend/inc/class-player.php:114
-#: backend/inc/compat/backend/inc/class-player.php:363
-#: backend/inc/compat/backend/inc/class-widget.php:107
-#: backend/inc/compat/bridge/functions.php:192
-#: frontend/inc/class-display.php:201
-msgid "Episode will play after this message."
-msgstr ""
-
-#: backend/inc/class-loader.php:85 backend/inc/class-loader.php:87
-#: backend/inc/compat/backend/class-backend.php:135
-#: backend/inc/compat/backend/class-backend.php:137
-msgid "Set Image"
-msgstr ""
-
-#: backend/inc/class-loader.php:86
-#: backend/inc/compat/backend/class-backend.php:136
-msgid "Select"
-msgstr ""
-
-#: backend/inc/class-loader.php:258
-msgid ""
-"There is an update available to Podcast Player Pro. Please update to Podcast "
-"Player Pro v2.0.0. If you have not received an automated update notice, "
-"please login to vedathemes.com and download latest version."
-msgstr ""
-
-#: backend/inc/class-misc.php:160
-msgid "Get Pro"
-msgstr ""
-
-#: backend/inc/class-widget.php:123
-#: backend/inc/compat/backend/inc/class-widget.php:124
-msgid "Create a podcast player widget."
-msgstr ""
-
-#: backend/inc/class-widget.php:207
-#: backend/inc/compat/backend/inc/class-widget.php:205
-msgid "None"
-msgstr ""
-
-#: backend/inc/class-widget.php:214
-#: backend/inc/compat/backend/inc/class-widget.php:212
-msgid "General Options"
-msgstr ""
-
-#: backend/inc/class-widget.php:218
-#: backend/inc/compat/backend/inc/class-widget.php:216
-msgid "Title"
-msgstr ""
-
-#: backend/inc/class-widget.php:223
-#: backend/inc/compat/backend/inc/class-widget.php:221
-msgid "Podcast Feed URL"
-msgstr ""
-
-#: backend/inc/class-widget.php:232
-#: backend/inc/compat/backend/inc/class-widget.php:230
-msgid "Customize Podcast Content"
-msgstr ""
-
-#: backend/inc/class-widget.php:239 backend/inc/class-widget.php:773
-#: backend/inc/class-widget.php:776
-#: backend/inc/compat/backend/inc/class-widget.php:237
-#: backend/inc/compat/backend/inc/class-widget.php:747
-#: backend/inc/compat/backend/inc/class-widget.php:750
-msgid "Podcast Cover Image"
-msgstr ""
-
-#: backend/inc/class-widget.php:244
-#: backend/inc/compat/backend/inc/class-widget.php:242
-msgid "Brief Description"
-msgstr ""
-
-#: backend/inc/class-widget.php:253
-#: backend/inc/compat/backend/inc/class-widget.php:251
-msgid "Apple Podcast Subscription link."
-msgstr ""
-
-#: backend/inc/class-widget.php:258
-#: backend/inc/compat/backend/inc/class-widget.php:256
-msgid "Google Podcast Subscription link."
-msgstr ""
-
-#: backend/inc/class-widget.php:263
-msgid "Spotify Podcast Subscription link."
-msgstr ""
-
-#: backend/inc/class-widget.php:268
-#: backend/inc/compat/backend/inc/class-widget.php:261
-msgid "Custom menu for more subscription links"
-msgstr ""
-
-#: backend/inc/class-widget.php:274
-#: backend/inc/compat/backend/inc/class-widget.php:267
-msgid "Number of episodes to show at a time."
-msgstr ""
-
-#: backend/inc/class-widget.php:284
-msgid "Excerpt Length"
-msgstr ""
-
-#: backend/inc/class-widget.php:299
-#: backend/inc/compat/backend/inc/class-widget.php:278
-msgid "Show/Hide Player Items"
-msgstr ""
-
-#: backend/inc/class-widget.php:306
-#: backend/inc/compat/backend/inc/class-widget.php:285
-msgid "Show Podcast Header by Default."
-msgstr ""
-
-#: backend/inc/class-widget.php:314
-#: backend/inc/compat/backend/inc/class-widget.php:293
-msgid "Show episodes list by default on mini player."
-msgstr ""
-
-#: backend/inc/class-widget.php:322
-#: backend/inc/compat/backend/inc/class-widget.php:301
-msgid "Hide Podcast Header Information."
-msgstr ""
-
-#: backend/inc/class-widget.php:327
-#: backend/inc/compat/backend/inc/class-widget.php:306
-msgid "Hide cover image."
-msgstr ""
-
-#: backend/inc/class-widget.php:335
-#: backend/inc/compat/backend/inc/class-widget.php:314
-msgid "Hide Podcast Title."
-msgstr ""
-
-#: backend/inc/class-widget.php:343
-#: backend/inc/compat/backend/inc/class-widget.php:322
-msgid "Hide Podcast Description."
-msgstr ""
-
-#: backend/inc/class-widget.php:351
-#: backend/inc/compat/backend/inc/class-widget.php:330
-msgid "Hide Custom menu."
-msgstr ""
-
-#: backend/inc/class-widget.php:359
-#: backend/inc/compat/backend/inc/class-widget.php:338
-msgid "Hide Podcast Search."
-msgstr ""
-
-#: backend/inc/class-widget.php:364
-#: backend/inc/compat/backend/inc/class-widget.php:343
-msgid "Hide Episode Author/Podcaster Name."
-msgstr ""
-
-#: backend/inc/class-widget.php:369
-#: backend/inc/compat/backend/inc/class-widget.php:348
-msgid "Hide Episode Text Content/Transcript."
-msgstr ""
-
-#: backend/inc/class-widget.php:377
-#: backend/inc/compat/backend/inc/class-widget.php:356
-msgid "Hide Load More Episodes Button."
-msgstr ""
-
-#: backend/inc/class-widget.php:382
-#: backend/inc/compat/backend/inc/class-widget.php:361
-msgid "Hide Episode Download Link."
-msgstr ""
-
-#: backend/inc/class-widget.php:387
-#: backend/inc/compat/backend/inc/class-widget.php:366
-msgid "Hide Social Share Links."
-msgstr ""
-
-#: backend/inc/class-widget.php:392
-#: backend/inc/compat/backend/inc/class-widget.php:371
-msgid "Hide Episodes Featured Image."
-msgstr ""
-
-#: backend/inc/class-widget.php:398
-#: backend/inc/compat/backend/inc/class-widget.php:377
-msgid "Podcast Player Styling"
-msgstr ""
-
-#: backend/inc/class-widget.php:402
-#: backend/inc/compat/backend/inc/class-widget.php:381
+#: backend/inc/class-widget.php:504
 msgid "Accent Color"
 msgstr ""
 
-#: backend/inc/class-widget.php:407
-#: backend/inc/compat/backend/inc/class-widget.php:386
-msgid "Podcast Player Display Style"
+#: backend/inc/class-widget.php:255
+msgid "Add a Podcast Subscription link"
 msgstr ""
 
-#: backend/inc/class-widget.php:417
-#: backend/inc/compat/backend/inc/class-widget.php:396
-msgid "Sort & Filter Options"
+#: backend/admin/class-options.php:178
+msgid ""
+"Add noopener, noreferrer and nofollow rel attributes to external links in "
+"episode content. It should improve SEO and security of your website."
 msgstr ""
 
-#: backend/inc/class-widget.php:424
-#: backend/inc/compat/backend/inc/class-widget.php:403
-msgid "Sort Podcast Episodes By"
+#: backend/admin/class-options.php:176
+msgid "Add rel attributes."
 msgstr ""
 
-#: backend/inc/class-widget.php:427
-#: backend/inc/compat/backend/inc/class-widget.php:406
-msgid "Title Descending"
+#: backend/admin/class-options.php:480
+msgid "Add/ Edit categories"
 msgstr ""
 
-#: backend/inc/class-widget.php:428
-#: backend/inc/compat/backend/inc/class-widget.php:407
-msgid "Title Ascending"
+#: backend/admin/class-options.php:481
+msgid "Add/ Edit Custom Featured Image"
 msgstr ""
 
-#: backend/inc/class-widget.php:429
-#: backend/inc/compat/backend/inc/class-widget.php:408
-msgid "Date Descending"
+#: backend/admin/class-options.php:479
+msgid "Add/ Edit Season"
 msgstr ""
 
-#: backend/inc/class-widget.php:430
-#: backend/inc/compat/backend/inc/class-widget.php:409
-msgid "Date Ascending"
+#: backend/admin/class-options.php:96
+msgid "Advanced"
 msgstr ""
 
-#: backend/inc/class-widget.php:435
-#: backend/inc/compat/backend/inc/class-widget.php:414
-msgid "Show episodes only if title contains following"
+#: frontend/templates/misc/js/auxmodal.php:28
+msgid "All Episodes"
 msgstr ""
 
-#: backend/inc/class-widget.php:651
-msgid "Feed URL is not valid"
+#: backend/admin/templates/toolkit/feed-update.php:45
+msgid ""
+"All stored data for the podcast will be deleted. Please confirm to delete "
+"podcast."
 msgstr ""
 
-#: backend/inc/class-widget.php:780
-#: backend/inc/compat/backend/inc/class-widget.php:754
+#: helper/functions/class-getters.php:427
+msgid "Amazon Music"
+msgstr ""
+
+#: helper/functions/class-getters.php:424
+msgid "Apple"
+msgstr ""
+
+#: frontend/templates/subscribe/apple.php:28
+msgid "Apple Podcasts"
+msgstr ""
+
+#: backend/inc/class-background-tasks.php:188
+msgid "Auto update has been disabled."
+msgstr ""
+
+#: frontend/templates/subscribe/podbean.php:27
+msgid "Available on"
+msgstr ""
+
+#: helper/functions/class-getters.php:428
+#: frontend/templates/subscribe/breaker.php:28
+msgid "Breaker"
+msgstr ""
+
+#: backend/inc/class-widget.php:322
+msgid "Brief Description"
+msgstr ""
+
+#: helper/functions/class-getters.php:441
+msgid "BullHorn"
+msgstr ""
+
+#: frontend/templates/subscribe/bullhorn.php:28
+msgid "Bullhorn"
+msgstr ""
+
+#: frontend/templates/episode/single.php:30
+msgid "by"
+msgstr ""
+
+#: helper/core/class-singleton.php:47
+msgid "Cannot clone a singleton."
+msgstr ""
+
+#: helper/core/class-singleton.php:59
+msgid "Cannot serialize a singleton."
+msgstr ""
+
+#: helper/core/class-singleton.php:71
+msgid "Cannot unserialize a singleton."
+msgstr ""
+
+#: helper/functions/class-getters.php:429
+#: frontend/templates/subscribe/castbox.php:28
+msgid "Castbox"
+msgstr ""
+
+#: helper/functions/class-getters.php:430
+#: frontend/templates/subscribe/castro.php:28
+msgid "Castro"
+msgstr ""
+
+#: helper/functions/class-getters.php:208
+msgid "Catalogue (Legacy) Player"
+msgstr ""
+
+#: frontend/templates/misc/js/controls.php:41
+msgid "Change Playback Rate"
+msgstr ""
+
+#: backend/admin/class-options.php:137
+msgid ""
+"Check and Update your podcast automatically after every mentioned time "
+"interval. By default your podcast will be auto updated after every 720 "
+"minutes (i.e., 12 hours)."
+msgstr ""
+
+#: frontend/templates/misc/buttons/clear-search.php:27
+msgid "Clear Search"
+msgstr ""
+
+#: backend/inc/class-widget.php:901
 msgid "Click the image to edit/update"
 msgstr ""
 
-#: backend/inc/class-widget.php:781
-#: backend/inc/compat/backend/inc/class-widget.php:755
-msgid "Remove Featured Image"
+#: frontend/templates/misc/buttons/single-close.php:25
+msgid "Close Single Episode"
 msgstr ""
 
-#: backend/inc/class-widget.php:812
-#: backend/inc/compat/backend/inc/class-widget.php:786
+#: backend/admin/class-options.php:482
+msgid "Comma separated episode categories"
+msgstr ""
+
+#: frontend/templates/misc/js/vshare.php:65
+#: frontend/templates/misc/js/controls.php:146
+msgid "Copied"
+msgstr ""
+
+#: frontend/templates/misc/js/vshare.php:60
+#: frontend/templates/misc/js/vshare.php:63
+#: frontend/templates/misc/js/controls.php:141
+#: frontend/templates/misc/js/controls.php:144
+msgid "Copy episode link"
+msgstr ""
+
+#: backend/inc/class-widget.php:136
+msgid "Create a podcast player widget."
+msgstr ""
+
+#: backend/admin/templates/products.php:18
+msgid ""
+"Create new podcast feeds by merging, splitting, rearranging your existing "
+"feeds"
+msgstr ""
+
+#: backend/inc/class-widget.php:313
+msgid "Customize Podcast Content"
+msgstr ""
+
+#: backend/inc/class-widget.php:529
+msgid "Date Ascending"
+msgstr ""
+
+#: backend/inc/class-widget.php:528
+msgid "Date Descending"
+msgstr ""
+
+#: frontend/templates/subscribe/deezer.php:28
+msgid "deezer"
+msgstr ""
+
+#: helper/functions/class-getters.php:203
+msgid "Default Player"
+msgstr ""
+
+#: backend/admin/class-options.php:160
+msgid ""
+"Default update method is very efficient. However, if that's not working due "
+"to caching plugin, you can use cron update method."
+msgstr ""
+
+#: backend/admin/class-options.php:499
+msgid "Deleting Podcast Reviews"
+msgstr ""
+
+#: backend/admin/class-options.php:94
+msgid "Design"
+msgstr ""
+
+#: backend/partials/pp-notifications.php:44
+msgid "Dismiss this notice"
+msgstr ""
+
+#: backend/inc/class-widget.php:362
+msgid "Do not Show Teaser Text"
+msgstr ""
+
+#: backend/inc/class-widget.php:530
+msgid "Do Not Sort"
+msgstr ""
+
+#: frontend/templates/misc/js/vshare.php:72
+#: frontend/templates/misc/js/controls.php:104
+#: frontend/templates/misc/js/controls.php:153
+msgid "Download"
+msgstr ""
+
+#: backend/admin/class-options.php:169
+msgid ""
+"Download podcast images to your WordPress media folder and display smaller "
+"sized images in the player."
+msgstr ""
+
+#: backend/admin/class-options.php:478
+msgid "Edit Author"
+msgstr ""
+
+#: backend/admin/class-options.php:477
+msgid "Edit Title"
+msgstr ""
+
+#: backend/admin/class-options.php:194
+msgid "Enable Ajax Website Compatibility."
+msgstr ""
+
+#: backend/inc/class-widget.php:966
+msgid "Enter Your Podcast Feed URL"
+msgstr ""
+
+#: frontend/templates/list/entry-modern.php:42
+#: frontend/templates/list/entry-modern.php:47
+msgid "Episode Description"
+msgstr ""
+
+#: frontend/templates/list/entry-modern.php:33
+msgid "Episode play icon"
+msgstr ""
+
+#: backend/inc/class-block.php:231 backend/inc/class-shortcode.php:166
+#: backend/inc/class-widget.php:99 frontend/inc/class-display.php:189
+msgid "Episode will play after this message."
+msgstr ""
+
+#: backend/inc/class-widget.php:370
+msgid "Excerpt Length"
+msgstr ""
+
+#: backend/inc/class-widget.php:384
+msgid "Excerpt Length Unit"
+msgstr ""
+
+#: backend/admin/templates/home.php:40
+msgid "Existing Source URL"
+msgstr ""
+
+#: frontend/templates/subscribe/external.php:28
+msgid "External"
+msgstr ""
+
+#: frontend/templates/misc/js/vshare.php:39
+#: frontend/templates/misc/js/controls.php:120
+msgid "Facebook"
+msgstr ""
+
+#: helper/feed/class-fetch-feed.php:213
+msgid "Feed Data Not Available"
+msgstr ""
+
+#: backend/admin/class-options.php:226
+msgid "Feed Data Timezone"
+msgstr ""
+
+#: backend/inc/class-background-tasks.php:178
+msgid "Feed URL or episode list not found."
+msgstr ""
+
+#: backend/inc/class-background-tasks.php:49
+msgid "Feed URL or items not found."
+msgstr ""
+
+#: backend/admin/class-options.php:497
+msgid "Fetching Apple Podcast ID"
+msgstr ""
+
+#: frontend/templates/subscribe/playerfm.php:30
+msgid "FM"
+msgstr ""
+
+#: backend/admin/class-options.php:212
+msgid "Framework 7 Icons"
+msgstr ""
+
+#: backend/admin/class-options.php:102
+msgid "Frequently Asked Questions"
+msgstr ""
+
+#: backend/admin/class-options.php:93
+msgid "General"
+msgstr ""
+
+#: backend/inc/class-widget.php:295
+msgid "General Options"
+msgstr ""
+
+#: backend/inc/class-widget.php:933
 msgid "Get Episodes by Taxonomy"
 msgstr ""
 
-#: backend/inc/class-widget.php:846
-#: backend/inc/compat/backend/inc/class-widget.php:820
-msgid "Select Terms"
+#: backend/inc/class-misc.php:202
+msgid "Get Pro"
 msgstr ""
 
-#: backend/inc/class-widget.php:889
-#: backend/inc/compat/frontend/inc/class-feed.php:1284
-msgid "Season"
+#: backend/admin/class-options.php:101
+msgid "Getting Started"
 msgstr ""
 
-#: backend/inc/class-widget.php:938
-#: backend/inc/compat/backend/inc/class-widget.php:837
-#: backend/inc/compat/frontend/inc/class-feed.php:1163
-msgid "Show All Episodes"
+#: backend/partials/pp-notifications.php:39
+msgid "Give us 5 stars rating"
 msgstr ""
 
-#: backend/inc/class-widget.php:971
-#: backend/inc/compat/backend/inc/class-widget.php:872
-msgid "Select Episodes to be displayed"
+#: backend/admin/class-options.php:224
+msgid "GMT/ UTC Timezone"
 msgstr ""
 
-#: backend/inc/class-widget.php:987
-#: backend/inc/compat/backend/inc/class-widget.php:890
-#: backend/inc/compat/frontend/inc/class-feed.php:1181
-msgid "Show All Seasons"
+#: frontend/templates/misc/js/controls.php:59
+msgid "Go to previous episode"
 msgstr ""
 
-#: backend/inc/class-widget.php:1006
-#: backend/inc/compat/backend/inc/class-widget.php:911
-msgid "Select seasons to be displayed"
+#: helper/functions/class-getters.php:425
+msgid "Google"
 msgstr ""
 
-#: backend/inc/class-widget.php:1022
-msgid "Show All Categories"
+#: frontend/templates/subscribe/google.php:29
+msgid "Google "
 msgstr ""
 
-#: backend/inc/class-widget.php:1041
-msgid "Select Categories to be displayed"
+#: backend/admin/class-options.php:84 backend/admin/class-options.php:253
+msgid "Help & Support"
 msgstr ""
 
-#: backend/inc/compat/backend/class-backend.php:315
+#: backend/inc/class-widget.php:429
+msgid "Hide cover image."
+msgstr ""
+
+#: backend/inc/class-widget.php:453
+msgid "Hide Custom menu."
+msgstr ""
+
+#: backend/inc/class-widget.php:466
+msgid "Hide Episode Author/Podcaster Name."
+msgstr ""
+
+#: backend/inc/class-widget.php:484
+msgid "Hide Episode Download Link."
+msgstr ""
+
+#: backend/inc/class-widget.php:471
+msgid "Hide Episode Text Content/Transcript."
+msgstr ""
+
+#: backend/inc/class-widget.php:494
+msgid "Hide Episodes Featured Image."
+msgstr ""
+
+#: backend/inc/class-widget.php:479
+msgid "Hide Load More Episodes Button."
+msgstr ""
+
+#: backend/inc/class-widget.php:445
+msgid "Hide Podcast Description."
+msgstr ""
+
+#: backend/inc/class-widget.php:424
+msgid "Hide Podcast Header Information."
+msgstr ""
+
+#: backend/inc/class-widget.php:461
+msgid "Hide Podcast Search."
+msgstr ""
+
+#: backend/inc/class-widget.php:437
+msgid "Hide Podcast Title."
+msgstr ""
+
+#: backend/inc/class-widget.php:489
+msgid "Hide Social Share Links."
+msgstr ""
+
+#: backend/admin/class-options.php:75
+msgid "Home"
+msgstr ""
+
+#. Description of the plugin
 msgid ""
-"There is an update available to Podcast Player Pro. Please update to Podcast "
-"Player Pro. If you have not received an automated update notice, please "
-"login to vedathemes.com and download latest version."
+"Host your podcast episodes anywhere, display them only using podcast feed "
+"url. Use custom widget or shortcode to display podcast player anywhere on "
+"your site."
 msgstr ""
 
-#: backend/inc/compat/backend/inc/class-options.php:129
-msgid "Action Successful"
+#. URI of the plugin
+#. Author URI of the plugin
+msgid "https://easypodcastpro.com"
 msgstr ""
 
-#: backend/inc/compat/backend/inc/class-options.php:167
-msgid "Feed Updation Tool"
+#: backend/admin/class-options.php:211
+msgid "Huge Icons"
 msgstr ""
 
-#: backend/inc/compat/backend/inc/class-options.php:172
-msgid "Enter Your Feed url"
-msgstr ""
-
-#: backend/inc/compat/backend/inc/class-options.php:174
-msgid "Update Only"
-msgstr ""
-
-#: backend/inc/compat/backend/inc/class-options.php:175
-msgid "Full Reset"
-msgstr ""
-
-#: backend/inc/compat/backend/inc/class-options.php:178
-#: backend/inc/compat/backend/inc/class-options.php:200
-msgid "Update Now"
-msgstr ""
-
-#: backend/inc/compat/backend/partials/pp-notifications.php:13
-#: backend/partials/pp-notifications.php:13
-msgid "Thanks for trying/updating Podcast Player."
-msgstr ""
-
-#: backend/inc/compat/backend/partials/pp-notifications.php:15
-#: backend/partials/pp-notifications.php:15
-msgid "Important: "
-msgstr ""
-
-#: backend/inc/compat/backend/partials/pp-notifications.php:15
-#: backend/partials/pp-notifications.php:15
+#: backend/partials/pp-notifications.php:18
 msgid ""
 "If you are using a caching plugin, please clear (purge) the cache to update "
 "plugin CSS and JS files."
 msgstr ""
 
-#: backend/inc/compat/backend/partials/pp-notifications.php:18
-#: backend/partials/pp-notifications.php:18
-msgid "Check Podcast Player Pro Demo Page"
-msgstr ""
-
-#: backend/inc/compat/backend/partials/pp-notifications.php:22
-#: backend/partials/pp-notifications.php:22
-msgid "What's New in this version?."
-msgstr ""
-
-#: backend/inc/compat/backend/partials/pp-notifications.php:29
-#: backend/partials/pp-notifications.php:29
-msgid "Raise a support request"
-msgstr ""
-
-#: backend/inc/compat/backend/partials/pp-notifications.php:34
-#: backend/partials/pp-notifications.php:34
-msgid "Give us 5 stars rating"
-msgstr ""
-
-#: backend/inc/compat/backend/partials/pp-notifications.php:39
-#: backend/partials/pp-notifications.php:39
-msgid "Dismiss this notice"
-msgstr ""
-
-#: backend/inc/compat/backend/partials/pp-options-page.php:18
-msgid "Support"
-msgstr ""
-
-#: backend/inc/compat/backend/partials/pp-options-page.php:19
-msgid "Documentation"
-msgstr ""
-
-#: backend/inc/compat/backend/partials/pp-options-page.php:20
-msgid "Pro Docs"
-msgstr ""
-
-#: backend/inc/compat/backend/partials/pp-options-page.php:34
-msgid "Try Podcast Player Pro"
-msgstr ""
-
-#: backend/inc/compat/backend/partials/pp-options-page.php:35
-msgid "Get It Now"
-msgstr ""
-
-#: backend/inc/compat/backend/partials/pp-pro-features.php:12
+#: backend/admin/templates/home.php:51
 msgid ""
-"Podcast player helps you to showcase searchable list of podcast episodes on "
-"your website. You can fetch episodes from podcast’s feed url and display "
-"them anywhere on your site using widget, shortcode or editor block."
+"If you have migrated this podcast to a new host, add new source URL here."
 msgstr ""
 
-#: backend/inc/compat/bridge/functions.php:28
-#: helper/functions/class-markup.php:202
-msgid "Please define default parameters in the form of an array."
+#: frontend/templates/subscribe/iheart.php:29
+msgid "iHeart "
 msgstr ""
 
-#: backend/inc/compat/bridge/functions.php:33
-#: helper/functions/class-markup.php:207
-msgid "Please define an SVG icon filename."
+#: helper/functions/class-getters.php:431
+msgid "iHeart Radio"
 msgstr ""
 
-#: backend/inc/compat/bridge/functions.php:223
-#: backend/inc/compat/bridge/functions.php:225
-msgid "Please enter appropriate fetch method."
+#: backend/admin/class-options.php:167
+msgid "Image Optimization"
 msgstr ""
 
-#: backend/inc/compat/bridge/functions.php:317
-#: frontend/templates/misc/js/controls.php:114
-msgid "Facebook"
+#: backend/admin/class-options.php:488
+msgid "Import Aborted"
 msgstr ""
 
-#: backend/inc/compat/bridge/functions.php:319
-#: frontend/templates/misc/js/controls.php:122
-msgid "Twitter"
+#: backend/partials/pp-notifications.php:18
+msgid "Important: "
 msgstr ""
 
-#: backend/inc/compat/bridge/functions.php:321
-#: frontend/templates/misc/js/controls.php:130
-msgid "Linkedin"
+#: backend/admin/class-options.php:551
+msgid "Invalid feed key provided."
 msgstr ""
 
-#: backend/inc/compat/bridge/functions.php:323
-#: frontend/templates/misc/js/controls.php:138
-msgid "Email"
+#: backend/admin/class-options.php:614
+msgid "Invalid source URL provided."
 msgstr ""
 
-#: backend/inc/compat/bridge/functions.php:325
-#: frontend/templates/misc/js/controls.php:146
-msgid "Download"
+#: backend/admin/class-options.php:487
+msgid "Inverse Selection"
 msgstr ""
 
-#: backend/inc/compat/bridge/functions.php:431
-#: helper/functions/class-getters.php:124
-msgid "Default Player"
-msgstr ""
-
-#: backend/inc/compat/bridge/functions.php:435
-#: helper/functions/class-getters.php:129
-msgid "Catalogue (Legacy) Player"
-msgstr ""
-
-#: backend/inc/compat/bridge/functions.php:543
-msgid "No url value has been provided."
-msgstr ""
-
-#: backend/inc/compat/bridge/functions.php:546
-msgid "Invalid url has been provided."
-msgstr ""
-
-#: backend/inc/compat/bridge/functions.php:549
-msgid "Custom field value not available."
-msgstr ""
-
-#: backend/inc/compat/bridge/functions.php:552
-msgid "Invalid custom field value provided."
-msgstr ""
-
-#: backend/inc/compat/bridge/functions.php:555
-msgid "Custom field value is not a valid url."
-msgstr ""
-
-#: backend/inc/compat/frontend/class-frontend.php:180
-#: frontend/templates/misc/js/controls.php:74
-msgid "Play Pause"
-msgstr ""
-
-#: backend/inc/compat/frontend/class-frontend.php:189
-#: frontend/templates/misc/js/controls.php:63
-msgid "Skip Backward"
-msgstr ""
-
-#: backend/inc/compat/frontend/class-frontend.php:190
-#: frontend/templates/misc/js/controls.php:66
-msgid "-15"
-msgstr ""
-
-#: backend/inc/compat/frontend/class-frontend.php:191
-#: backend/inc/compat/frontend/class-frontend.php:199
-#: frontend/templates/misc/js/controls.php:67
-#: frontend/templates/misc/js/controls.php:90
-msgid "s"
-msgstr ""
-
-#: backend/inc/compat/frontend/class-frontend.php:197
-#: frontend/templates/misc/js/controls.php:86
+#: frontend/templates/misc/js/controls.php:87
 msgid "Jump Forward"
 msgstr ""
 
-#: backend/inc/compat/frontend/class-frontend.php:198
-#: frontend/templates/misc/js/controls.php:89
-msgid "+15"
+#: backend/admin/class-options.php:209
+msgid "Legacy Icons"
 msgstr ""
 
-#: backend/inc/compat/frontend/class-frontend.php:205
-#: frontend/templates/misc/js/controls.php:37
-msgid "Change Playback Rate"
+#: frontend/templates/misc/js/vshare.php:55
+#: frontend/templates/misc/js/controls.php:136
+msgid "Linkedin"
 msgstr ""
 
-#: backend/inc/compat/frontend/class-frontend.php:211
-#: frontend/templates/misc/js/controls.php:105
-msgid "Share This Episode"
+#: frontend/templates/subscribe/castro.php:27
+msgid "Listen in"
 msgstr ""
 
-#: backend/inc/compat/frontend/class-frontend.php:219
-#: frontend/templates/misc/js/controls.php:97
-msgid "Skip to next episode"
-msgstr ""
-
-#: backend/inc/compat/frontend/class-frontend.php:226
-#: frontend/templates/misc/js/controls.php:55
-msgid "Go to previous episode"
-msgstr ""
-
-#: backend/inc/compat/frontend/class-frontend.php:230
-msgid " [...]"
-msgstr ""
-
-#: backend/inc/compat/frontend/class-frontend.php:276
-#: frontend/inc/class-loader.php:334
-msgid "Minimize or Close the player"
-msgstr ""
-
-#: backend/inc/compat/frontend/inc/class-display.php:41
-msgid "No Items Found. Try again later."
-msgstr ""
-
-#: backend/inc/compat/frontend/inc/class-display.php:180
-#: backend/inc/compat/frontend/inc/class-display.php:191
-#: frontend/templates/header/subscribe-buttons.php:30
-#: frontend/templates/header/subscribe-buttons.php:40
-#: frontend/templates/header/subscribe-buttons.php:50
+#: frontend/templates/subscribe/deezer.php:27
+#: frontend/templates/subscribe/overcast.php:27
+#: frontend/templates/subscribe/radiopublic.php:27
+#: frontend/templates/subscribe/apple.php:27
+#: frontend/templates/subscribe/tunein.php:27
+#: frontend/templates/subscribe/bullhorn.php:27
+#: frontend/templates/subscribe/external.php:27
+#: frontend/templates/subscribe/amazon.php:25
+#: frontend/templates/subscribe/google.php:27
+#: frontend/templates/subscribe/podchaser.php:27
+#: frontend/templates/subscribe/castbox.php:27
+#: frontend/templates/subscribe/iheart.php:27
+#: frontend/templates/subscribe/pocketcasts.php:26
+#: frontend/templates/subscribe/youtube.php:27
+#: frontend/templates/subscribe/soundcloud.php:27
+#: frontend/templates/subscribe/spotify.php:25
+#: frontend/templates/subscribe/pandora.php:27
+#: frontend/templates/subscribe/playerfm.php:27
+#: frontend/templates/subscribe/breaker.php:27
+#: frontend/templates/subscribe/stitcher.php:27
+#: frontend/templates/subscribe/podcastaddict.php:27
 msgid "Listen On"
 msgstr ""
 
-#: backend/inc/compat/frontend/inc/class-display.php:181
-msgid "Apple Podcasts"
-msgstr ""
-
-#: backend/inc/compat/frontend/inc/class-display.php:192
-msgid "Google Podcasts"
-msgstr ""
-
-#: backend/inc/compat/frontend/inc/class-display.php:201
-#: frontend/templates/misc/buttons/pod-menu.php:22
-msgid "Show Menu"
-msgstr ""
-
-#: backend/inc/compat/frontend/inc/class-display.php:301
-#: frontend/templates/list/search-field.php:24
-#: frontend/templates/list/search-field.php:25
-msgid "Search Episodes"
-msgstr ""
-
-#: backend/inc/compat/frontend/inc/class-display.php:301
-#: frontend/templates/list/search-field.php:25
-msgid "Search Podcast Episodes"
-msgstr ""
-
-#: backend/inc/compat/frontend/inc/class-display.php:301
-msgid "Clear Search Field"
-msgstr ""
-
-#: backend/inc/compat/frontend/inc/class-display.php:510
-msgid "Show Podcast Details"
-msgstr ""
-
-#: backend/inc/compat/frontend/inc/class-feed.php:83
-msgid "Incorrect Feed URLs has been proivded OR No feed items available."
-msgstr ""
-
-#: backend/inc/compat/frontend/inc/class-feed.php:90
-#: frontend/inc/class-feed.php:90
-msgid "RSS Error:"
-msgstr ""
-
-#: backend/inc/compat/frontend/inc/class-feed.php:111
-msgid "No episodes available for given options."
-msgstr ""
-
-#: backend/inc/compat/frontend/inc/class-feed.php:121
-#: backend/inc/compat/frontend/inc/class-feed.php:223
-msgid "Unknown Feed"
-msgstr ""
-
-#: backend/inc/compat/frontend/inc/class-feed.php:134
-#: backend/inc/compat/frontend/inc/class-feed.php:161
-#: frontend/templates/header/menu/default-links.php:22
-#: frontend/templates/header/menu/default-links.php:24
-#: frontend/templates/header/menu/podcast-menu.php:20
-#: frontend/templates/header/menu/podcast-menu.php:22
-msgid "Podcast Subscription Menu"
-msgstr ""
-
-#: backend/inc/compat/frontend/inc/class-feed.php:150
-#: frontend/templates/header/menu/default-links.php:28
-msgid "Visit Website"
-msgstr ""
-
-#: backend/inc/compat/frontend/inc/class-feed.php:153
-#: frontend/templates/header/menu/default-links.php:31
-msgid "RSS Feed"
-msgstr ""
-
-#: backend/inc/compat/frontend/inc/class-feed.php:169
-msgid "Follow"
-msgstr ""
-
-#: backend/inc/compat/frontend/inc/class-feed.php:1129
-#: backend/inc/compat/frontend/inc/class-feed.php:1146
-msgid "Feed URL"
-msgstr ""
-
-#: backend/inc/compat/frontend/partials/podcast-player-public-display.php:61
-#: frontend/templates/misc/buttons/single-close.php:22
-msgid "Close Single Episode"
-msgstr ""
-
-#: backend/inc/compat/frontend/partials/podcast-player-public-display.php:71
-#: frontend/templates/episode/single.php:26
-msgid "by"
-msgstr ""
-
-#: backend/inc/compat/frontend/partials/podcast-player-public-display.php:141
-msgid "Episode play icon"
-msgstr ""
-
-#: backend/inc/compat/frontend/partials/podcast-player-public-display.php:171
-#: frontend/templates/misc/buttons/load-more.php:22
+#: frontend/templates/misc/buttons/load-more.php:26
 msgid "Load More"
 msgstr ""
 
-#: backend/inc/compat/frontend/partials/podcast-player-public-display.php:179
-#: frontend/inc/class-render.php:814
-msgid "Search Results placeholder"
+#: backend/admin/class-options.php:491
+msgid "Load More Episodes"
 msgstr ""
 
-#: backend/inc/compat/frontend/partials/podcast-player-public-display.php:188
-#: frontend/templates/misc/buttons/previous.php:22
-msgid "Previous Episode"
+#: backend/admin/class-options.php:498
+msgid "Looking for apple podcast reviews in"
 msgstr ""
 
-#: backend/inc/compat/frontend/partials/podcast-player-public-display.php:193
-#: frontend/templates/misc/buttons/list.php:22
-msgid "Show Episodes List"
+#: backend/admin/templates/settings.php:14
+msgid ""
+"Make sure to update your feed in \"Toolkit\" section after making changes "
+"here."
 msgstr ""
 
-#: backend/inc/compat/frontend/partials/podcast-player-public-display.php:199
-#: frontend/templates/misc/buttons/next.php:22
+#: frontend/inc/class-loader.php:343
+msgid "Minimize or Close the player"
+msgstr ""
+
+#: backend/admin/class-options.php:151
+msgid ""
+"Minimize unintentional display of podcast data like audio url and podcast "
+"feed url from front-end page source."
+msgstr ""
+
+#: backend/admin/class-options.php:149
+msgid "Minimize unintentional exposure of podcast data"
+msgstr ""
+
+#: helper/functions/class-getters.php:198
+msgid "Modern Player"
+msgstr ""
+
+#: backend/admin/class-options.php:648
+msgid ""
+"New Podcast data does not match with old data. Please check title and author."
+msgstr ""
+
+#: frontend/templates/misc/buttons/next.php:26
 msgid "Next Episode"
 msgstr ""
 
-#: backend/inc/compat/frontend/partials/podcast-player-public-display.php:218
-#: frontend/templates/misc/buttons/launch.php:22
-msgid "Show Podcast Information"
-msgstr ""
-
-#: frontend/inc/class-display.php:106
-msgid "Podcast fetch class not defined."
-msgstr ""
-
-#: frontend/inc/class-display.php:114
-msgid "Podcast fetch class does not exist."
-msgstr ""
-
-#: frontend/templates/header/subscribe-buttons.php:31
-msgid "Apple Podcast"
-msgstr ""
-
-#: frontend/templates/header/subscribe-buttons.php:41
-msgid "Google Podcast"
-msgstr ""
-
-#: frontend/templates/header/subscribe-buttons.php:51
-msgid "Spotify"
-msgstr ""
-
-#: frontend/templates/list/search-field.php:32
-msgid "Clear Search"
-msgstr ""
-
-#: frontend/templates/misc/js/controls.php:28
-msgid "[...]"
-msgstr ""
-
-#: helper/feed/class-get-feed-data.php:216
-#: helper/feed/class-get-feed-data.php:287
-#: helper/feed/class-get-feed-data.php:317
+#: helper/feed/class-fetch-feed.php:295
 msgid "No feed items available."
 msgstr ""
 
-#: helper/feed/class-get-feed-data.php:280
-#: helper/feed/class-get-feed-data.php:310
+#: helper/feed/class-get-feed.php:228
 msgid "No feed items for your specific filters."
 msgstr ""
 
-#: helper/feed/class-get-feed-data.php:366
-msgid "No feed items after customization override"
+#: backend/admin/templates/toolkit/feed-update.php:61
+msgid "No podcast to update or Refresh."
 msgstr ""
 
-#: helper/feed/class-get-feed-data.php:407
-msgid "Required item fields are not available."
+#: backend/admin/templates/toolkit/feed-review.php:43
+msgid "No Podcasts Added So Far."
 msgstr ""
 
-#: helper/feed/class-save-feed-data.php:147
-msgid "Untitled Feed"
+#: backend/inc/class-background-tasks.php:65
+msgid "No valid featured images found."
 msgstr ""
 
-#: helper/functions/class-getters.php:78
+#: backend/inc/class-widget.php:241
+msgid "None"
+msgstr ""
+
+#: backend/admin/class-options.php:490
+msgid "Nothing to update"
+msgstr ""
+
+#: backend/inc/class-widget.php:388
+msgid "Number of characters"
+msgstr ""
+
+#: backend/inc/class-widget.php:331
+msgid "Number of episodes to show at a time."
+msgstr ""
+
+#: backend/inc/class-widget.php:344
+msgid "Number of episodes to skip from the beginning."
+msgstr ""
+
+#: backend/inc/class-widget.php:277
+msgid "Number of Primary Subscription Links"
+msgstr ""
+
+#: backend/inc/class-widget.php:387
+msgid "Number of words"
+msgstr ""
+
+#: backend/admin/class-options.php:95
+msgid "Optimization & Security"
+msgstr ""
+
+#: backend/admin/class-options.php:87 backend/admin/class-options.php:254
+msgid "Other Products"
+msgstr ""
+
+#: helper/functions/class-getters.php:432
+#: frontend/templates/subscribe/overcast.php:28
+msgid "Overcast"
+msgstr ""
+
+#: helper/functions/class-getters.php:438
+#: frontend/templates/subscribe/pandora.php:28
+msgid "Pandora"
+msgstr ""
+
+#: backend/admin/class-options.php:474
+msgid "Performing Action"
+msgstr ""
+
+#: backend/admin/templates/products.php:19
+msgid ""
+"Personalize your feed URL, merge and split podcasts, rearrange and edit "
+"episodes, and do so much more with our WordPress plugin."
+msgstr ""
+
+#: backend/admin/class-options.php:205
+msgid "Personalize your player with different for schemes."
+msgstr ""
+
+#: frontend/templates/misc/js/controls.php:75
+msgid "Play Pause"
+msgstr ""
+
+#: frontend/templates/subscribe/playerfm.php:29
+msgid "Player"
+msgstr ""
+
+#: helper/functions/class-getters.php:443
+msgid "PlayerFM"
+msgstr ""
+
+#: helper/functions/class-markup.php:227
+msgid "Please define an SVG icon filename."
+msgstr ""
+
+#: helper/functions/class-markup.php:222
+msgid "Please define default parameters in the form of an array."
+msgstr ""
+
+#: helper/functions/class-getters.php:102
 msgid "Please provide a valid feed url."
+msgstr ""
+
+#: backend/admin/class-options.php:475
+msgid "Please provide a valid podcast"
+msgstr ""
+
+#: backend/admin/class-options.php:476
+msgid "Please provide a valid source"
+msgstr ""
+
+#: helper/functions/class-getters.php:433
+#: frontend/templates/subscribe/pocketcasts.php:27
+msgid "Pocket Casts"
+msgstr ""
+
+#: helper/functions/class-getters.php:442
+#: frontend/templates/subscribe/podbean.php:28
+msgid "Podbean"
+msgstr ""
+
+#: helper/store/class-storemanager.php:45
+msgid "Podcast"
+msgstr ""
+
+#: helper/functions/class-getters.php:434
+#: frontend/templates/subscribe/podcastaddict.php:28
+msgid "Podcast Addict"
+msgstr ""
+
+#: backend/inc/class-widget.php:317 backend/inc/class-widget.php:894
+#: backend/inc/class-widget.php:897
+msgid "Podcast Cover Image"
+msgstr ""
+
+#: backend/admin/class-options.php:581
+msgid "Podcast Deleted Successfully."
+msgstr ""
+
+#: backend/admin/templates/products.php:17
+msgid "Podcast Feed Composer"
+msgstr ""
+
+#: backend/inc/class-widget.php:304
+msgid "Podcast Feed URL"
+msgstr ""
+
+#: frontend/inc/class-display.php:98
+msgid "Podcast fetch class does not exist."
+msgstr ""
+
+#: frontend/inc/class-display.php:90
+msgid "Podcast fetch class not defined."
+msgstr ""
+
+#: backend/admin/class-options.php:242 backend/admin/class-options.php:243
+#: backend/inc/class-widget.php:139 backend/admin/templates/main.php:20
+msgid "Podcast Player"
+msgstr ""
+
+#. Name of the plugin
+msgid "podcast player"
+msgstr ""
+
+#: backend/inc/class-widget.php:509
+msgid "Podcast Player Display Style"
+msgstr ""
+
+#: backend/admin/class-options.php:203
+msgid "Podcast Player Font Scheme."
+msgstr ""
+
+#: backend/inc/class-widget.php:500
+msgid "Podcast Player Styling"
+msgstr ""
+
+#: frontend/templates/header/menu/default-links.php:26
+#: frontend/templates/header/menu/default-links.php:28
+#: frontend/templates/header/menu/podcast-menu.php:26
+#: frontend/templates/header/menu/podcast-menu.php:28
+msgid "Podcast Subscription Menu"
+msgstr ""
+
+#: backend/inc/class-widget.php:271
+msgid "Podcast Subscription Menu."
+msgstr ""
+
+#: backend/admin/class-options.php:135
+msgid "Podcast update interval (in minutes)."
+msgstr ""
+
+#: backend/admin/class-options.php:569
+msgid "Podcast Updated Successfully."
+msgstr ""
+
+#: helper/store/class-storemanager.php:44
+#: frontend/templates/subscribe/google.php:30
+msgid "Podcasts"
+msgstr ""
+
+#: frontend/templates/subscribe/podchaser.php:28
+msgid "PODCHASER"
+msgstr ""
+
+#: helper/functions/class-getters.php:435
+msgid "Podchaser"
+msgstr ""
+
+#: backend/admin/templates/toolkit/feed-update.php:62
+#: backend/admin/templates/toolkit/feed-review.php:44
+msgid "Possible Reasons :-"
+msgstr ""
+
+#: frontend/templates/misc/buttons/previous.php:26
+msgid "Previous Episode"
+msgstr ""
+
+#: frontend/templates/subscribe/iheart.php:30
+msgid "RADIO"
+msgstr ""
+
+#: helper/functions/class-getters.php:436
+msgid "Radio Public"
+msgstr ""
+
+#: frontend/templates/subscribe/radiopublic.php:28
+msgid "RadioPublic"
+msgstr ""
+
+#: backend/partials/pp-notifications.php:34
+msgid "Raise a support request"
+msgstr ""
+
+#: backend/admin/class-options.php:492
+msgid "Remove Custom Image"
+msgstr ""
+
+#: backend/inc/class-widget.php:902
+msgid "Remove Featured Image"
+msgstr ""
+
+#: backend/inc/class-dashboard-widget.php:98
+msgid "Resources & Articles"
+msgstr ""
+
+#: backend/inc/class-widget.php:531
+msgid "Reverse Sort"
+msgstr ""
+
+#: backend/admin/class-options.php:567 frontend/inc/class-feed.php:155
+msgid "RSS Error:"
+msgstr ""
+
+#: frontend/templates/header/menu/default-links.php:35
+msgid "RSS Feed"
+msgstr ""
+
+#: backend/admin/class-options.php:483
+msgid "Save Changes"
+msgstr ""
+
+#: frontend/templates/list/search-field.php:28
+#: frontend/templates/list/search-field.php:29
+msgid "Search Episodes"
+msgstr ""
+
+#: frontend/templates/list/search-field.php:29
+msgid "Search Podcast Episodes"
+msgstr ""
+
+#: frontend/inc/class-render.php:967
+msgid "Search Results placeholder"
+msgstr ""
+
+#: backend/inc/class-widget.php:1038
+msgid "Season"
+msgstr ""
+
+#: backend/admin/class-options.php:495 backend/inc/class-loader.php:70
+msgid "Select"
+msgstr ""
+
+#: backend/inc/class-misc.php:250 backend/inc/class-widget.php:960
+#: backend/admin/templates/toolkit/feed-review.php:28
+msgid "Select a Podcast"
+msgstr ""
+
+#: backend/admin/templates/toolkit/feed-update.php:21
+msgid "Select a Podcast to update / reset"
+msgstr ""
+
+#: backend/admin/class-options.php:485
+msgid "Select All"
+msgstr ""
+
+#: backend/inc/class-widget.php:1181
+msgid "Select Categories to be displayed"
+msgstr ""
+
+#: backend/admin/templates/toolkit/feed-review.php:62
+msgid "Select Countries (Fetch reviews from selected countries)"
+msgstr ""
+
+#: backend/inc/class-widget.php:1111
+msgid "Select Episodes to be displayed"
+msgstr ""
+
+#: backend/admin/templates/toolkit/feed-review.php:31
+msgid "Select Podcast"
+msgstr ""
+
+#: backend/inc/class-widget.php:1146
+msgid "Select seasons to be displayed"
+msgstr ""
+
+#: backend/inc/class-widget.php:1000
+msgid "Select Terms"
+msgstr ""
+
+#: backend/admin/class-options.php:196
+msgid ""
+"Select this option if your website pages are loaded asynchronously using "
+"Ajax theme."
+msgstr ""
+
+#: backend/admin/class-options.php:220
+msgid "Select timezone to be used for Podcast episode dates."
+msgstr ""
+
+#: backend/admin/class-options.php:494 backend/admin/class-options.php:496
+#: backend/inc/class-loader.php:69 backend/inc/class-loader.php:71
+msgid "Set Image"
+msgstr ""
+
+#: backend/admin/class-options.php:218
+msgid "Set timezone for episode date."
+msgstr ""
+
+#: backend/admin/class-options.php:78 backend/admin/class-options.php:251
+#: backend/inc/class-misc.php:191
+msgid "Settings"
+msgstr ""
+
+#: frontend/templates/misc/js/vshare.php:36
+#: frontend/templates/misc/js/controls.php:117
+msgid "Share on Facebook"
+msgstr ""
+
+#: frontend/templates/misc/js/vshare.php:52
+#: frontend/templates/misc/js/controls.php:133
+msgid "Share on Linkedin"
+msgstr ""
+
+#: frontend/templates/misc/js/vshare.php:44
+#: frontend/templates/misc/js/controls.php:125
+msgid "Share on Twitter"
+msgstr ""
+
+#: frontend/templates/misc/js/vshare.php:30
+#: frontend/templates/misc/js/controls.php:111
+msgid "Share This Episode"
+msgstr ""
+
+#: backend/inc/class-widget.php:1162
+msgid "Show All Categories"
+msgstr ""
+
+#: backend/inc/class-widget.php:1078
+msgid "Show All Episodes"
+msgstr ""
+
+#: backend/inc/class-widget.php:1127
+msgid "Show All Seasons"
+msgstr ""
+
+#: frontend/templates/misc/buttons/list.php:26
+msgid "Show Episodes List"
+msgstr ""
+
+#: backend/inc/class-widget.php:416
+msgid "Show episodes list by default on mini player."
+msgstr ""
+
+#: backend/inc/class-widget.php:536
+msgid "Show episodes only if title contains following"
+msgstr ""
+
+#: backend/inc/class-widget.php:360
+msgid "Show Excerpt"
+msgstr ""
+
+#: backend/inc/class-widget.php:361
+msgid "Show Full Content"
+msgstr ""
+
+#: frontend/templates/misc/buttons/pod-menu.php:26
+msgid "Show Menu"
+msgstr ""
+
+#: frontend/templates/misc/js/addcontrols.php:30
+msgid "Show Podcast Episode Text"
+msgstr ""
+
+#: backend/inc/class-widget.php:408
+msgid "Show Podcast Header by Default."
+msgstr ""
+
+#: frontend/templates/misc/buttons/launch.php:26
+msgid "Show Podcast Information"
+msgstr ""
+
+#: backend/inc/class-widget.php:401
+msgid "Show/Hide Player Items"
+msgstr ""
+
+#: frontend/templates/misc/js/auxmodal.php:29
+msgid "Shownotes"
+msgstr ""
+
+#: frontend/templates/misc/js/controls.php:67
+msgid "Skip Backward"
+msgstr ""
+
+#: frontend/templates/misc/js/controls.php:95
+msgid "Skip to next episode"
+msgstr ""
+
+#: backend/inc/class-widget.php:516
+msgid "Sort & Filter Options"
+msgstr ""
+
+#: backend/inc/class-widget.php:523
+msgid "Sort Podcast Episodes By"
+msgstr ""
+
+#: frontend/templates/subscribe/soundcloud.php:28
+msgid "SOUNDCLOUD"
+msgstr ""
+
+#: helper/functions/class-getters.php:437
+msgid "Soundcloud"
+msgstr ""
+
+#: backend/admin/class-options.php:701
+msgid "Source URL deleted successfully."
+msgstr ""
+
+#: backend/admin/class-options.php:635
+msgid "Source URL does not contain valid feed data."
+msgstr ""
+
+#: backend/admin/class-options.php:666
+msgid "Source URL updated successfully."
+msgstr ""
+
+#: helper/functions/class-getters.php:426
+#: frontend/templates/subscribe/spotify.php:27
+msgid "Spotify"
+msgstr ""
+
+#: frontend/templates/subscribe/stitcher.php:28
+msgid "STITCHER"
+msgstr ""
+
+#: backend/inc/class-widget.php:397
+msgid "Subscription Button Links"
+msgstr ""
+
+#: backend/admin/class-options.php:500
+msgid "Successfully Deleted Podcast Reviews"
+msgstr ""
+
+#: backend/admin/class-options.php:210
+msgid "Tabler Icons"
+msgstr ""
+
+#: backend/inc/class-widget.php:357
+msgid "Teaser Text"
+msgstr ""
+
+#: backend/partials/pp-notifications.php:16
+msgid "Thanks for trying/updating Podcast Player."
+msgstr ""
+
+#: backend/inc/class-loader.php:229
+msgid ""
+"There is an update available to Podcast Player Pro. Please update to Podcast "
+"Player Pro v5.6.2. If you have not received an automated update notice, "
+"please login to our website and download latest version."
+msgstr ""
+
+#: backend/admin/templates/settings.php:28
+msgid ""
+"These options are only for specific cases. DO NOT enable if you are not sure."
+msgstr ""
+
+#: backend/inc/class-widget.php:299
+msgid "Title"
+msgstr ""
+
+#: backend/inc/class-widget.php:527
+msgid "Title Ascending"
+msgstr ""
+
+#: backend/inc/class-widget.php:526
+msgid "Title Descending"
+msgstr ""
+
+#: backend/admin/class-options.php:81 backend/admin/class-options.php:252
+msgid "Toolkit"
+msgstr ""
+
+#: helper/functions/class-getters.php:439
+msgid "Tune In"
+msgstr ""
+
+#: frontend/templates/subscribe/tunein.php:28
+msgid "TuneIn"
+msgstr ""
+
+#: frontend/templates/misc/js/vshare.php:47
+#: frontend/templates/misc/js/controls.php:128
+msgid "Twitter"
+msgstr ""
+
+#: backend/admin/class-options.php:694
+msgid "Unable to delete source URL."
+msgstr ""
+
+#: backend/admin/class-options.php:659
+msgid "Unable to update source URL."
+msgstr ""
+
+#: backend/admin/class-options.php:584
+msgid "Unexpected user input."
+msgstr ""
+
+#: backend/admin/class-options.php:486
+msgid "Unselect All"
+msgstr ""
+
+#: backend/admin/class-options.php:158
+msgid "Update podcasts using WP Cron."
+msgstr ""
+
+#: backend/admin/templates/sidebar.php:20
+msgid "Upgrade to Podcast Player Pro"
+msgstr ""
+
+#: backend/admin/class-options.php:493
+msgid "Upload Custom Image"
+msgstr ""
+
+#: backend/admin/class-options.php:622 backend/admin/class-options.php:683
+msgid "Valid Podcast Key Not Available."
+msgstr ""
+
+#: backend/admin/templates/main.php:51
+msgid "Vedathemes"
+msgstr ""
+
+#. Author of the plugin
+msgid "vedathemes"
+msgstr ""
+
+#: backend/admin/class-options.php:185
+msgid "Vertify cache headers for feed update."
+msgstr ""
+
+#: frontend/templates/header/menu/default-links.php:32
+msgid "Visit Website"
+msgstr ""
+
+#: backend/admin/class-options.php:187
+msgid ""
+"We vertify cache headers to quickly check if feed has been updated or not. "
+"It is recommended to enable this option. However, if your podcast is not "
+"updating, disable this option and check again."
+msgstr ""
+
+#: backend/admin/class-options.php:225
+msgid "Website Local Timezone"
+msgstr ""
+
+#: backend/admin/templates/main.php:51
+msgid "Y"
+msgstr ""
+
+#: backend/admin/templates/toolkit/feed-review.php:56
+msgid "Your Apple Podcast ID"
+msgstr ""
+
+#: backend/admin/templates/home.php:23
+msgid "Your Podcast"
+msgstr ""
+
+#: backend/admin/templates/home.php:21
+msgid "Your Podcasts"
+msgstr ""
+
+#: helper/functions/class-getters.php:440
+#: frontend/templates/subscribe/youtube.php:28
+msgid "YouTube"
 msgstr ""

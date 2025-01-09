@@ -158,7 +158,9 @@ class Get_Feed {
 			$etag          = false;
 			$last_modified = false;
 		}
-        $obj           = new Fetch_Feed( $this->feed_url, $etag, $last_modified );
+
+		$source_url    = $store_manager->get_source_url( $this->feed_url );
+        $obj           = new Fetch_Feed( $source_url, $etag, $last_modified );
 		$raw_data      = $obj->get_feed_data();
 		if ( is_wp_error( $raw_data ) ) {
 			return $raw_data;
@@ -173,16 +175,16 @@ class Get_Feed {
 		}
 
 		$url   = $data->get( 'furl' );
-		$alias = $url !== $this->feed_url ? $this->feed_url : false;
+		$alias = $url !== $this->feed_url ? $url : false;
 
 		if ( ! $old_podcast_data ) {
 			$title = $data->get( 'title' );
-			$store_manager->maybe_add_new_object( $url, $title );
+			$store_manager->maybe_add_new_object( $this->feed_url, $title );
 		}
 		if ( '304_use_cache' !== $raw_data ) {
-			$store_manager->update_data( $data, $url, 'feed_data', $alias );
+			$store_manager->update_data( $data, $this->feed_url, 'feed_data', $alias );
 		}
-		$store_manager->update_data( time(), $url, 'last_checked' );
+		$store_manager->update_data( time(), $this->feed_url, 'last_checked' );
 
 		// Fecilitate new episode import.
 		if ( $this->is_pro && ! empty( $new_episodes ) ) {

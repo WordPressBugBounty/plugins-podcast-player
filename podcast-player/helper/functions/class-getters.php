@@ -282,10 +282,12 @@ class Getters {
 		array_walk(
 			$all_feeds,
 			function ( &$value, $key ) {
-				$urls = $value->get( 'feed_url' );
-				$value = array(
-					'url'   => ! empty( $urls ) ? $urls[0] : '',
-					'title' => $value->get( 'title' ),
+				$urls   = $value->get( 'feed_url' );
+				$source = $value->get( 'source_url' );
+				$value  = array(
+					'url'        => ! empty( $urls ) ? $urls[0] : '',
+					'title'      => $value->get( 'title' ),
+					'source_url' => $source,
 				);
 			}
 		);

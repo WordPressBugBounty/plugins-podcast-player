@@ -13,6 +13,7 @@ namespace Podcast_Player\Helper\Store;
 
 use Podcast_Player\Helper\Core\Singleton;
 use Podcast_Player\Helper\Store\StorageRegister;
+use Podcast_Player\Helper\Functions\Validation as Validation_Fn;
 
 /**
  * Store Manager Class
@@ -232,6 +233,84 @@ class StoreManager extends Singleton {
 		$register[ $id ] = $index;
 		update_option( 'pp-register', $register, false );
 		return true;
+	}
+
+	/**
+	 * Add Source URL to the podcast register.
+	 *
+	 * @since 7.4.9
+	 *
+	 * @param string $object_key Key to create/access the post object bucket.
+	 * @param string $source_url Podcast Source URL.
+	 */
+	public function add_podcast_source_url( $object_key, $source_url ) {
+		$index  = $this->get_object_index( $object_key );
+		if ( ! $index instanceof StorageRegister ) {
+			return false;
+		}
+
+		if ( ! Validation_Fn::is_valid_url( $source_url ) ) {
+			return false;
+		}
+
+		$id = $index->get( 'unique_id' );
+		$index->set( 'source_url', esc_url_raw( $source_url ) );
+		$register = $this->get_register();
+		$register[ $id ] = $index;
+		update_option( 'pp-register', $register, false );
+		$this->delete_data( $object_key, 'feed_data' );
+		return true;
+	}
+
+	/**
+	 * Add Source URL to the podcast register.
+	 *
+	 * @since 7.4.9
+	 *
+	 * @param string $object_key Key to create/access the post object bucket.
+	 */
+	public function delete_podcast_source_url( $object_key ) {
+		$index = $this->get_object_index( $object_key );
+		if ( ! $index instanceof StorageRegister ) {
+			return false;
+		}
+
+		$urls       = $index->get( 'feed_url' );
+		$source_url = $index->get( 'source_url' );
+		$id         = $index->get( 'unique_id' );
+
+		if ( ! $source_url ) {
+			return false;
+		}
+
+		if ( ! empty( $urls ) && is_array( $urls ) ) {
+			foreach( $urls as $key => $url ) {
+				if ( $url === $source_url ) {
+					unset( $urls[ $key ] );
+				}
+			} 
+		}
+		$index->set( 'source_url', '' );
+		$index->set( 'feed_url', array_unique( $urls ) );
+		$index->set( 'object_keys', array_map( 'md5', array_unique( $urls ) ) );
+		$register = $this->get_register();
+		$register[ $id ] = $index;
+		update_option( 'pp-register', $register, false );
+		$this->delete_data( $object_key, 'feed_data' );
+		return true;
+	}
+
+	public function get_source_url( $object_key ) {
+		$index = $this->get_object_index( $object_key );
+		if ( ! $index instanceof StorageRegister ) {
+			return $object_key;
+		}
+		$url = $index->get( 'source_url' );
+		if ( ! $url ) {
+			$urls = $index->get( 'feed_url' );
+			$url  = ! empty( $urls ) && is_array( $urls ) ? $urls[0] : $object_key;
+		}
+		return $url;
 	}
 
 	/**

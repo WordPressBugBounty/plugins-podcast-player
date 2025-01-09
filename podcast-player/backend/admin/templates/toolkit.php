@@ -15,7 +15,8 @@ use Podcast_Player\Helper\Functions\Getters as Get_Fn;
 $feed_index = Get_Fn::get_feed_index();
 
 // TODO: What is the use of $keep_old here? Can it be removed?
-$keep_old   = Get_Fn::get_plugin_option( 'keep_old' );
+// Remove in 7.5.0
+// $keep_old   = Get_Fn::get_plugin_option( 'keep_old' );
 ?>
 
 <div class="pp-toolkit-page">

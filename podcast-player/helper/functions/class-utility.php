@@ -112,41 +112,6 @@ class Utility {
 		return $keys;
 	}
 
-	// /**
-	//  * Update feeds and their data in the feed index.
-	//  *
-	//  * @since 3.4.0
-	//  */
-	// public static function refresh_index_new() {
-	// 	$all_feeds = get_option( 'pp_feed_index' );
-	// 	$new       = array();
-	// 	$updated   = false;
-	// 	if ( $all_feeds && is_array( $all_feeds ) ) {
-	// 		foreach ( $all_feeds as $key => $args ) {
-	// 			$store_manager = StoreManager::get_instance();
-	// 			$feed          = $store_manager->get_data( $key );
-	// 			if ( $feed ) {
-	// 				if ( is_array( $args ) && isset( $args['url'] ) && $args['url'] ) {
-	// 					$new[ $key ] = $args;
-	// 				} else {
-	// 					$feed        = $feed->retrieve();
-	// 					$title       = isset( $feed['title'] ) && $feed['title'] ? $feed['title'] : esc_html__( 'Untitled Feed', 'podcast-player' );
-	// 					$url         = isset( $feed['furl'] ) && $feed['furl'] ? $feed['furl'] : '';
-	// 					$new[ $key ] = array(
-	// 						'title' => $title,
-	// 						'url'   => $url,
-	// 					);
-	// 					$updated     = true;
-	// 				}
-	// 			}
-	// 		}
-	// 		if ( $updated || count( $new ) !== count( $all_feeds ) ) {
-	// 			update_option( 'pp_feed_index', $new, 'no' );
-	// 		}
-	// 	}
-	// 	return $new;
-	// }
-
 	/**
 	 * Upload image to wp upload directory.
 	 *
@@ -234,8 +199,10 @@ class Utility {
         // $items = array_slice( $items, 0, 10 ); Why this has been added?
 
         // Store the original time limit
-        $original_time_limit = ini_get('max_execution_time');
-        set_time_limit( 300 ); // Give it 5 minutes
+        // $original_time_limit = ini_get('max_execution_time');
+
+		// Set time limit is discouraged by WP. Let's see if it can be removed.
+        // set_time_limit( 300 ); // Give it 5 minutes
         foreach ( $items as $key => $item ) {
             $post_id = isset( $item['post_id'] ) ? absint( $item['post_id'] ) : false;
             $date    = isset( $item['timestamp'] ) ? date( 'Y-m-d H:i:s', $item['timestamp'] ) : date( 'Y-m-d H:i:s', strtotime( $item['date'] ) );

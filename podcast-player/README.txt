@@ -4,7 +4,7 @@ Tags: podcast, podcasting, rss feed, feed to audio, podcaster
 Requires at least: 4.9
 Tested up to: 6.7
 Requires PHP: 5.6
-Stable tag: 7.4.8
+Stable tag: 7.4.9
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -98,6 +98,12 @@ Podcast player plugin (on its own) does not create and save any cookies and does
 5. Podcast player on large size container
 
 == Changelog ==
+
+= 7.4.9 =
+* Add: Feed Migration Tool. In the podcast is transferred to a new host, its feed URL can be changed at a central location.
+* Modify: Remove old depricated codes.
+* Modify: Language pot file updated.
+* Bug Fix: Remove some of the plugincheck errors
 
 = 7.4.8 =
 * Bug Fix: Podcast import issue when importing more than 10 episode without downloading featured images.
