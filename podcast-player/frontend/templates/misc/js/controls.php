@@ -157,5 +157,13 @@ use Podcast_Player\Helper\Functions\Markup as Markup_Fn;
 				<input type="text" value="" class="pp-copylink" style="display: none;">
 				</ul>
 		</div>
+		<div class="ppjs__button ppjs__cc-button">
+			<a role="button" class="pp-cc button" href="#" title="Captions">
+				<?php Markup_Fn::the_icon( array( 'icon' => 'pp-cc' ) ); ?>
+				<span class="ppjs__offscreen">
+					<?php esc_html_e( 'Captions', 'podcast-player' ); ?>
+				</span>
+			</a>
+		</div>
 	</div><!-- .ppjs__control_btns -->
 </div><!-- .ppjs__secondary-controls -->

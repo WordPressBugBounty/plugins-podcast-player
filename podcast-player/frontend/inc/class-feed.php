@@ -211,6 +211,11 @@ class Feed extends Singleton {
 				}
 			)
 		);
+		
+		if ( 'yes' === Get_Fn::get_plugin_option( 'allow_transcripts' ) ) {
+			$default_fields[] = 'transcript';
+			$default_fields[] = 'captions';
+		}
 		return array_merge( $default_fields, $conditional );
 	}
 

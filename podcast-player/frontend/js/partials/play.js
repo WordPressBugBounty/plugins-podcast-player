@@ -35,6 +35,7 @@ class PlayEpisode {
 		this.media = this.mediaObj.media;
 		this.instance = props[id].instance;
 		this.modalObj = props[id].modal;
+		this.modal = this.modalObj ? this.modalObj.modal : false;
 		this.single = props[id].single;
 		this.singleWrap = props[id].singleWrap;
 		this.data = props.podcastPlayerData;
@@ -45,6 +46,7 @@ class PlayEpisode {
 		this.controls = jQuery(this.mediaObj.controls);
 		this.layers = this.controls.prev('.ppjs__layers');
 		this.plBtn = this.controls.find( '.ppjs__playpause-button > button' );
+		this.ccBtn = this.controls.find( '.ppjs__cc-button > a' );
 		this.prevBtn = this.podcast.find('.pp-prev-btn').attr('disabled', true);
 		this.nxtBtn = this.podcast.find('.pp-next-btn');
 		this.copylink = this.podcast.find('.ppsocial__copylink');
@@ -59,6 +61,8 @@ class PlayEpisode {
 		this.runCookieUpdate = false;
 		this.listItem = false;
 		this.audioFirstPlay = true;
+		this.isCaptionOpen = false;
+		this.currentCaptions = false;
 		setTimeout(() => {this.timeOut = true}, 3000);
 
 		this.events();
@@ -73,6 +77,11 @@ class PlayEpisode {
 
 		const _this = this;
 		const modal = _this.modalObj ? _this.modalObj.modal : false;
+		const captionsWrap = modal ? modal.find('.pp-caption-text') : false;
+		const timeToSeconds = (time) => {
+			const [hours, minutes, seconds] = time.split(':');
+			return parseInt(hours) * 3600 + parseInt(minutes) * 60 + parseFloat(seconds);
+		}
 		if (_this.podcast.hasClass('modern')) {
 			_this.list.on('click', '.pod-entry__mplay, .pod-entry__title', function(e) {
 				e.preventDefault();
@@ -209,6 +218,34 @@ class PlayEpisode {
 		// If analytics creation is allowed for podcast player.
 		if (this.settings.isPremium && this.settings.analytics) {
 		    this.media.addEventListener('play', this.playAnalytics.bind(this));
+		}
+
+		// If podcast caption to be displayed.
+		if (this.settings.isPremium && this.settings.transcripts) {
+			this.media.addEventListener('play', this.displayCaptions.bind(this));
+			this.media.addEventListener('pause', this.hideCaptions.bind(this));
+			this.ccBtn.on('click', this.toggleCaptions.bind(this));
+			if (this.modal) {
+				this.modal.find('.pp-caption-close').on('click', function() {
+					this.isCaptionOpen = false;
+					this.modal.find('#pp-closed-captions').hide();
+					this.modal.find('.pp-caption-text').html('');
+				}.bind(this));
+			}
+			this.media.addEventListener('timeupdate', () => {
+				const currentTime = this.media.currentTime;
+				if (! currentTime || ! this.isCaptionOpen || ! this.currentCaptions || ! captionsWrap) return;
+				const captions = this.currentCaptions;
+		
+				const activeCaption = captions.find(caption => 
+					currentTime >= timeToSeconds(caption.start) && 
+					currentTime <= timeToSeconds(caption.end)
+				);
+
+				if (activeCaption) {
+					captionsWrap.html(activeCaption.text);
+				}
+			});
 		}
 	}
 
@@ -1039,6 +1076,129 @@ class PlayEpisode {
 
 				if ( details.success ) {
 					console.log( 'Analytics recorded successfully.' );
+				}
+			},
+			error: (jqXHR, textStatus, errorThrown) => {
+				console.log( errorThrown );
+			}
+		} );
+	}
+
+	displayCaptions() {
+
+		// Reset previous captions.
+		this.currentCaptions = false;
+		this.isCaptionOpen = false;
+		this.controls.find( '.ppjs__cc-button' ).hide();
+		if (this.modal) {
+			this.modal.find('.pp-caption-text').html('');
+			this.modal.find('#pp-closed-captions').hide();
+		}
+
+		const pid = `pp-podcast-${this.instance}`;
+		const rdata = this.data[pid] ? this.data[pid].rdata : false;
+		const id = this.listItem.attr('id') || this.listItem.attr('data-pid');
+		const ajax = this.data.ajax_info;
+		let details = {};
+		// Update podcast data on single podcast wrapper.
+		if ( this.listItem.hasClass( 'episode-list__search-entry' ) ) {
+			details = this.data.search[id];
+		} else {
+			details = this.data[pid][id];
+		}
+
+		const podcast = rdata.fprint || rdata.podcast || false;
+		const episode = details.key || rdata.episode || false;
+		if ( ! podcast || ! episode ) {
+			return;
+		}
+
+		const transcript = Array.isArray( details.transcript ) ? details.transcript[0] : false;
+		const captions = Array.isArray( details.captions ) ? details.captions : false;
+
+		// Check if transcript is an object.
+		if ( ! transcript || 'object' !== typeof transcript || ! transcript.url ) {
+			return;
+		}
+
+		const button = this.controls.find( '.ppjs__cc-button' );
+		const link   = button.find( '.pp-cc' );
+
+		if ( ! transcript.type || ( 'text/vtt' !== transcript.type && 'application/x-subrip' !== transcript.type && 'application/srt' !== transcript.type ) ) {
+			link.attr( 'href', transcript.url ).attr( 'target', '_blank' );
+			this.controls.find( '.ppjs__cc-button' ).fadeIn();
+			return;
+		} else {
+			if (! this.modal) return;
+			if ( captions ) {
+				this.isCaptionOpen = true;
+				this.currentCaptions = captions;
+				this.controls.find( '.ppjs__cc-button' ).fadeIn();
+				this.modal.find('#pp-closed-captions').fadeIn();
+			} else {
+				const captionData = {
+					action  : 'pp_podcast_captions',
+					url     : transcript.url,
+					type    : transcript.type,
+					rel     : transcript.rel,
+					aurl    : ajax.ajaxurl,
+					security: ajax.security,
+					podcast,
+					episode,
+				};
+				this.ccFetch(captionData);
+			}
+		}
+	}
+
+	toggleCaptions(e) {
+		e.preventDefault();
+		if ( this.isCaptionOpen ) {
+			this.isCaptionOpen = false;
+			if (this.modal) {
+				this.modal.find('#pp-closed-captions').hide();
+				this.modal.find('.pp-caption-text').html('');
+			}
+		} else {
+			this.isCaptionOpen = true;
+			if (this.modal) {
+				this.modal.find('#pp-closed-captions').show();
+				this.modal.find('.pp-caption-text').html('');
+			}
+		}
+	}
+
+	hideCaptions() {
+		this.isCaptionOpen = false;
+		this.currentCaptions = false;
+		this.controls.find( '.ppjs__cc-button' ).fadeOut();
+		if (this.modal) {
+			this.modal.find('#pp-closed-captions').hide();
+			this.modal.find('.pp-caption-text').html('');
+		}
+	}
+
+	ccFetch(captionData) {
+		if ( ! captionData || ! captionData.url ) {
+			return;
+		}
+
+		// Let's get next set of episodes.
+		jQuery.ajax( {
+			url: captionData.aurl,
+			data: captionData,
+			type: 'POST',
+			timeout: 4000,
+			success: response => {
+				const details = JSON.parse( response );
+
+				if ( details.success ) {
+					this.currentCaptions = details.data;
+					this.isCaptionOpen = true;
+					this.controls.find( '.ppjs__cc-button' ).fadeIn();
+					this.modal.find('#pp-closed-captions').fadeIn();
+				} else {
+					console.log( 'We did not find captions.' );
 				}
 			},
 			error: (jqXHR, textStatus, errorThrown) => {

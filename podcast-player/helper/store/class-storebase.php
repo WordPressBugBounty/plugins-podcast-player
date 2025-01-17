@@ -304,6 +304,31 @@ class StoreBase {
 	}
 
 	/**
+	 * Escape podcast captions array.
+	 *
+	 * @since  7.5.0
+	 *
+	 * @param string $val     Value to be escaped.
+	 * @param string $context 'echo' or 'sanitize'.
+	 */
+	protected function captions( $val, $context ) {
+		if ( empty( $val ) || ! is_array( $val ) ) {
+			return array();
+		}
+
+		foreach ( $val as $key => $caption ) {
+			if ( 'sanitize' === $context ) {
+				$caption = array_map( 'sanitize_text_field', $caption );
+			} else {
+				$caption = array_map( 'esc_html', $caption );
+			}
+			$val[ $key ] = $caption;
+		}
+
+		return $val;
+	}
+
+	/**
 	 * Escape podcast owner.
 	 *
 	 * @since  1.0.0

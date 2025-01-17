@@ -172,6 +172,15 @@ class ItemData extends StoreBase {
 	 * @var    array
 	 */
 	protected $transcript;
+
+	/**
+	 * Holds episode closed captions array.
+	 *
+	 * @since  7.5.0
+	 * @access protected
+	 * @var    array
+	 */
+	protected $captions = array();
 	
 	/**
 	 * Holds episode chapters (Podcasting 2.0 format).
@@ -207,6 +216,7 @@ class ItemData extends StoreBase {
 			'episodetype' => 'string',
 			'post_id'     => 'int',
 			'transcript'  => 'transcript',
+			'captions'    => 'captions',
 			'chapters'    => 'arrUrlStr',
 		);
 	}

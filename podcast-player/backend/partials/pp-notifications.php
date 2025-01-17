@@ -16,18 +16,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<?php esc_html_e( 'Thanks for trying/updating Podcast Player.', 'podcast-player' ); ?>
 	</p>
 	<p><strong style="color: red;"><?php esc_html_e( 'Important: ', 'podcast-player' ); ?></strong><?php esc_html_e( 'If you are using a caching plugin, please clear (purge) the cache to update plugin CSS and JS files.', 'podcast-player' ); ?></p>
-	<!-- 
+	
 	<h4 style="margin-bottom: 0.25em;padding: 5px;">
-		<?php // esc_html_e( 'What\'s New in Pro version?.', 'podcast-player' ); ?>
+		<?php esc_html_e( 'What\'s New in Pro version?.', 'podcast-player' ); ?>
 	</h4>
-	<p style="font-size: 14px;">
-		<?php // esc_html_e( 'We have made a lot of code refactoring to improve performance and realiability. Alothough, we have tested it on multiple WordPress sites. However, if you observe any bug or performance issue, please report it on our support page. We will try to fix it as soon as possible.', 'podcast-player' ); ?>
-	</p>
 	<ol>
 	<li class="premium">
-		<?php // esc_html_e( 'We have made a lot of code refactoring to improve performance and realiability. Alothough, we have tested it on multiple WordPress sites. However, if you observe any bug or performance issue, please report it on our support page. We will try to fix it as soon as possible.', 'podcast-player' ); ?>
+		Podcast Player Pro now supports <span style="font-weight: bold;">podcast transcripts</span>, which can be added using podcast:transcript tags. Check <a style="font-weight: bold;" href="<?php echo esc_url( "https://easypodcastpro.com/docs/podcast-transcript-support/" ) ?>" target="_blank">Live Demo and Instructions</a>. This feature is still in experimental stage.
 	</li>
-	</ol> -->
+	</ol>
 	<div class="common-links">
 		<p class="pp-link">
 			<a href="https://wordpress.org/support/plugin/podcast-player/" target="_blank">

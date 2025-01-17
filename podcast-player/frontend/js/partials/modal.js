@@ -35,11 +35,15 @@ class Modal {
 	setup() {
 		const { ppClose, ppArrowUp, ppCloseBtnText, ppAuxModal } = this.settings;
 		const close = jQuery('<button />', { class: 'pp-modal-close' }).html( ppCloseBtnText + ppArrowUp + ppClose );
+		const captionClose = jQuery('<button />', { class: 'pp-caption-close' }).html( ppClose );
 		const modal = `
 		<div id="pp-modal-window" class="pp-modal-window">
-			<div class="pp-modal-wrapper"></div>
+			<div id="pp-closed-captions" class="pp-closed-captions">
+				<div class="pp-caption-text"></div>
+				${captionClose[0].outerHTML}
+			</div>
+			<div class="pp-modal-container"><div class="pp-modal-wrapper"></div>${close[0].outerHTML}</div>
 			${ppAuxModal}
-			${close[0].outerHTML}
 		</div>`;
 		jQuery('body').append(modal);
 		this.modal = jQuery('#pp-modal-window');
