@@ -55,6 +55,7 @@ class FetchMethod {
 			'.pp_hide_content',
 			'.pp_slist',
 			'.pp_catlist',
+			'.pp-feedback-toggle'
 		];
 		const postSpecific = [
 			'.pp_post_type',

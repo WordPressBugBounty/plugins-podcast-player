@@ -3139,6 +3139,12 @@ a.ppjs__episode-excerpt .ppjs__more
     margin-bottom: 0;
     margin-right: 10px;
 }
+
+.pp-user-feedback
+{
+    display: none;
+}
+
 @media only screen and (min-width: 450px)
 {
     .wide-player .pod-content
@@ -3785,6 +3791,7 @@ a.ppjs__episode-excerpt .ppjs__more
         border-width: 0;
     }
 }
+
 @media only screen and (min-width: 640px)
 {
     .wide-player .pod-items__navi-menu .podcast-menu
@@ -3985,6 +3992,7 @@ a.ppjs__episode-excerpt .ppjs__more
         font-size: 13px !important;
     }
 }
+
 @media only screen and (min-width: 768px)
 {
     .wide-player .pod-info .pod-items__navi-menu a.subscribe-item
@@ -4111,6 +4119,7 @@ a.ppjs__episode-excerpt .ppjs__more
         height: 46px;
     }
 }
+
 @media only screen and (min-width: 1024px)
 {
     .pp-podcast.light-color.playerview[id^=pp-podcast-] .ppjs__head-container .head-wrapper,

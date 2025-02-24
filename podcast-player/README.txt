@@ -4,7 +4,7 @@ Tags: podcast, podcasting, rss feed, feed to audio, podcaster
 Requires at least: 4.9
 Tested up to: 6.7
 Requires PHP: 5.6
-Stable tag: 7.5.0
+Stable tag: 7.6.0
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -13,7 +13,11 @@ Showcase your podcast only using podcasting feed url. Use widget, shortcode or e
 == Description ==
 The [Podcast Player](https://easypodcastpro.com/podcast-player/) is your ultimate solution for playing podcast on your website. It is designed to make the process of playing and showcasing your podcast simple and straightforward. All you need to do is provide the podcasting feed URL and the Podcast Player will take care of the rest. This plugin is a must-have for any podcast website, as it provides a seamless and convenient way for your listeners to access all your episodes. They can do so from any page on your website, giving them the flexibility to enjoy your content whenever and wherever they want. The Podcast Player is the perfect way to enhance the user experience on your podcast website and keep your listeners engaged and entertained.
 
-We have created a quick walk through video series to easily get started with podcast player.
+Watch this introductory video to learn about the podcast player.
+
+[youtube https://www.youtube.com/watch?v=XwA7ZBp1vMM]
+
+We've created a quick walkthrough video series to help you get started with the podcast player easily.
 
 [youtube https://www.youtube.com/watch?list=PLc4vyDJIvG8ehh-P7c2j_ZwIN_oVzXGXi&v=R_TpPo5f1fM]
 
@@ -98,6 +102,14 @@ Podcast player plugin (on its own) does not create and save any cookies and does
 5. Podcast player on large size container
 
 == Changelog ==
+
+= 7.6.0 =
+* Modify: Code cleanup by removing unused code.
+* Modify: More clear explanation of settings to avoid confusion.
+* Modify: Support for more pro features in the plugin.
+
+= 7.5.0 =
+* Modify: Support for new pro features.
 
 = 7.4.9 =
 * Add: Feed Migration Tool. In the podcast is transferred to a new host, its feed URL can be changed at a central location.

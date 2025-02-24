@@ -230,9 +230,37 @@ class Block extends Singleton {
 							'type'    => 'string',
 							'default' => esc_html__( 'Episode will play after this message.', 'podcast-player' ),
 						),
-						'fontFamily'       => array(
+						'feedBack'         => array(
+							'type'    => 'boolean',
+							'default' => false,
+						),
+						'showFormTime'     => array(
+							'type'    => 'number',
+							'default' => 60
+						),
+						'feedbackText'     => array(
+							'type'    => 'string',
+							'default' => esc_html__( 'Are you enjoying this episode?', 'podcast-player' ),
+						),
+						'positiveText'     => array(
+							'type'    => 'string',
+							'default' => esc_html__( 'Thanks for your feedback.', 'podcast-player' ),
+						),
+						'positiveUrl'      => array(
 							'type'    => 'string',
 							'default' => '',
+						),
+						'negativeText'     => array(
+							'type'    => 'string',
+							'default' => esc_html__( 'Sorry you did not like it. Please share your feedback to help us improve.', 'podcast-player' ),
+						),
+						'negativeForm'     => array(
+							'type'    => 'boolean',
+							'default' => true,
+						),
+						'fontFamily'       => array(
+							'type'    => 'string',
+							'default' => esc_html__( 'Default', 'podcast-player' ),
 						),
 						'bgColor'          => array(
 							'type'    => 'string',

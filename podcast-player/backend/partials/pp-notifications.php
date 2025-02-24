@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	</h4>
 	<ol>
 	<li class="premium">
-		Podcast Player Pro now supports <span style="font-weight: bold;">podcast transcripts</span>, which can be added using podcast:transcript tags. Check <a style="font-weight: bold;" href="<?php echo esc_url( "https://easypodcastpro.com/docs/podcast-transcript-support/" ) ?>" target="_blank">Live Demo and Instructions</a>. This feature is still in experimental stage.
+		We have added a new test feature <span style="font-weight: bold;">Listener Feedback</span> in the podcast player pro. Check <a style="font-weight: bold;" href="<?php echo esc_url( "https://easypodcastpro.com/docs/listener-feedback/" ) ?>" target="_blank">Instructions</a>. This feature is still in experimental stage.
 	</li>
 	</ol>
 	<div class="common-links">

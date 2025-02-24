@@ -101,6 +101,10 @@ class ChangeDetect {
 		widget.on('change', '.podcast-player-pp-teaser-text', function() {
 			_this.toggleExcerptOptions(jQuery(this));
 		});
+
+		widget.on('change', '.pp_collect_feedback input[type="checkbox"]', function() {
+			_this.toggleFeedbackOptions(jQuery(this));
+		});
 	}
 
 	/**
@@ -396,6 +400,22 @@ class ChangeDetect {
 			elem.hide();
 		} else {
 			elem.show();
+		}
+	}
+
+	/**
+	 * Toggle Feedback Options.
+	 *
+	 * @since 7.6.0
+	 *
+	 * @param {Obj} obj
+	 */
+	toggleFeedbackOptions(obj) {
+		const wrapper = obj.closest('.widget-content');
+		if (obj.is(':checked')) {
+			wrapper.find('.pp_show_form_time, .pp_feedback_text, .pp_positive_text, .pp_positive_url, .pp_negative_text, .pp_negative_form').show();
+		} else {
+			wrapper.find('.pp_show_form_time, .pp_feedback_text, .pp_positive_text, .pp_positive_url, .pp_negative_text, .pp_negative_form').hide();
 		}
 	}
 }

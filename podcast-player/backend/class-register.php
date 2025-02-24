@@ -178,9 +178,6 @@ class Register {
 	public static function misc_actions() {
 		$misc = Misc::get_instance();
 
-		// TODO: To be removed in the 7.5.0
-		// add_action( 'pp_save_images_locally', array( $misc, 'save_images_locally' ) );
-
 		// TODO: Instead of cron updates, should use Background Jobs.
 		add_action( 'pp_auto_update_podcast', array( $misc, 'auto_update_podcast' ) );
 		add_action( 'rest_api_init', array( $misc, 'register_routes' ) );

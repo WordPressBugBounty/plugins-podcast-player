@@ -258,6 +258,13 @@ class Loader extends Singleton {
 			'isSticky'    => false,
 			'features'    => array( 'current', 'progress', 'duration', 'fullscreen' ),
 			'isMeJs'      => $this->has_mediaelement(),
+			'i18n'        => array(
+				'message' => esc_html__( 'Your Message', 'podcast-player' ),
+				'email'   => esc_html__( 'Your Email', 'podcast-player' ),
+				'name'    => esc_html__( 'Your Name', 'podcast-player' ),
+				'send'    => esc_html__( 'Send', 'podcast-player' ),
+				'thanks'  => esc_html__( 'Thanks for your feedback', 'podcast-player' ),
+			),
 		);
 		return array_merge( $mejs, $markup, $settings );
 	}
@@ -278,6 +285,8 @@ class Loader extends Singleton {
 			'ppPlayCircle'  => 'pp-play',
 			'ppVidLoading'  => 'pp-refresh',
 			'ppArrowUp'     => 'pp-arrow-up',
+			'ppThumbsUp'    => 'pp-thumbs-up',
+			'ppThumbsDown'  => 'pp-thumbs-down',
 		);
 
 		// Create icons markup.

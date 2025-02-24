@@ -57,10 +57,6 @@ class Register {
 		// Instantiate front-end loader class.
 		$loader = Loader::get_instance();
 
-		// TODO: Delete after 7.5.0
-		// Modify Default Hooks.
-		// self::compatibility_hooks();
-
 		// Load front-end scripts, styles and icons.
 		self::load_resources( $loader );
 
@@ -122,25 +118,6 @@ class Register {
 	 */
 	public static function register_mejs_settings( $instance ) {
 		add_filter( 'podcast_player_mediaelement_settings', array( $instance, 'mejs_settings' ) );
-	}
-
-	/**
-	 * Resolve anchor feeds give cURL 60 error.
-	 *
-	 * @since 5.3.0
-	 */
-	public static function compatibility_hooks() {
-		add_filter(
-			'http_request_args',
-			function ( $args, $url ) {
-				if ( strpos( $url, 'anchor.fm' ) ) {
-					$args['sslverify'] = false;
-				}
-				return $args;
-			},
-			10,
-			2
-		);
 	}
 
 	/**

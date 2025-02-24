@@ -134,7 +134,7 @@ class Options {
 				'refresh_interval' => array(
 					'name'        => esc_html__( 'Podcast update interval (in minutes).', 'podcast-player' ),
 					'id'          => 'refresh_interval',
-					'description' => esc_html__( 'Check and Update your podcast automatically after every mentioned time interval. By default your podcast will be auto updated after every 720 minutes (i.e., 12 hours).', 'podcast-player' ),
+					'description' => esc_html__( 'Set how often your podcast updates automatically. The plugin will check for new episodes at the specified time interval. By default, it updates every 720 minutes (12 hours).', 'podcast-player' ),
 					'link'        => '',
 					'type'        => 'number',
 					'default'     => 720,
@@ -146,13 +146,13 @@ class Options {
 					),
 				),
 				'hide_data'        => array(
-					'name'        => esc_html__( 'Minimize unintentional exposure of podcast data', 'podcast-player' ),
+					'name'        => esc_html__( 'Protect Podcast Data from Exposure', 'podcast-player' ),
 					'id'          => 'hide_data',
-					'description' => esc_html__( 'Minimize unintentional display of podcast data like audio url and podcast feed url from front-end page source.', 'podcast-player' ),
+					'description' => esc_html__( 'Prevent unintentional display of podcast data, such as the audio URL and podcast feed URL, in the front-end page source.', 'podcast-player' ),
 					'link'        => '',
 					'type'        => 'checkbox',
 					'default'     => '',
-					'section'     => 'general',
+					'section'     => 'advanced',
 				),
 				'update_method'    => array(
 					'name'        => esc_html__( 'Update podcasts using WP Cron.', 'podcast-player' ),
@@ -161,7 +161,7 @@ class Options {
 					'link'        => '',
 					'type'        => 'checkbox',
 					'default'     => '',
-					'section'     => 'general',
+					'section'     => 'advanced',
 				),
 				'img_save'         => array(
 					'name'        => esc_html__( 'Image Optimization', 'podcast-player' ),
@@ -173,7 +173,7 @@ class Options {
 					'section'     => 'optimize',
 				),
 				'rel_external'     => array(
-					'name'        => esc_html__( 'Add rel attributes.', 'podcast-player' ),
+					'name'        => esc_html__( 'Add Rel Attributes to External Links.', 'podcast-player' ),
 					'id'          => 'rel_external',
 					'description' => esc_html__( 'Add noopener, noreferrer and nofollow rel attributes to external links in episode content. It should improve SEO and security of your website.', 'podcast-player' ),
 					'link'        => '',

@@ -33,14 +33,25 @@ class Modal {
 
 	// Setup modal markup.
 	setup() {
-		const { ppClose, ppArrowUp, ppCloseBtnText, ppAuxModal } = this.settings;
+		const { ppClose, ppArrowUp, ppCloseBtnText, ppAuxModal, ppThumbsUp, ppThumbsDown } = this.settings;
 		const close = jQuery('<button />', { class: 'pp-modal-close' }).html( ppCloseBtnText + ppArrowUp + ppClose );
 		const captionClose = jQuery('<button />', { class: 'pp-caption-close' }).html( ppClose );
+		const thumbUp = jQuery('<button />', { class: 'pp-thumbs-up' }).html( ppThumbsUp );
+		const thumbDown = jQuery('<button />', { class: 'pp-thumbs-down' }).html( ppThumbsDown );
+		const fbackClose = jQuery('<button />', { class: 'pp-fback-close' }).html( ppClose );
 		const modal = `
 		<div id="pp-modal-window" class="pp-modal-window">
 			<div id="pp-closed-captions" class="pp-closed-captions">
 				<div class="pp-caption-text"></div>
 				${captionClose[0].outerHTML}
+			</div>
+			<div id="pp-user-feedback" class="pp-user-feedback">
+				<div class="pp-user-feedback-initial">
+					<div class="pp-user-feedback-message"></div>
+					<div class="pp-user-feedback-buttons">${thumbUp[0].outerHTML}${thumbDown[0].outerHTML}</div>
+				</div>
+				<div class="pp-user-feedback-response"></div>
+				${fbackClose[0].outerHTML}
 			</div>
 			<div class="pp-modal-container"><div class="pp-modal-wrapper"></div>${close[0].outerHTML}</div>
 			${ppAuxModal}

@@ -287,6 +287,13 @@ class PodcastPlayer extends Component {
 			msgStart,
 			msgTime,
 			msgText,
+			feedBack,
+			showFormTime,
+			feedbackText,
+			positiveText,
+			positiveUrl,
+			negativeText,
+			negativeForm,
 			bgColor,
 			txtColor,
 			fontFamily,
@@ -1190,6 +1197,60 @@ class PodcastPlayer extends Component {
 								value={ msgText }
 								onChange={ ( value ) => setAttributes( { msgText: value } ) }
 							/>
+						</PanelBody>
+					}
+					{
+						(this.isPremium && 'feed' === fetchMethod) &&
+						<PanelBody initialOpen={ false } title={ __( 'Allow User Feedback', 'podcast-player' ) }>
+							<ToggleControl
+								label={ __( 'Enable User Feedback', 'podcast-player' ) }
+								checked={ !! feedBack }
+								onChange={ ( value ) => setAttributes( { feedBack: value } ) }
+							/>
+							{
+								!!feedBack &&
+								<div>
+									<RangeControl
+										label={ __( 'Show Form After Play Time (Seconds)', 'podcast-player' ) }
+										help={ __( 'Show the form only after the episode has played for the specified seconds.', 'podcast-player' ) }
+										value={ showFormTime }
+										onChange={ ( value ) => setAttributes( { showFormTime: value } ) }
+										min={ 0 }
+										max={ 600 }
+										step={ 1 }
+									/>
+									<TextControl
+										label={ __( 'Feedback Text', 'podcast-player' ) }
+										value={ feedbackText }
+										onChange={ ( value ) => setAttributes( { feedbackText: value } ) }
+										help={ __( 'Initial message to get listener feedback.', 'podcast-player' ) }
+									/>
+									<TextControl
+										label={ __( 'Positive Feedback Response', 'podcast-player' ) }
+										value={ positiveText }
+										onChange={ ( value ) => setAttributes( { positiveText: value } ) }
+										help={ __( 'Message for listeners if they give positive feedback.', 'podcast-player' ) }
+									/>
+									<TextControl
+										label={ __( 'Positive Feedback URL', 'podcast-player' ) }
+										value={ positiveUrl }
+										onChange={ ( value ) => setAttributes( { positiveUrl: value } ) }
+										help={ __( 'Apple podcast or other URL for listener to give positive rating.', 'podcast-player' ) }
+									/>
+									<TextControl
+										label={ __( 'Negative Feedback Response', 'podcast-player' ) }
+										value={ negativeText }
+										onChange={ ( value ) => setAttributes( { negativeText: value } ) }
+										help={ __( 'Message for listeners if they give negative feedback.', 'podcast-player' ) }
+									/>
+									<ToggleControl
+										label={ __( 'Show Negative Feedback Form', 'podcast-player' ) }
+										checked={ !! negativeForm }
+										onChange={ ( value ) => setAttributes( { negativeForm: value } ) }
+										help={ __( 'Show form to get detailed negative feedback.', 'podcast-player' ) }
+									/>
+								</div>
+							}
 						</PanelBody>
 					}
 				</InspectorControls>

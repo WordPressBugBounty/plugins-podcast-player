@@ -56,6 +56,7 @@ class PlayEpisode {
 		this.played = false;
 		this.settings = props[id].settings;
 		this.isPremium = this.settings.isPremium;
+		this.i18n = this.settings.i18n || {};
 		this.timeOut = false;
 		this.playTime = false;
 		this.runCookieUpdate = false;
@@ -63,6 +64,7 @@ class PlayEpisode {
 		this.audioFirstPlay = true;
 		this.isCaptionOpen = false;
 		this.currentCaptions = false;
+		this.userFeedBack = false;
 		setTimeout(() => {this.timeOut = true}, 3000);
 
 		this.events();
@@ -78,6 +80,8 @@ class PlayEpisode {
 		const _this = this;
 		const modal = _this.modalObj ? _this.modalObj.modal : false;
 		const captionsWrap = modal ? modal.find('.pp-caption-text') : false;
+		const pid = `pp-podcast-${this.instance}`;
+		const rdata = this.data[pid] ? this.data[pid].rdata : false;
 		const timeToSeconds = (time) => {
 			const [hours, minutes, seconds] = time.split(':');
 			return parseInt(hours) * 3600 + parseInt(minutes) * 60 + parseFloat(seconds);
@@ -247,6 +251,271 @@ class PlayEpisode {
 				}
 			});
 		}
+
+		if (modal && this.settings.isPremium && rdata && rdata.showFormTime) {
+			const feedbackWrapper = modal.find('#pp-user-feedback');
+			const message = feedbackWrapper.find('.pp-user-feedback-message');
+			const closeBtn = feedbackWrapper.find('.pp-fback-close');
+			const likeBtn = feedbackWrapper.find('.pp-thumbs-up');
+			const dislikeBtn = feedbackWrapper.find('.pp-thumbs-down');
+			const fResponse = feedbackWrapper.find('.pp-user-feedback-response');
+			this.media.addEventListener('play', () => {
+				this.userFeedBack = false;
+				feedbackWrapper.find('.pp-user-feedback-initial').show();
+				feedbackWrapper.hide();
+				fResponse.html('');
+			});
+			this.media.addEventListener('timeupdate', () => {
+				const currentTime = this.media.currentTime;
+				if ( ! this.userFeedBack && currentTime >= rdata.showFormTime ) {
+					this.userFeedBack = true;
+					message.html(rdata.feedbackText);
+					feedbackWrapper.fadeIn();
+				}
+			});
+
+			closeBtn.on('click', () => {
+				feedbackWrapper.hide();
+				fResponse.html('');
+			});
+			likeBtn.on('click', () => {
+				feedbackWrapper.find('.pp-user-feedback-initial').hide();
+				const url = rdata.positiveUrl ? `<a href="${rdata.positiveUrl}" target=_blank>${rdata.positiveUrl}</a>` : '';
+				const text = rdata.positiveText ? rdata.positiveText : '';
+				fResponse.html(text ? `<p>${text} ${url}</p>` : '');
+				this.submitUserFeedback(true);
+				setTimeout(() => {
+					feedbackWrapper.fadeOut('fast', () => {
+						fResponse.html('');
+					});
+				}, 3000);
+			});
+			dislikeBtn.on('click', () => {
+				feedbackWrapper.find('.pp-user-feedback-initial').hide();
+				const showForm = rdata.negativeForm ? true : false;
+				const text = rdata.negativeText ? rdata.negativeText : '';
+				const wheelMarkup = jQuery('<span />', { class: 'pp-feedback__loading'})
+				.html(this.settings.ppVidLoading);
+				let form = '';
+				if (showForm) {
+					form = `
+						<div class="pp-user-feedback-form">
+							<div>
+								<label for="pp-user-feedback-message">${this.i18n.message || 'Your Message'}</label>
+								<textarea id="pp-user-feedback-message" name="pp-user-feedback-message" required></textarea>
+							</div>
+							<div>
+								<label for="pp-user-feedback-name">${this.i18n.name || 'Your Name'}</label>
+								<input type="text" id="pp-user-feedback-name" name="pp-user-feedback-name" required>
+							</div>
+							<div>
+								<label for="pp-user-feedback-email">${this.i18n.email || 'Your Email'}</label>
+								<input type="email" id="pp-user-feedback-email" name="pp-user-feedback-email" required>
+							</div>
+							<button class="pp-user-feedback-send">${wheelMarkup[0].outerHTML}<span class="pp-feedback-send-text">${this.i18n.send || 'Send'}</span></button>
+						</div>`;
+				}
+				fResponse.html(text ? `<p>${text}</p>${form}` : '');
+				this.submitUserFeedback(false);
+			});
+			fResponse.on('click', '.pp-user-feedback-send', (e) => {
+				const target = jQuery(e.target).closest('.pp-user-feedback-send');
+				const wrapper = fResponse[0] ? fResponse[0] : false;
+				if (! wrapper) return;
+				const feedbackField = wrapper.querySelector('#pp-user-feedback-message');
+				const emailField = wrapper.querySelector('#pp-user-feedback-email');
+				const nameField = wrapper.querySelector('#pp-user-feedback-name');
+				let isValid = true;
+
+				if (! feedbackField || ! emailField || ! nameField) return;
+
+				const showError = (field, message) => {
+					let errorSpan = field.parentNode.querySelector('.pp-feedback-error-message');
+					if (!errorSpan || !errorSpan.classList.contains('pp-feedback-error-message')) {
+						errorSpan = document.createElement('span');
+						errorSpan.classList.add('pp-feedback-error-message');
+						field.parentNode.appendChild(errorSpan);
+					}
+					errorSpan.textContent = message;
+					field.classList.add('pp-border-red');
+				};
+
+				const clearError = (field) => {
+					let errorSpan = field.parentNode.querySelector('.pp-feedback-error-message');
+					if (errorSpan && errorSpan.classList.contains('pp-feedback-error-message')) {
+						errorSpan.remove();
+					}
+					field.classList.remove('pp-border-red');
+				};
+
+				if (!feedbackField.value.trim()) {
+					showError(feedbackField, "Feedback is required.");
+					isValid = false;
+				} else {
+					clearError(feedbackField);
+				}
+
+				if (!nameField.value.trim()) {
+					showError(nameField, "Name is required.");
+					isValid = false;
+				} else {
+					clearError(nameField);
+				}
+
+				// Validate Email Field
+				if (!emailField.value.trim()) {
+					showError(emailField, "Email is required.");
+					isValid = false;
+				} else if (!/^\S+@\S+\.\S+$/.test(emailField.value.trim())) {
+					showError(emailField, "Enter a valid email address.");
+					isValid = false;
+				} else {
+					clearError(emailField);
+				}
+
+                if (isValid) {
+					target.addClass('pp-sending');
+					this.submitFeedbackForm(feedbackField.value.trim(), nameField.value.trim(), emailField.value.trim(), feedbackWrapper, fResponse);
+                }
+
+				[feedbackField, nameField, emailField].forEach(field => {
+					field.addEventListener('input', () => {
+						if (field.value.trim()) {
+							clearError(field);
+						} else {
+							showError(field, "This field is required.");
+						}
+					});
+				});
+			});
+		}
+	}
+
+	/**
+	 * Submit user feedback to the server.
+	 *
+	 * @since 7.6.0
+	 *
+	 * @param bool isPositive
+	 */
+	submitUserFeedback(isPositive) {
+		const pid = `pp-podcast-${this.instance}`;
+		const rdata = this.data[pid] ? this.data[pid].rdata : false;
+		const id = this.listItem.attr('id') || this.listItem.attr('data-pid');
+		const ajax = this.data.ajax_info;
+		let details = {};
+		// Update podcast data on single podcast wrapper.
+		if ( this.listItem.hasClass( 'episode-list__search-entry' ) ) {
+			details = this.data.search[id];
+		} else {
+			details = this.data[pid][id];
+		}
+
+		const podcast = rdata.fprint || rdata.podcast || false;
+		const episode = details.key || rdata.episode || false;
+
+		if ( ! podcast || ! episode ) {
+			console.log( 'Cannot Submit User Feedback.' );
+			return;
+		}
+
+		const data = {
+			action : 'pp_user_likes_feedback',
+			type: isPositive ? 'positive' : 'negative',
+			security: ajax.security,
+			podcast,
+			episode,
+		};
+
+		// Let's get next set of episodes.
+		jQuery.ajax( {
+			url: ajax.ajaxurl,
+			data: data,
+			type: 'POST',
+			timeout: 4000,
+			success: response => {
+				const details = JSON.parse( response );
+
+				if ( details.success ) {
+					console.log( 'Feedback Submitted Successfully' );
+				}
+			},
+			error: (jqXHR, textStatus, errorThrown) => {
+				console.log( errorThrown );
+			}
+		} );
+	}
+
+	/**
+	 * Submit user feedback form data.
+	 *
+	 * @since 7.6.0
+	 *
+	 * @param string message
+	 * @param string name
+	 * @param string email
+	 * @param Obj    feedbackWrapper
+	 * @param Obj    fResponse
+	 */
+	submitFeedbackForm(message, name, email, feedbackWrapper, fResponse) {
+		const pid = `pp-podcast-${this.instance}`;
+		const rdata = this.data[pid] ? this.data[pid].rdata : false;
+		const id = this.listItem.attr('id') || this.listItem.attr('data-pid');
+		const ajax = this.data.ajax_info;
+		let details = {};
+		// Update podcast data on single podcast wrapper.
+		if ( this.listItem.hasClass( 'episode-list__search-entry' ) ) {
+			details = this.data.search[id];
+		} else {
+			details = this.data[pid][id];
+		}
+
+		const podcast = rdata.fprint || rdata.podcast || false;
+		const episode = details.key || rdata.episode || false;
+
+		if ( ! podcast || ! episode ) {
+			console.log( 'Cannot Send User Feedback.' );
+			return;
+		}
+
+		const data = {
+			action : 'pp_send_feedback_mail',
+			message,
+			name,
+			email,
+			security: ajax.security,
+			podcast,
+			episode,
+		};
+
+		// Let's get next set of episodes.
+		jQuery.ajax( {
+			url: ajax.ajaxurl,
+			data: data,
+			type: 'POST',
+			timeout: 4000,
+			success: response => {
+				const details = JSON.parse( response );
+
+				if ( details.success ) {
+					console.log( 'Feedback Mailed Successfully' );
+				}
+				fResponse.innerHTML = `${this.i18n.thanks || 'Thanks for your feedback'}`;
+				setTimeout(() => {
+					feedbackWrapper.fadeOut('fast', () => {
+						fResponse.html('');
+					});
+				}, 3000);
+			},
+			error: (jqXHR, textStatus, errorThrown) => {
+				console.log( errorThrown );
+				setTimeout(() => {
+					feedbackWrapper.fadeOut('fast', () => {
+						fResponse.html('');
+					});
+				}, 3000);
+			}
+		} );
 	}
 
 	/**

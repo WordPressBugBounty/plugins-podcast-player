@@ -126,6 +126,13 @@ class Widget extends \WP_Widget {
 			'pp_edisplay'          => '',
 			'pp_seasons'           => '',
 			'pp_episodes'          => '',
+			'pp_collect_feedback'  => '',
+			'pp_show_form_time'    => 60,
+			'pp_feedback_text'     => esc_html__( 'Are you enjoying this episode?', 'podcast-player' ),
+			'pp_positive_text'     => esc_html__( 'Thanks for your feedback.', 'podcast-player' ),
+			'pp_positive_url'      => '',
+			'pp_negative_text'     => esc_html__( 'Sorry you did not like it. Please share your feedback to help us improve.', 'podcast-player' ),
+			'pp_negative_form'     => 'yes',
 		);
 
 		$this->is_premium = apply_filters( 'podcast_player_is_premium', false );
