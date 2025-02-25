@@ -191,6 +191,15 @@ class Shortcode extends Singleton {
 			'bullhorn_sub'      => '',
 			'podbean_sub'       => '',
 			'playerfm_sub'      => '',
+			'feedback'          => '',
+			'collect_feedback'  => '', // TODO: To be removed in next update.
+			'show-form-time'    => 60, // TODO: To be removed in next update.
+			'show_form_time'    => 60,
+			'feedback_text'     => esc_html__( 'Are you enjoying this episode?', 'podcast-player' ),
+			'positive_text'     => esc_html__( 'Thanks for your feedback.', 'podcast-player' ),
+			'positive_url'      => '',
+			'negative_text'     => esc_html__( 'Sorry you did not like it. Please share your feedback to help us improve.', 'podcast-player' ),
+			'negative_form'     => 'yes',
 		);
 	}
 }
