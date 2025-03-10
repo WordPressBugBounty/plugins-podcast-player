@@ -287,6 +287,14 @@ button.pp-modal-close
 {
     background-color: #fff;
 }
+.pp-podcast__extra
+{
+    margin-bottom: 20px;
+}
+.pp-podcast.pp-shared-episode.playerview .episode-list
+{
+    display: none !important;
+}
 .widget .pp-podcast
 {
     margin-bottom: 0;
@@ -1472,6 +1480,10 @@ button.episode-list__load-more:focus
 {
     color: #65b84f !important;
 }
+.pp-social-shared .ppjs__audio .ppjs__button.ppjs__playpause-button button
+{
+    animation: bounce 1.5s ease-in-out .25s;
+}
 .ppjs__audio .ppjs__button.ppjs__skip-next-button,
 .ppjs__audio .ppjs__button.ppjs__skip-prev-button
 {
@@ -2083,6 +2095,27 @@ input.pp-copylink
     padding: 8px !important;
 }
 
+@keyframes bounce
+{
+    0%
+    {
+        transform: scale(1);
+
+        opacity: 1;
+    }
+    50%
+    {
+        transform: scale(1.2);
+
+        opacity: .8;
+    }
+    100%
+    {
+        transform: scale(1);
+
+        opacity: 1;
+    }
+}
 .ppjs__img-wrapper
 {
     position: relative;

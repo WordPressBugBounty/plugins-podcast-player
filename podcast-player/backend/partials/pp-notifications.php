@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	</h4>
 	<ol>
 	<li class="premium">
-		We have added a new test feature <span style="font-weight: bold;">Listener Feedback</span> in the podcast player pro. Check <a style="font-weight: bold;" href="<?php echo esc_url( "https://easypodcastpro.com/docs/listener-feedback/" ) ?>" target="_blank">Instructions</a>. This feature is still in experimental stage.
+		We have made an update to the podcast pro <span style="font-weight: bold;">Episode Sharing Feature</span>. To learn more, <a style="font-weight: bold;" href="<?php echo esc_url( "https://www.youtube.com/watch?v=V_OPrwZYFYA" ) ?>" target="_blank">watch the video</a>.
 	</li>
 	</ol>
 	<div class="common-links">

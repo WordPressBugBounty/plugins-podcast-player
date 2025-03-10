@@ -353,6 +353,10 @@ class Render {
 			$attr,
 			$markup
 		);
+		$extra_markup = $this->podcast_extra( 'pp-podcast__extra' );
+		if ( $extra_markup ) {
+			$markup .= $extra_markup;
+		}
 		$this->print_inline_css( $styles );
 		echo $markup; //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
@@ -946,6 +950,34 @@ class Render {
 
 		$btn = $this->get_template( 'misc/buttons', 'load-more' );
 		return sprintf( '<div class="%s">%s</div>', esc_attr( $classname ), $btn );
+	}
+
+	/**
+	 * Render podcast extra information (if any).
+	 *
+	 * @since  1.0.0
+	 *
+	 * @param string $classname Identifier unique classname.
+	 */
+	public function podcast_extra( $classname ) {
+
+		if ( isset( $this->args['show-original-link'] ) && $this->args['show-original-link'] ) {
+			$current_url = home_url( add_query_arg( [], $_SERVER['REQUEST_URI'] ) );
+			$current_url = remove_query_arg( 'ppepisode', $current_url );
+
+			if ( ! $current_url ) {
+				return '';
+			}
+
+			$text = apply_filters( 'pp_listen_podcast', esc_html__( 'Listen More Episodes', 'podcast-player' ) );
+
+			return sprintf(
+				'<div class="%1$s"><a href="%2$s" target="_blank">%3$s</a></div>',
+				esc_attr( $classname ),
+				esc_url( $current_url ),
+				$text
+			);
+		}
 	}
 
 	/**
