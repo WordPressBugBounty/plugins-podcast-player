@@ -56,6 +56,10 @@ class Block extends Singleton {
 							'type'    => 'number',
 							'default' => 10,
 						),
+						'noScroll'    => array(
+							'type'    => 'boolean',
+							'default' => false,
+						),
 						'offset'           => array(
 							'type'    => 'number',
 							'default' => 0,
@@ -423,6 +427,7 @@ class Block extends Singleton {
 				'image'             => $image_id,
 				'description'       => $atts['description'],
 				'img_url'           => $img_url,
+				'no-scroll'         => true === $atts['noScroll'] ? 1 : 0,
 				'header-default'    => true === $atts['headerDefault'] ? 1 : 0,
 				'list-default'      => true === $atts['listDefault'] ? 1 : 0,
 				'hide-header'       => true === $atts['hideHeader'] ? 1 : 0,

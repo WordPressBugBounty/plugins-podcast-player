@@ -143,6 +143,7 @@ class Display extends Singleton {
 			'url'               => '',
 			'sortby'            => 'sort_date_desc',
 			'filterby'          => '',
+			'no-scroll'         => '',
 			'number'            => 10,
 			'menu'              => '',
 			'main_menu_items'   => 0,

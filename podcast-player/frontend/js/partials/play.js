@@ -1318,7 +1318,7 @@ class PlayEpisode {
 			details = this.data[pid][id];
 		}
 
-		const podcast = rdata.fprint || rdata.podcast || false;
+		const podcast = details.podkey || rdata.fprint || rdata.podcast || false;
 		const episode = details.key || rdata.episode || false;
 
 		if ( ! podcast || ! episode ) {

@@ -60,6 +60,7 @@ class Widget extends \WP_Widget {
 			'cover_image'          => '',
 			'desc'                 => '',
 			'error'                => '',
+			'pp_no_scroll'         => '',
 			'pp_teaser_text'       => '',
 			'pp_excerpt_length'    => 18,
 			'pp_excerpt_unit'      => '',
@@ -185,6 +186,7 @@ class Widget extends \WP_Widget {
 				'main_menu_items'   => $instance['main_menu_items'],
 				'image'             => $instance['cover_image'],
 				'description'       => $instance['desc'],
+				'no-scroll'         => $instance['pp_no_scroll'],
 				'header-default'    => $instance['pp_header_default'],
 				'list-default'      => $instance['pp_list_default'],
 				'hide-header'       => $instance['pp_hide_header'],
@@ -344,6 +346,14 @@ class Widget extends \WP_Widget {
 							),
 							'hide_callback' => function () use ( $widget, $settings ) {
 								return $widget->is_option_equal( 'pp_fetch_method', 'link', $settings );
+							},
+						),
+						'pp_no_scroll'   => array(
+							'setting'       => 'pp_no_scroll',
+							'label'         => esc_html__( 'Show initial loaded episodes without scrolling.', 'podcast-player' ),
+							'type'          => 'checkbox',
+							'hide_callback' => function () use ( $widget, $settings ) {
+								return $widget->is_option_not_equal( 'pp_display_style', '', $settings ) && $widget->is_option_not_equal( 'pp_display_style', 'modern', $settings );
 							},
 						),
 						'offset'            => array(
@@ -748,6 +758,7 @@ class Widget extends \WP_Widget {
 		}
 
 		$sanitize_bool = array(
+			'pp_no_scroll',
 			'pp_list_default',
 			'pp_hide_title',
 			'pp_hide_cover',

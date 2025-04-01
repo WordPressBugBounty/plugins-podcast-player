@@ -365,6 +365,7 @@ class SearchEpisodes {
 	flushSearchResults() {
 
 		this.searchResults.empty();
+		this.list.find('.episode-list__search-entry').remove();
 		this.hasLoading = false;
 	}
 
@@ -471,9 +472,16 @@ class SearchEpisodes {
 				markup.css('display', 'block');
 			}
 			overallMarkup.append(jQuery(markup));
-			this.searchResults.html( overallMarkup.html() );
-			this.hasLoading = false;
 		}
+
+		const fetchedItems = overallMarkup.find('.episode-list__search-entry');
+
+		if (fetchedItems.length) {
+			fetchedItems.insertAfter(this.list.find('.pod-entry').last());
+		}
+
+		this.searchResults.empty();
+		this.hasLoading = false;
 	}
 
 	searchAnalytics( feed, term, results ) {

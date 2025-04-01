@@ -267,6 +267,7 @@ class PodcastPlayer extends Component {
 			audioTitle,
 			audioLink,
 			headerDefault,
+			noScroll,
 			listDefault,
 			hideHeader,
 			hideTitle,
@@ -644,6 +645,14 @@ class PodcastPlayer extends Component {
 									onChange={ ( value ) => setAttributes( { number: value } ) }
 									min={ 1 }
 									max={ 1000 }
+								/>
+							}
+							{
+								'link' !== fetchMethod && (!displayStyle || 'modern' === displayStyle ) &&
+								<ToggleControl
+									label={ __( 'Show initial loaded episodes without scrolling', 'podcast-player' ) }
+									checked={ !! noScroll }
+									onChange={ ( value ) => setAttributes( { noScroll: value } ) }
 								/>
 							}
 							{

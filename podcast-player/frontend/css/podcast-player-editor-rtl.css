@@ -2655,20 +2655,6 @@ a.ppjs__episode-excerpt .ppjs__more
 
     justify-content: space-between;
 }
-.media-audio.has-featured.narrow-player .pod-launch
-{
-    position: absolute;
-    z-index: 10;
-    top: 22px;
-    right: 22px;
-
-    width: calc(100% - 44px);
-    padding: 0;
-
-    border-top-width: 0;
-    border-radius: 2px;
-    background-color: rgba(255, 255, 255, .85);
-}
 .has-featured.narrow-player.light-color .pod-launch
 {
     background-color: rgba(0, 0, 0, .85);
@@ -3249,6 +3235,10 @@ a.ppjs__episode-excerpt .ppjs__more
     .episode-list__wrapper
     {
         max-height: 300px;
+    }
+    .pp-podcast.pp-no-scroll .episode-list__wrapper
+    {
+        max-height: none;
     }
     .episode-list__wrapper::-webkit-scrollbar
     {

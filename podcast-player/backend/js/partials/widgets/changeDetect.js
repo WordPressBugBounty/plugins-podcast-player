@@ -317,6 +317,7 @@ class ChangeDetect {
 		const txtColorSupport = ['lv1', 'lv2', 'lv3', 'gv1'];
 		const teaserText = wrapper.find('.podcast-player-pp-teaser-text').val();
 		const hasExcerpt = '' === teaserText ? true : false;
+		wrapper.find('.pp_no_scroll').toggle(!style || 'modern' === style);
 		wrapper.find('.pp_header_default').toggle(!style || 'legacy' === style || 'modern' === style);
 		wrapper.find('.pp_list_default').toggle(!style || 'legacy' === style || 'modern' === style);
 		wrapper.find('.pp_teaser_text').toggle(excerptSupport.includes(style));

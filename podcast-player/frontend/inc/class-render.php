@@ -116,6 +116,8 @@ class Render {
 		$mediatype  = $first_item ? $first_item['mediatype'] : '';
 		$noshare    = $this->args['hide-download'] && $this->args['hide-social'];
 
+		$no_scroll = ( '' === $this->args['display-style'] || 'modern' === $this->args['display-style'] ) && $this->args['no-scroll'] ? 'pp-no-scroll' : '';
+
 		// Initiate with default class.
 		$cls = array( 'pp-podcast' );
 
@@ -148,6 +150,7 @@ class Render {
 		$cls[] = ! $noshare && $this->args['hide-social'] ? 'hide-social' : '';
 		$cls[] = $this->args['hide-description'] ? 'hide-description' : '';
 		$cls[] = $this->args['hide-content'] ? 'hide-content' : '';
+		$cls[] = $no_scroll;
 
 		if ( $this->args['accent-color'] ) {
 

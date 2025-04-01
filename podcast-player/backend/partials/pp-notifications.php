@@ -20,11 +20,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<h4 style="margin-bottom: 0.25em;padding: 5px;">
 		<?php esc_html_e( 'What\'s New in Pro version?.', 'podcast-player' ); ?>
 	</h4>
-	<ol>
-	<li class="premium">
-		We have made an update to the podcast pro <span style="font-weight: bold;">Episode Sharing Feature</span>. To learn more, <a style="font-weight: bold;" href="<?php echo esc_url( "https://www.youtube.com/watch?v=V_OPrwZYFYA" ) ?>" target="_blank">watch the video</a>.
-	</li>
-	</ol>
 	<div class="common-links">
 		<p class="pp-link">
 			<a href="https://wordpress.org/support/plugin/podcast-player/" target="_blank">
