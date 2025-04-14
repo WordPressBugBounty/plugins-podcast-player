@@ -116,6 +116,21 @@ img.custom-widget-thumbnail
     display: none;
 }
 
+.pp-player-position-msg
+{
+    margin-top: -10px;
+    margin-bottom: 20px;
+}
+.pp-player-position-msg p
+{
+    font-size: 14px !important;
+    font-style: italic;
+    line-height: 1.4;
+
+    margin-top: 0;
+    margin-bottom: 5px !important;
+}
+
 .pp_settings-content
 {
     display: none;

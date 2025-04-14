@@ -16,10 +16,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<?php esc_html_e( 'Thanks for trying/updating Podcast Player.', 'podcast-player' ); ?>
 	</p>
 	<p><strong style="color: red;"><?php esc_html_e( 'Important: ', 'podcast-player' ); ?></strong><?php esc_html_e( 'If you are using a caching plugin, please clear (purge) the cache to update plugin CSS and JS files.', 'podcast-player' ); ?></p>
-	
-	<h4 style="margin-bottom: 0.25em;padding: 5px;">
-		<?php esc_html_e( 'What\'s New in Pro version?.', 'podcast-player' ); ?>
-	</h4>
 	<div class="common-links">
 		<p class="pp-link">
 			<a href="https://wordpress.org/support/plugin/podcast-player/" target="_blank">

@@ -167,6 +167,8 @@ class Utility {
         $post_type   = isset( $import_settings['post_type'] ) ? sanitize_text_field( $import_settings['post_type'] ) : 'post';
         $is_get_img  = isset( $import_settings['is_get_img'] ) ? (bool) $import_settings['is_get_img'] : false;
         $taxonomy    = isset( $import_settings['taxonomy'] ) ? sanitize_text_field( $import_settings['taxonomy'] ) : '';
+		$ep_taxonomy = isset( $import_settings['ep_taxonomy'] ) ? sanitize_text_field( $import_settings['ep_taxonomy'] ) : '';
+		$ep_terms    = isset( $import_settings['ep_terms'] ) ? $import_settings['ep_terms'] : array();
 
         // Get items data to be imported as WP posts.
         $req_fields = apply_filters( 'podcast_player_import_episode_fields', array(
@@ -215,13 +217,34 @@ class Utility {
                 continue;
             }
 
+			if ( isset( $import_settings['location'] ) && 'manual' === $import_settings['location'] ) {
+				$hide_download = isset( $import_settings['hide_download'] ) && $import_settings['hide_download'] ? 'true' : 'false';
+				$hide_social = isset( $import_settings['hide_social'] ) && $import_settings['hide_social'] ? 'true' : 'false';
+				$editor_block = sprintf(
+					'<!-- wp:podcast-player/podcast-player {"feedURL":"%1$s", "elist":["%2$s"], "podcastMenu":"%3$s", "accentColor": "%4$s", "displayStyle": "%5$s", "hideDownload": %6$s, "hideSocial": %7$s, "hideTitle": true, "hideContent": true, "bgColor": "%8$s", "from": "import", "audioSrc": "%9$s" } /-->',
+					sanitize_text_field( $feed_key ),
+					sanitize_text_field( $key ),
+					isset( $import_settings['menu'] ) ? (int) $import_settings['menu'] : '',
+					isset( $import_settings['accent'] ) ? sanitize_hex_color( $import_settings['accent'] ) : '',
+					isset( $import_settings['style'] ) ? sanitize_text_field( $import_settings['style'] ) : '',
+					$hide_download,
+					$hide_social,
+					isset( $import_settings['bgcolor'] ) ? sanitize_hex_color( $import_settings['bgcolor'] ) : '',
+					isset( $item['src'] ) ? esc_url_raw( $item['src'] ) : ''
+				);
+
+				$post_content = $editor_block . wp_kses_post( $item['description'] );
+			} else {
+				$post_content = wp_kses_post( $item['description'] );
+			}
+
             // Importing the post.
             $new_post_id = wp_insert_post(
 				apply_filters(
 					'pp_import_post_data',
 					array(
 						'post_author'  => $post_author,
-						'post_content' => wp_kses_post( $item['description'] ),
+						'post_content' => $post_content,
 						'post_date'    => $date,
 						'post_status'  => $post_status,
 						'post_title'   => sanitize_text_field( $item['title'] ),
@@ -242,10 +265,11 @@ class Utility {
 				$new_post_id,
 				'pp_import_data',
 				array(
-					'podkey'  => sanitize_text_field( $feed_key ),
-					'episode' => sanitize_text_field( $key ),
-					'src'     => esc_url_raw( $item['src'] ),
-					'type'    => sanitize_text_field( $item['mediatype'] ),
+					'podkey'    => sanitize_text_field( $feed_key ),
+					'episode'   => sanitize_text_field( $key ),
+					'src'       => esc_url_raw( $item['src'] ),
+					'type'      => sanitize_text_field( $item['mediatype'] ),
+					'is_manual' => 'manual' === $import_settings['location']
 				)
 			);
 
@@ -264,6 +288,10 @@ class Utility {
 			if ( $taxonomy && ! empty( $item['categories'] ) && is_array( $item['categories'] ) ) {
                 wp_set_object_terms( $new_post_id, array_map('sanitize_text_field', $item['categories']), $taxonomy );
             }
+
+			if ( ! empty( $ep_taxonomy ) && ! empty( $ep_terms ) ) {
+				wp_set_object_terms( $new_post_id, $ep_terms, $ep_taxonomy );
+			}
 
             // Store post id in custom feed data.
             if ( ! isset( $custom_items[ $key ] ) || ! $custom_items[ $key ] instanceof ItemData ) {

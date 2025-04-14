@@ -116,10 +116,17 @@ class Loader extends Singleton {
 		$cdata['stSup'] = Get_Fn::get_style_supported();
 		$ppjs_settings  = apply_filters( 'podcast_player_mediaelement_settings', array() );
 
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+		if ( is_customize_preview() || ( $screen && $screen->base === 'widgets' ) ) {
+			$deps = array( 'wp-blocks', 'wp-i18n', 'wp-element', 'wp-components', 'wp-api-fetch', 'wp-block-editor', 'wp-server-side-render', 'jquery' );
+		} else {
+			$deps = array( 'wp-blocks', 'wp-i18n', 'wp-element', 'wp-components', 'wp-editor', 'wp-api-fetch', 'wp-block-editor', 'wp-server-side-render', 'jquery' );
+		}
+
 		wp_enqueue_script(
 			'podcast-player-block-js',
 			PODCAST_PLAYER_URL . 'backend/js/blocks.build.js',
-			array( 'wp-blocks', 'wp-i18n', 'wp-element', 'wp-components', 'wp-editor', 'wp-api-fetch', 'wp-block-editor', 'wp-server-side-render', 'jquery' ),
+			$deps,
 			PODCAST_PLAYER_VERSION,
 			true
 		);
@@ -223,10 +230,10 @@ class Loader extends Singleton {
 			<?php
 		}
 
-		if ( defined( 'PP_PRO_VERSION' ) && version_compare( PP_PRO_VERSION, '5.6.6', '<' ) ) {
+		if ( defined( 'PP_PRO_VERSION' ) && version_compare( PP_PRO_VERSION, '5.6.7', '<' ) ) {
 			?>
 			<div class="notice-warning notice is-dismissible pp-welcome-notice">
-				<p><?php esc_html_e( 'There is an update available to Podcast Player Pro. Please update to Podcast Player Pro v5.6.6. If you have not received an automated update notice, please login to our website and download latest version.', 'podcast-player' ); ?></p>
+				<p><?php esc_html_e( 'There is an update available to Podcast Player Pro. Please update to Podcast Player Pro v5.6.7. If you have not received an automated update notice, please login to our website and download latest version.', 'podcast-player' ); ?></p>
 			</div>
 			<?php
 		}
