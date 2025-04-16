@@ -10,6 +10,7 @@
 
 namespace Podcast_Player\Frontend\Inc;
 
+use Podcast_Player\Helper\Functions\Getters as Get_Fn;
 use Podcast_Player\Helper\Functions\Markup as Markup_Fn;
 use Podcast_Player\Helper\Core\Singleton;
 
@@ -28,6 +29,9 @@ class General extends Singleton {
 	 * @since 4.5.0
 	 */
 	public function data_protect( $data ) {
+		if ( 'yes' !== Get_Fn::get_plugin_option( 'hide_data' ) ) {
+			return $data;
+		}
 		return array( array(), 0 );
 	}
 
@@ -39,6 +43,9 @@ class General extends Singleton {
 	 * @since 4.5.0
 	 */
 	public function mask_audio_url( $url ) {
+		if ( 'yes' !== Get_Fn::get_plugin_option( 'hide_data' ) ) {
+			return $url;
+		}
 		return md5( esc_url( $url ) );
 	}
 

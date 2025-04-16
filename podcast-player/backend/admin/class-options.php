@@ -68,7 +68,32 @@ class Options {
 	 *
 	 * @since 1.0.0
 	 */
-	public function __construct() {
+	public function __construct() {}
+
+	/**
+	 * Register hooked functions.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function init() {
+		$inst = self::get_instance();
+		add_action( 'init', array( $inst, 'declare_admin_sections' ) );
+		add_action( 'admin_menu', array( $inst, 'add_options_page' ) );
+		add_action( 'admin_init', array( $inst, 'add_settings' ) );
+		add_action( 'admin_enqueue_scripts', array( $inst, 'page_scripts' ) );
+		add_action( 'podcast_player_options_page_content', array( $inst, 'display_content' ) );
+		add_action( 'wp_ajax_pp_feed_editor', array( $inst, 'feed_editor_new' ) );
+		add_action( 'wp_ajax_nopriv_pp_feed_editor', array( $inst, 'feed_editor_new' ) );
+		add_action( 'wp_ajax_pp_migrate_podcast', array( $inst, 'migrate_podcast_source' ) );
+		add_action( 'wp_ajax_pp_delete_source', array( $inst, 'delete_podcast_source' ) );
+	}
+
+	/**
+	 * Declare Admin Sections for podcast player admin page.
+	 *
+	 * @since 7.7.3
+	 */
+	public function declare_admin_sections() {
 		// Declare different modules of Podcast player options page (Sections).
 		$this->modules = array(
 			'options'  => array(
@@ -104,23 +129,6 @@ class Options {
 	}
 
 	/**
-	 * Register hooked functions.
-	 *
-	 * @since 1.0.0
-	 */
-	public static function init() {
-		$inst = self::get_instance();
-		add_action( 'admin_menu', array( $inst, 'add_options_page' ) );
-		add_action( 'admin_init', array( $inst, 'add_settings' ) );
-		add_action( 'admin_enqueue_scripts', array( $inst, 'page_scripts' ) );
-		add_action( 'podcast_player_options_page_content', array( $inst, 'display_content' ) );
-		add_action( 'wp_ajax_pp_feed_editor', array( $inst, 'feed_editor_new' ) );
-		add_action( 'wp_ajax_nopriv_pp_feed_editor', array( $inst, 'feed_editor_new' ) );
-		add_action( 'wp_ajax_pp_migrate_podcast', array( $inst, 'migrate_podcast_source' ) );
-		add_action( 'wp_ajax_pp_delete_source', array( $inst, 'delete_podcast_source' ) );
-	}
-
-	/**
 	 * Array of setting fields.
 	 *
 	 * Array of settings fields to be used on pp options page.
@@ -144,15 +152,6 @@ class Options {
 						'min'  => 0,
 						'size' => 3,
 					),
-				),
-				'hide_data'        => array(
-					'name'        => esc_html__( 'Protect Podcast Data from Exposure', 'podcast-player' ),
-					'id'          => 'hide_data',
-					'description' => esc_html__( 'Prevent unintentional display of podcast data, such as the audio URL and podcast feed URL, in the front-end page source.', 'podcast-player' ),
-					'link'        => '',
-					'type'        => 'checkbox',
-					'default'     => '',
-					'section'     => 'advanced',
 				),
 				'update_method'    => array(
 					'name'        => esc_html__( 'Update podcasts using WP Cron.', 'podcast-player' ),
@@ -213,6 +212,15 @@ class Options {
 					),
 					'default'     => 'tabler',
 					'section'     => 'design',
+				),
+				'hide_data'        => array(
+					'name'        => esc_html__( 'Protect Podcast Data from Exposure', 'podcast-player' ),
+					'id'          => 'hide_data',
+					'description' => esc_html__( 'Prevent unintentional display of podcast data, such as the audio URL and podcast feed URL, in the front-end page source.', 'podcast-player' ),
+					'link'        => '',
+					'type'        => 'checkbox',
+					'default'     => '',
+					'section'     => 'advanced',
 				),
 				'timezone'         => array(
 					'name'        => esc_html__( 'Set timezone for episode date.', 'podcast-player' ),

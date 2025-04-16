@@ -2,9 +2,9 @@
 Contributors: vedathemes
 Tags: podcast, podcasting, rss feed, feed to audio, podcaster
 Requires at least: 4.9
-Tested up to: 6.7
+Tested up to: 6.8
 Requires PHP: 5.6
-Stable tag: 7.7.2
+Stable tag: 7.7.3
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -102,6 +102,9 @@ Podcast player plugin (on its own) does not create and save any cookies and does
 5. Podcast player on large size container
 
 == Changelog ==
+
+= 7.7.3 =
+* Bug Fix: Translation loading error fix.
 
 = 7.7.2 =
 * Bug Fix: Widget screen PHP error notice resolve.

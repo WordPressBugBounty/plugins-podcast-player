@@ -159,11 +159,9 @@ class Register {
 		add_action( 'wp_ajax_pp_search_episodes', array( $instance, 'search_episodes' ) );
 		add_action( 'wp_ajax_nopriv_pp_search_episodes', array( $instance, 'search_episodes' ) );
 
-		// Support for Ajax powered WordPress themes.
-		$is_ajax = Get_Fn::get_plugin_option( 'is_ajax' );
-		if ( 'yes' === $is_ajax ) {
-			add_filter( 'podcast_player_has_podcast', '__return_true', 12 );
-		}
+		add_filter( 'podcast_player_has_podcast', function( $status ) {
+			return 'yes' === Get_Fn::get_plugin_option( 'is_ajax' ) ? true : $status;
+		}, 12 );
 	}
 
 	/**
@@ -186,12 +184,10 @@ class Register {
 	 * @param object $instance PP front loader instance.
 	 */
 	public static function remove_frontend_data( $instance ) {
+		// Temporarily disabling this features as causing lots of error on the podcast player.
 		// TODO: This method of hiding data is not working as expected. Multiple server requests are needed. Making it slow and less reliable.
-		if ( 'yes' !== Get_Fn::get_plugin_option( 'hide_data' ) ) {
-			return;
-		}
-		add_filter( 'podcast_player_data_protect', array( $instance, 'data_protect' ) );
-		add_filter( 'podcast_player_mask_audio_url', array( $instance, 'mask_audio_url' ) );
+		// add_filter( 'podcast_player_data_protect', array( $instance, 'data_protect' ) );
+		// add_filter( 'podcast_player_mask_audio_url', array( $instance, 'mask_audio_url' ) );
 	}
 
 	/**
