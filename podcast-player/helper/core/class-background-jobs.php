@@ -60,6 +60,14 @@ class Background_Jobs extends Singleton {
 		$identifier = wp_http_validate_url( $identifier ) ? md5( $identifier ) : $identifier;
 		$unique_id  = substr( md5( $identifier . $task_type ), 0, 12 );
 		$queue      = $instance->get_tasks_queue( false );
+
+		// Do not add new download image jobs, if queue is already large. Also trim the backlog.
+		if ( 'download_image' === $task_type && count( $queue ) > 50 ) {
+			$queue = array_slice( $queue, 0, 50 );
+			$instance->set_tasks_queue( $queue );
+			return $instance;
+		}
+
 		$task_data  = array(
 			'identifier' => $identifier,
 			'type'       => $task_type,
@@ -83,14 +91,24 @@ class Background_Jobs extends Singleton {
 	 */
 	public function dispatch() {
 		$instance = self::get_instance();
-		if ( $this->is_processing() || $this->is_queue_empty() ) {
+		if ( $this->is_processing() || $this->is_queue_empty() || $this->recently_dispatched() ) {
 			return;
 		}
+
+		$this->set_recent_dispatch();
 
 		$url  = add_query_arg( $instance->get_query_args(), $instance->get_query_url() );
 		$args = $instance->get_post_args();
 
 		return wp_remote_post( esc_url_raw( $url ), $args );
+	}
+
+	private function recently_dispatched() {
+		return get_transient( $this->identifier . '_recent_dispatch' );
+	}
+	
+	private function set_recent_dispatch() {
+		set_transient( $this->identifier . '_recent_dispatch', 1, 60 ); // 60 seconds
 	}
 
 	/**

@@ -4,7 +4,7 @@ Tags: podcast, podcasting, rss feed, feed to audio, podcaster
 Requires at least: 4.9
 Tested up to: 6.8
 Requires PHP: 5.6
-Stable tag: 7.7.3
+Stable tag: 7.7.4
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -45,11 +45,11 @@ Podcast player has everything you expect from a premium player.
 
 = Getting Started with Podcast player =
 
-* [How to display podcast player using Widget?](https://easypodcastpro.com/docs/podcast-player-free/display-podcast/podcast-player-widget/)
-* [How to display podcast player using Editor Block?](https://easypodcastpro.com/docs/podcast-player-free/display-podcast/podcast-player-block/)
-* [How to display podcast player using Shortcode?](https://easypodcastpro.com/docs/podcast-player-free/display-podcast/podcast-player-shortcode/)
-* [How to update podcast player for latest changes?](https://easypodcastpro.com/docs/podcast-player-free/issues-faq/podcast-player-not-getting-updated/)
-* [How to display podcast player using Elementor?](https://easypodcastpro.com/docs/podcast-player-free/display-podcast/display-podcast-player-in-elementor-page-builder/)
+* [How to display podcast player using Widget?](https://easypodcastpro.com/docs7/?easyDocId=17192)
+* [How to display podcast player using Editor Block?](https://easypodcastpro.com/docs7/?easyDocId=17189)
+* [How to display podcast player using Shortcode?](https://easypodcastpro.com/docs7/?easyDocId=17191)
+* [How to update podcast player for latest changes?](https://easypodcastpro.com/docs7/?easyDocId=17206)
+* [How to display podcast player using Elementor?](https://easypodcastpro.com/docs7/?easyDocId=17190)
 
 == Installation ==
 
@@ -102,6 +102,9 @@ Podcast player plugin (on its own) does not create and save any cookies and does
 5. Podcast player on large size container
 
 == Changelog ==
+
+= 7.7.4 =
+* Bug Fix: Fixes in Background Jobs for Image Downloads
 
 = 7.7.3 =
 * Bug Fix: Translation loading error fix.
