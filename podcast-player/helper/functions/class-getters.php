@@ -61,7 +61,7 @@ class Getters {
 		$import_data = self::get_feed_import_settings( $feed_url );
 		$is_auto     = $import_data['is_auto'];
 		$cron_update = Get_Fn::get_plugin_option( 'update_method' );
-		if ( $is_auto || $cron_update ) {
+		if ( $is_auto || 'yes' === $cron_update ) {
 			Utility_Fn::schedule_next_auto_update( $feed_url );
 		}
 		return $data;
