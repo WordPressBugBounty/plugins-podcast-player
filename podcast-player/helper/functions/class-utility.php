@@ -162,6 +162,12 @@ class Utility {
 	 * @param array  $import_settings Import settings
 	 */
 	public static function import_episodes( $feed_key, $elist, $import_settings = array() ) {
+		if ( empty( $import_settings ) ) {
+			$import_settings = Get_Fn::get_feed_import_settings( $feed_key );
+			if ( ! $import_settings || ! is_array( $import_settings ) ) {
+				$import_settings = array();
+			}
+		}
         $post_author = isset( $import_settings['author'] ) ? intval( $import_settings['author'] ) : 0;
         $post_status = isset( $import_settings['post_status'] ) ? sanitize_text_field( $import_settings['post_status'] ) : 'draft';
         $post_type   = isset( $import_settings['post_type'] ) ? sanitize_text_field( $import_settings['post_type'] ) : 'post';
@@ -197,14 +203,6 @@ class Utility {
 
 		$furl  = isset( $fdata['furl'] ) ? $fdata['furl'] : $feed_key;
         $items = $fdata['items'];
-		// The following create problems when importing large feeds without images. As it only imports 10 items at a time.
-        // $items = array_slice( $items, 0, 10 ); Why this has been added?
-
-        // Store the original time limit
-        // $original_time_limit = ini_get('max_execution_time');
-
-		// Set time limit is discouraged by WP. Let's see if it can be removed.
-        // set_time_limit( 300 ); // Give it 5 minutes
         foreach ( $items as $key => $item ) {
             $post_id = isset( $item['post_id'] ) ? absint( $item['post_id'] ) : false;
             $date    = isset( $item['timestamp'] ) ? date( 'Y-m-d H:i:s', $item['timestamp'] ) : date( 'Y-m-d H:i:s', strtotime( $item['date'] ) );
@@ -214,8 +212,9 @@ class Utility {
 					$custom_items[ $key ] = new ItemData();
 				}
 				$custom_items[ $key ]->set( 'post_id', $post_id );
-                continue;
-            }
+            } else {
+				$post_id = 0; // Default for new posts.
+			}
 
 			if ( isset( $import_settings['location'] ) && 'manual' === $import_settings['location'] ) {
 				$hide_download = isset( $import_settings['hide_download'] ) && $import_settings['hide_download'] ? 'true' : 'false';
@@ -243,6 +242,7 @@ class Utility {
 				apply_filters(
 					'pp_import_post_data',
 					array(
+						'ID'           => $post_id,
 						'post_author'  => $post_author,
 						'post_content' => $post_content,
 						'post_date'    => $date,
@@ -257,7 +257,8 @@ class Utility {
 
             // Return error message if the import generate errors.
 			if ( is_wp_error( $new_post_id ) ) {
-				return array( $new_post_id, $elist );
+				// return array( $new_post_id, $elist );
+				continue;
 			}
 
             // Add post specific information.

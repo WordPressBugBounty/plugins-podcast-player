@@ -269,14 +269,19 @@ class Get_Feed {
 		$custom_data = array_filter( $custom_data );
 
 		/**
-		 * Custom data for the feed to override original data.
+		 * Filters the custom data for the feed to override original data.
 		 *
 		 * @since 3.3.0
 		 *
-		 * @param array  $custom_data    Feed items custom data.
-		 * @param string $this->feed_url Feed URL.
+		 * @param array  $custom_data Feed items custom data.
+		 * @param string $feed_url    Feed URL.
+		 * @return array Modified custom data for the feed.
 		 */
-		$custom_data = apply_filters( 'podcast_player_custom_data', $custom_data, $this->feed_url );
+		$custom_data = apply_filters(
+			'podcast_player_custom_data',
+			$custom_data,
+			$this->feed_url
+		);
 
 		// Return if custom data do not exist.
 		if ( ! $custom_data || ! is_array( $custom_data ) ) {

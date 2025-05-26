@@ -1051,9 +1051,13 @@
 {
     border-color: #ccc;
 }
+#pp-options-page .pp-toolkit-imported-buttons
+{
+    margin-top: 10px;
+}
 #pp-options-page .pp-import-podcast-btn,
 #pp-options-page .pp-import-abort-btn,
-#pp-options-page .pp-imported-podcast-btn,
+#pp-options-page .pp-toolkit-imported-buttons,
 #pp-options-page .pp-toolkit-editor-options,
 #pp-options-page .pp-edit-save,
 #pp-options-page #pp-import-container,

@@ -35,8 +35,6 @@ class Background_Jobs extends Singleton {
 	 * Get the name of the queue.
 	 *
 	 * @since 7.4.0
-	 *
-	 * @return string
 	 */
 	public static function init() {
 		$instance = self::get_instance();

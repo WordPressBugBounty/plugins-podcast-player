@@ -117,7 +117,7 @@ class Display extends Singleton {
 		 *
 		 * @since 3.3.0
 		 *
-		 * @param array List of fetch method classes.
+		 * @param array $classes Array of fetch method classes, keyed by method name.
 		 */
 		$classes = apply_filters(
 			'podcast_player_fetch_method_class',

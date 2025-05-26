@@ -53,10 +53,12 @@ class Singleton {
 	 * Disable serializing of the class.
 	 *
 	 * @since 1.0.0
+	 * @return array<int, string> Empty array because serialization is disabled.
 	 */
 	public function __sleep() {
 		// Unserializing instances of the class is forbidden.
 		_doing_it_wrong( __FUNCTION__, esc_html__( 'Cannot serialize a singleton.', 'podcast-player' ), '1.0.0' );
+		return [];
 	}
 
 	/**

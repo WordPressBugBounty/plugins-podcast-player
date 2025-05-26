@@ -251,6 +251,6 @@ class ItemData extends StoreBase {
 	 * @throws Exception If property is not allowed.
 	 */
 	public function __set( $name, $value ) {
-		throw new Exception( esc_html( "Cannot add new property \$$name to instance of " ) . __CLASS__ );
+		throw new \Exception( esc_html( "Cannot add new property \$$name to instance of " ) . __CLASS__ );
 	}
 }

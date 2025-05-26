@@ -12,7 +12,6 @@ use Podcast_Player\Frontend\Inc\Display;
 use Podcast_Player\Helper\Functions\Getters as Get_Fn;
 use Podcast_Player\Helper\Functions\Validation as Validation_Fn;
 use Podcast_Player\Helper\Functions\Utility as Utility_Fn;
-use PP_Pro\Helper\Functions\Getters as PP_Get_Fn;
 
 /**
  * Class used to display podcast episodes from a feed url.
@@ -930,7 +929,11 @@ class Widget extends \WP_Widget {
 	 */
 	public function taxonomies_select( $post_type, $selected = array() ) {
 
-		$options = PP_Get_Fn::get_taxonomies();
+		if ( class_exists( '\PP_Pro\Helper\Functions\Getters' ) ) {
+			$options = \PP_Pro\Helper\Functions\Getters::get_taxonomies();
+		} else {
+			$options = array();
+		}
 
 		// Get HTML classes for select options.
 		$taxonomies = get_taxonomies( array(), 'objects' );
@@ -994,7 +997,11 @@ class Widget extends \WP_Widget {
 	 */
 	public function terms_checklist( $taxonomy, $selected_terms = array() ) {
 
-		$tax = PP_Get_Fn::get_taxonomies();
+		if ( class_exists( '\PP_Pro\Helper\Functions\Getters' ) ) {
+			$tax = \PP_Pro\Helper\Functions\Getters::get_taxonomies();
+		} else {
+			$tax = array();
+		}
 		$tax = array_filter( array_keys( $tax ) );
 
 		// Get list of all registered terms.

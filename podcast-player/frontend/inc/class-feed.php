@@ -465,14 +465,20 @@ class Feed extends Singleton {
 		);
 
 		/**
-		 * Make current podcast instance data available to front-end scripts.
+		 * Filters the current podcast instance data available to front-end scripts.
 		 *
 		 * @since 3.3.0
 		 *
-		 * @param string $script_data Podcast data to be sent to front-end script.
-		 * @param array  $args        Podcast display args.
+		 * @param array  $script_data Podcast data to be sent to front-end script.
+		 * @param array  $args        Podcast display arguments.
+		 * @return array Modified podcast data to be sent to front-end.
 		 */
-		$this->script_data[ 'pp-podcast-' . $counter ] = apply_filters( 'podcast_player_instance_data', $script_data, $args );
+		$this->script_data[ 'pp-podcast-' . $counter ] = apply_filters(
+			'podcast_player_instance_data',
+			$script_data,
+			$args
+		);
+
 	}
 
 	/**
@@ -675,14 +681,19 @@ class Feed extends Singleton {
 		);
 
 		/**
-		 * Sanitize additional args from Ajax request.
+		 * Filters the additional args from Ajax request.
 		 *
 		 * @since 3.3.0
 		 *
-		 * @param string $new_args Args sanitzied for further use.
+		 * @param array  $new_args Args sanitzied for further use.
 		 * @param array  $args     All args received from Ajax request.
+		 * @return array Modified additional args from Ajax request.
 		 */
-		$args = apply_filters( 'podcast_player_ajax_args', $new_args, $args );
+		$args = apply_filters(
+			'podcast_player_ajax_args',
+			$new_args,
+			$args
+		);
 
 		return array(
 			absint( $loaded ),

@@ -162,12 +162,13 @@ class Render {
 		}
 
 		/**
-		 * Podcast player display wrapper HTML classes.
+		 * Filters the podcast player display wrapper HTML classes.
 		 *
 		 * @since 3.3.0
 		 *
-		 * @param array  $cls        Podcast player display wrapper HTML classes.
-		 * @param array  $this->args Settigs for Podcast display instance.
+		 * @param array $cls       Podcast player display wrapper HTML classes.
+		 * @param array $args      Settings for the podcast display instance.
+		 * @return array Modified wrapper HTML classes.
 		 */
 		$cls = apply_filters( 'podcast_player_wrapper_classes', $cls, $this->args );
 		$cls = array_filter( array_map( 'esc_attr', $cls ) );
@@ -320,8 +321,8 @@ class Render {
 		 *
 		 * @since 3.3.0
 		 *
-		 * @param array  $css  Podcast player dynamic css.
-		 * @param array  $this Podcast display instance.
+		 * @param array  $css      Podcast player dynamic css.
+		 * @param array  $instance Podcast display instance.
 		 */
 		return apply_filters( 'podcast_player_dynamic_css', $css, $this );
 	}
@@ -544,8 +545,8 @@ class Render {
 		 *
 		 * @since 3.3.0
 		 *
-		 * @param array $args Tree elements.
-		 * @param array $this Podcast display instance.
+		 * @param array $args     Tree elements.
+		 * @param array $instance Podcast display instance.
 		 */
 		$args   = apply_filters( "pp_render_tree_{$hook}", $args, $this );
 		$markup = '';
@@ -602,9 +603,9 @@ class Render {
 		 *
 		 * @since 3.3.0
 		 *
-		 * @param array $cls_arr    Element's classlist array.
-		 * @param array $classname  Identifier unique classname.
-		 * @param array $this->args Podcast display instance.
+		 * @param array $cls_arr   Element's classlist array.
+		 * @param array $classname Identifier unique classname.
+		 * @param array $instance  Podcast display instance.
 		 */
 		$cls_arr = apply_filters( 'podcast_player_classlist', $cls_arr, $cname, $this );
 		return implode( ' ', array_map( 'esc_attr', $cls_arr ) );
@@ -965,7 +966,8 @@ class Render {
 	public function podcast_extra( $classname ) {
 
 		if ( isset( $this->args['show-original-link'] ) && $this->args['show-original-link'] ) {
-			$current_url = home_url( add_query_arg( [], $_SERVER['REQUEST_URI'] ) );
+			$request_uri = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
+			$current_url = home_url( add_query_arg( [], $request_uri ) );
 			$current_url = remove_query_arg( 'ppepisode', $current_url );
 
 			if ( ! $current_url ) {

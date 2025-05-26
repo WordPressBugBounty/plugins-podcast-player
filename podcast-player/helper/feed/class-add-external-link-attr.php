@@ -75,7 +75,7 @@ class Add_External_Link_Attr extends Singleton {
 	 *
 	 * @since  3.3.0
 	 *
-	 * @param string $atts Link tag attributes.
+	 * @param array $atts Link tag attributes.
 	 */
 	private function remove_existing_tags( $atts ) {
 		$rel = 'noopener noreferrer nofollow';
@@ -100,7 +100,7 @@ class Add_External_Link_Attr extends Singleton {
 	 *
 	 * @since  3.3.0
 	 *
-	 * @param string $atts Link tag attributes.
+	 * @param array $atts Link tag attributes.
 	 */
 	private function get_attr_markup( $atts ) {
 		$html = '';

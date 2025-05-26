@@ -4,7 +4,7 @@ Tags: podcast, podcasting, rss feed, feed to audio, podcaster
 Requires at least: 4.9
 Tested up to: 6.8
 Requires PHP: 5.6
-Stable tag: 7.7.5
+Stable tag: 7.8.0
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -16,6 +16,10 @@ The [Podcast Player](https://easypodcastpro.com/podcast-player/) is your ultimat
 Watch this introductory video to learn about the podcast player.
 
 [youtube https://www.youtube.com/watch?v=XwA7ZBp1vMM]
+
+Learn More About the Podcast Player Pro
+
+[https://www.youtube.com/watch?v=w8Y-ncR9Nwk]
 
 We've created a quick walkthrough video series to help you get started with the podcast player easily.
 
@@ -102,6 +106,13 @@ Podcast player plugin (on its own) does not create and save any cookies and does
 5. Podcast player on large size container
 
 == Changelog ==
+
+= 7.8.0 =
+* Bug Fix: Resolve PHP coding and comments issues to improve code qaulity.
+* Bug Fix: Address using unsanitized gloabl variable in class-render.php
+* Bug Fix: Prevent cron jobs from running even if it is disabled.
+* Add: Option to update imported podcast episodes in the pro version.
+* Modify: Option to alter import options without selecting any episode.
 
 = 7.7.4 =
 * Bug Fix: Fixes in Background Jobs for Image Downloads

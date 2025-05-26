@@ -481,7 +481,7 @@ class Fetch_Feed {
 	 * @since 1.0.0
 	 */
 	private function get_item_description() {
-		$content = isset( $item_atom->content ) && trim( (string) $item_atom->content ) ? trim( (string) $item_atom->content ) : '';
+		$content = isset( $this->item_atom->content ) && trim( (string) $this->item_atom->content ) ? trim( (string) $this->item_atom->content ) : '';
 
 		if ( ! $content ) {
 			$namespace = $this->item->children( 'http://purl.org/rss/1.0/modules/content/' );

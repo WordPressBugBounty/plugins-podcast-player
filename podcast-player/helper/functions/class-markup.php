@@ -421,7 +421,7 @@ class Markup {
 		 *
 		 * @param string $located Located template file.
 		 * @param string $path Template relative path.
-		 * @param string $name Template file name.
+		 * @return array Modified template file path.
 		 */
 		return apply_filters( 'podcast_player_locate_admin_template', $located, $path );
 	}
