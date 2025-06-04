@@ -949,7 +949,7 @@
 
     background-color: #fad366;
 }
-#pp-options-page .icon
+#pp-options-page .icon:not(#pp-options-module-shortcode .icon)
 {
     position: relative;
     top: -.0625em;
@@ -1326,6 +1326,192 @@
     display: none;
 }
 
+.pp-shortcode-generator
+{
+    margin-top: 30px;
+    margin-bottom: 30px;
+    padding-top: 30px;
+
+    border-top: 1px solid #e6e6e6;
+}
+
+.pp-shortcode-workspace
+{
+    display: flex;
+
+    justify-content: space-between;
+}
+
+.pp-shortcode-action
+{
+    display: flex;
+
+    align-items: baseline;
+}
+.pp-shortcode-action .pp-separator
+{
+    margin: 0 10px;
+}
+.pp-shortcode-action select
+{
+    height: 41px;
+    margin-bottom: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+.pp-shortcode-result
+{
+    display: flex;
+
+    margin-bottom: 20px;
+
+    justify-content: space-between;
+    align-items: center;
+}
+.pp-shortcode-result .pp-shortcode-sidebar-collapse
+{
+    flex-basis: 25%;
+}
+.pp-shortcode-result .pp-shortcode-copy
+{
+    display: flex;
+
+    margin-right: 25px;
+
+    flex: 1;
+    align-items: center;
+    justify-content: flex-start;
+}
+.pp-shortcode-result .pp-shortcode-copy pre
+{
+    margin: 0 10px 0 5px;
+}
+.pp-shortcode-result .pp-shortcode-copy code
+{
+    font-size: 18px;
+}
+.pp-shortcode-result a:focus
+{
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+#pp-shortcode-form
+{
+    flex-basis: 25%;
+}
+#pp-shortcode-form select,
+#pp-shortcode-form input[type=text],
+#pp-shortcode-form input[type=number]
+{
+    margin-bottom: 2px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+#pp-shortcode-form label
+{
+    font-size: 13px;
+    font-weight: bold;
+
+    margin-bottom: 5px;
+}
+#pp-shortcode-form .pp-settings-toggle
+{
+    font-size: 14px;
+}
+#pp-shortcode-form.pp-sidebar-close
+{
+    display: none;
+}
+#pp-shortcode-form .pp-shortcode-form-wrapper
+{
+    margin-bottom: 10px;
+}
+
+.pp-collapse-sidebar.pp-sidebar-close .dashicons
+{
+    transform: rotate(-180deg);
+}
+.pp-collapse-sidebar.pp-sidebar-close .pp-collapse-sidebar
+{
+    display: none;
+}
+.pp-collapse-sidebar.pp-sidebar-close .pp-expand-sidebar
+{
+    display: inline;
+}
+
+.pp-shortcode-preview-wrapper
+{
+    position: relative;
+
+    flex: 1;
+}
+
+.pp-shortcode-preview
+{
+    position: sticky;
+    top: 30px;
+
+    margin: 0 30px 10px 10px;
+    padding: 20px 30px;
+
+    border: 1px solid #e6e6e6;
+    border-radius: 10px;
+
+    align-self: flex-start;
+}
+
+.pp-shortcode-preview-overlap
+{
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+
+    cursor: not-allowed;
+    transition: all .25s ease-in-out;
+
+    background-color: rgba(255, 255, 255, .025);
+}
+.pp-shortcode-preview-overlap:hover
+{
+    background-color: rgba(255, 255, 255, .25);
+}
+
+.pp-button-wrapper
+{
+    margin: 20px 0 15px;
+}
+.pp-button-wrapper:last-of-type
+{
+    margin: 0;
+}
+
+#pp-shortcode-generator-delete-btn
+{
+    color: #fff !important;
+    border: 1px solid #c30 !important;
+    background-color: #c30 !important;
+}
+#pp-shortcode-generator-delete-btn:hover,
+#pp-shortcode-generator-delete-btn:focus
+{
+    background-color: rgba(204, 51, 0, .85) !important;
+}
+
+.pp-older-pro-notice
+{
+    font-size: 15px;
+
+    text-align: left;
+
+    color: red;
+}
+
 @keyframes ppfadein
 {
     from
@@ -1442,11 +1628,11 @@
     }
     #pp-options-page .pp-options-main .pp-options-content
     {
-        width: 70%;
-        margin-left: 40px;
+        flex: 1;
     }
     #pp-options-page .pp-options-main .pp-options-sidebar
     {
         width: calc(30% - 40px);
+        margin-right: 40px;
     }
 }

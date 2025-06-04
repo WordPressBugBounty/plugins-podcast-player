@@ -2306,8 +2306,7 @@ a.ppjs__episode-excerpt .ppjs__more
     outline: none !important;
     background: #d2d2d2 !important;
 
-    -webkit-appearance: none;
-            appearance: none;
+    appearance: none;
 }
 .ppjs__controls input[type=range]::-webkit-slider-runnable-track
 {
@@ -3501,6 +3500,10 @@ a.ppjs__episode-excerpt .ppjs__more
     .modern.wide-player .episode-list__wrapper
     {
         max-height: 285px;
+    }
+    .modern.wide-player.pp-no-scroll .episode-list__wrapper
+    {
+        max-height: none;
     }
     .modern.wide-player .episode-single
     {

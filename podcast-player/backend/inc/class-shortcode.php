@@ -13,6 +13,7 @@ namespace Podcast_Player\Backend\Inc;
 
 use Podcast_Player\Frontend\Inc\Display;
 use Podcast_Player\Helper\Core\Singleton;
+use Podcast_Player\Backend\Admin\ShortCodeGen;
 
 /**
  * Class used to display podcast episodes from a feed url.
@@ -116,6 +117,24 @@ class Shortcode extends Singleton {
 	}
 
 	/**
+	 * Podcast Player new shortcode function.
+	 *
+	 * @since 7.9.0
+	 *
+	 * @param array $atts User defined attributes in shortcode tag.
+	 * @param str   $dpt_content Shortcode text content.
+	 */
+	public function renderPodcast( $atts, $dpt_content = null ) {
+		$instance = isset( $atts['instance'] ) ? absint( $atts['instance'] ) : false;
+		if ( false === $instance ) {
+			return '';
+		}
+
+		$shortcodegen = new ShortCodeGen();
+		return $shortcodegen->render( $instance, false );
+	}
+
+	/**
 	 * Podcast player shortcode defaults.
 	 *
 	 * @since 3.3.0
@@ -194,8 +213,6 @@ class Shortcode extends Singleton {
 			'podbean_sub'       => '',
 			'playerfm_sub'      => '',
 			'feedback'          => '',
-			'collect_feedback'  => '', // TODO: To be removed in next update.
-			'show-form-time'    => 60, // TODO: To be removed in next update.
 			'show_form_time'    => 60,
 			'feedback_text'     => esc_html__( 'Are you enjoying this episode?', 'podcast-player' ),
 			'positive_text'     => esc_html__( 'Thanks for your feedback.', 'podcast-player' ),
@@ -203,5 +220,163 @@ class Shortcode extends Singleton {
 			'negative_text'     => esc_html__( 'Sorry you did not like it. Please share your feedback to help us improve.', 'podcast-player' ),
 			'negative_form'     => 'yes',
 		);
+	}
+
+	/**
+	 * Get podcast player render for preview in admin page.
+	 *
+	 * @since 7.9.0
+	 */
+	public function get_pp_preview() {
+		check_ajax_referer( 'podcast-player-admin-options-ajax-nonce', 'security' );
+		$shortcodegen = new ShortCodeGen();
+		$args = isset( $_POST['data'] ) ? $shortcodegen->escape( wp_unslash( $_POST['data'] ) ) : false;
+		if ( false === $args || ! is_array( $args ) ) {
+			echo wp_json_encode( array(
+				'error' => __( 'Invalid data provided', 'podcast-player' ),
+			) );
+			wp_die();
+		}
+		$content = $shortcodegen->render( $args, false );
+		// Scripts data.
+		// $cdata         = apply_filters( 'podcast_player_script_data', array() );
+		// $ppjs_settings = apply_filters( 'podcast_player_mediaelement_settings', array() );
+		echo wp_json_encode( array(
+			'markup' => $content,
+			// 'cdata'  => $cdata,
+			// 'mejs'   => $ppjs_settings,
+		) );
+		wp_die();
+	}
+
+	/**
+	 * Get podcast player form to generate the shortcode on the admin page.
+	 *
+	 * @since 7.9.0
+	 */
+	public function get_shortcode_form() {
+		check_ajax_referer( 'podcast-player-admin-options-ajax-nonce', 'security' );
+		$shortcodegen = new ShortCodeGen();
+		$shortcode_list = $shortcodegen->shortcode_settings;
+		$instance       = empty( $shortcode_list ) || ! is_array( $shortcode_list ) ? 0 : max( array_keys( $shortcode_list ) ) + 1;
+		ob_start();
+		$shortcodegen->form( $instance );
+		$form = ob_get_clean();
+		echo wp_json_encode( array(
+			'form'     => $form,
+			'instance' => $instance,
+		) );
+		wp_die();
+	}
+
+	/**
+	 * Get DPT form to generate the shortcode on the admin page.
+	 *
+	 * @since 2.6.0
+	 */
+	public function create_new_shortcode() {
+		check_ajax_referer( 'podcast-player-admin-options-ajax-nonce', 'security' );
+		$shortcodegen = new ShortCodeGen();
+		$args = isset( $_POST['data'] ) ? $shortcodegen->sanitize( wp_unslash( $_POST['data'] ) ) : false;
+		$inst = isset( $_POST['instance'] ) ? absint(wp_unslash( $_POST['instance'] )) : false;
+		if ( false === $args || false === $inst ) {
+			echo wp_json_encode( array(
+				'error'     => __( 'Shortcode data not provided correctly.', 'podcast-player' ),
+			) );
+			wp_die();
+		}
+		$shortcode_list = $shortcodegen->shortcode_settings;
+		$shortcode_list[ $inst ] = $args;
+		$shortcodegen->shortcode_settings = $shortcode_list;
+		$shortcodegen->save();
+		echo wp_json_encode( array(
+			'success' => __( 'Shortcode created successfully.', 'podcast-player' ),
+		) );
+		wp_die();
+	}
+
+	/**
+	 * Get DPT form to generate the shortcode on the admin page.
+	 *
+	 * @since 7.9.0
+	 */
+	public function load_shortcode() {
+		check_ajax_referer( 'podcast-player-admin-options-ajax-nonce', 'security' );
+		$instance = isset( $_POST['instance'] ) ? absint( wp_unslash( $_POST['instance'] ) ) : false;
+		if ( false === $instance ) {
+			echo wp_json_encode( array(
+				'error' => __( 'Invalid data provided', 'podcast-player' ),
+			) );
+			wp_die();
+		}
+		$shortcodegen = new ShortCodeGen();
+		$preview = $shortcodegen->render( $instance, false );
+		ob_start();
+		$shortcodegen->form( $instance );
+		$form = ob_get_clean();
+		// Scripts data.
+		// $cdata         = apply_filters( 'podcast_player_script_data', array() );
+		// $ppjs_settings = apply_filters( 'podcast_player_mediaelement_settings', array() );
+		echo wp_json_encode( array(
+			'form'     => $form,
+			'preview'  => $preview,
+			'instance' => $instance,
+			// 'cdata'    => $cdata,
+			// 'mejs'     => $ppjs_settings,
+		) );
+		wp_die();
+	}
+
+	/**
+	 * Delete already generated DPT shortcode from the admin page.
+	 *
+	 * @since 2.6.0
+	 */
+	public function delete_shortcode() {
+		check_ajax_referer( 'podcast-player-admin-options-ajax-nonce', 'security' );
+		$instance = isset( $_POST['instance'] ) ? absint( wp_unslash( $_POST['instance'] ) ) : false;
+		if ( false === $instance ) {
+			echo wp_json_encode( array(
+				'error' => __( 'Invalid data provided', 'podcast-player' ),
+			) );
+			wp_die();
+		}
+		$shortcodegen = new ShortCodeGen();
+		$shortcode_list = $shortcodegen->shortcode_settings;
+		if ( isset( $shortcode_list[ $instance ] ) ) {
+			unset( $shortcode_list[ $instance ] );
+			$shortcodegen->shortcode_settings = $shortcode_list;
+			$shortcodegen->save();
+		}
+		echo wp_json_encode( array(
+			'success' => true,
+		) );
+		wp_die();
+	}
+
+	/**
+	 * Update already generated DPT shortcode from the admin page.
+	 *
+	 * @since 2.6.0
+	 */
+	public function update_shortcode() {
+		check_ajax_referer( 'podcast-player-admin-options-ajax-nonce', 'security' );
+		$shortcodegen = new ShortCodeGen();
+		$args = isset( $_POST['data'] ) ? $shortcodegen->sanitize( wp_unslash( $_POST['data'] ) ) : false;
+		$inst = isset( $_POST['instance'] ) ? absint(wp_unslash( $_POST['instance'] )) : false;
+		$shortcode_list = $shortcodegen->shortcode_settings;
+		if ( false === $args || false === $inst || ! isset( $shortcode_list[ $inst ] ) ) {
+			echo wp_json_encode( array(
+				'error'     => __( 'Shortcode data not provided correctly.', 'display-post-types' ),
+			) );
+			wp_die();
+		}
+		$shortcode_list[ $inst ] = $args;
+		$shortcodegen->shortcode_settings = $shortcode_list;
+		$shortcodegen->save();
+		echo wp_json_encode( array(
+			'success' => __( 'Shortcode updated successfully.', 'display-post-types' ),
+		) );
+		wp_die();
 	}
 }

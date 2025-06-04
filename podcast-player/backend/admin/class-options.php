@@ -17,6 +17,7 @@ use Podcast_Player\Helper\Functions\Validation as Validation_Fn;
 use Podcast_Player\Helper\Store\FeedData;
 use Podcast_Player\Helper\Store\StoreManager;
 use Podcast_Player\Helper\Feed\Fetch_Feed;
+use Podcast_Player\Frontend\Inc\Loader as Front_Loader;
 
 /**
  * The admin-options page of the plugin.
@@ -98,6 +99,9 @@ class Options {
 		$this->modules = array(
 			'options'  => array(
 				'label' => esc_html__( 'Home', 'podcast-player' ),
+			),
+			'shortcode' => array(
+				'label' => esc_html__( 'Shortcode', 'podcast-player' ),
 			),
 			'settings' => array(
 				'label' => esc_html__( 'Settings', 'podcast-player' ),
@@ -256,6 +260,7 @@ class Options {
 		);
 
 		$submenu_pages = array(
+			'pp-shortcode' => __( 'Shortcode', 'podcast-player' ),
 			'pp-settings' => __( 'Settings', 'podcast-player' ),
 			'pp-toolkit'  => __( 'Toolkit', 'podcast-player' ),
 			'pp-help'     => __( 'Help & Support', 'podcast-player' ),
@@ -414,6 +419,9 @@ class Options {
 				case 'pp-products':
 					$current_page = 'products';
 					break;
+				case 'pp-shortcode':
+					$current_page = 'shortcode';
+					break;
 				default:
 					$current_page = 'home';
 					break;
@@ -440,6 +448,7 @@ class Options {
 		$current_screen = get_current_screen();
 		$load_on        = array(
 			'toplevel_page_pp-options',
+			'podcast-player_page_pp-shortcode',
 			'podcast-player_page_pp-settings',
 			'podcast-player_page_pp-toolkit',
 			'podcast-player_page_pp-products',
@@ -510,6 +519,23 @@ class Options {
 					)
 				)
 			);
+		}
+
+		if ( $current_screen && 'podcast-player_page_pp-shortcode' === $current_screen->id ) {
+			$front_loader = Front_Loader::get_instance();
+			$front_loader->enqueue_styles();
+			$front_loader->enqueue_scripts();
+
+			if ( class_exists( '\PP_Pro\Inc\General\General' ) ) {
+				$general = \PP_Pro\Inc\General\General::get_instance();
+				if ( method_exists( $general, 'enqueue_shortcodegen_styles' ) ) {
+					$general->enqueue_shortcodegen_styles();
+				}
+
+				if ( method_exists( $general, 'enqueue_fonts_styles' ) ) {
+					$general->enqueue_fonts_styles();
+				}
+			}
 		}
 	}
 

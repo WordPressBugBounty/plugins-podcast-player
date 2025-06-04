@@ -72,6 +72,9 @@ class Register {
 		// Register miscellaneous actions.
 		self::misc_actions();
 
+		// Register podcast player shortcode generator.
+		self::register_shortcodegen();
+
 		// Register podcast player shortcode display method.
 		self::register_shortcode();
 
@@ -158,6 +161,7 @@ class Register {
 	public static function register_shortcode() {
 		$shortcode = Shortcode::get_instance();
 		add_shortcode( 'podcastplayer', array( $shortcode, 'render' ) );
+		add_shortcode( 'showpodcastplayer', array( $shortcode, 'renderPodcast' ) );
 	}
 
 	/**
@@ -168,6 +172,22 @@ class Register {
 	public static function register_block() {
 		$block = Block::get_instance();
 		add_action( 'init', array( $block, 'register' ) );
+	}
+
+	/**
+	 * Register podcast player shortcode generator.
+	 *
+	 * @since 7.9.0
+	 */
+	public static function register_shortcodegen() {
+		$shortcode = Shortcode::get_instance();
+		// Handle Admin Ajax Requests.
+		add_action( 'wp_ajax_pp_render_preview', array( $shortcode, 'get_pp_preview' ) );
+		add_action( 'wp_ajax_pp_blank_shortcode_template', array( $shortcode, 'get_shortcode_form' ) );
+		add_action( 'wp_ajax_pp_create_new_shortcode', array( $shortcode, 'create_new_shortcode' ) );
+		add_action( 'wp_ajax_pp_load_shortcode', array( $shortcode, 'load_shortcode' ) );
+		add_action( 'wp_ajax_pp_delete_shortcode', array( $shortcode, 'delete_shortcode' ) );
+		add_action( 'wp_ajax_pp_update_shortcode', array( $shortcode, 'update_shortcode' ) );
 	}
 
 	/**

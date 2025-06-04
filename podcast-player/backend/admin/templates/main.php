@@ -48,13 +48,15 @@ use Podcast_Player\Helper\Functions\Markup as Markup_Fn;
 					?>
 				</div>
 				<div class="pp-options-footer">
-					<div class="pp-options-copyright"><span><?php esc_html_e( 'Vedathemes', 'podcast-player' ); ?> &copy; <?php echo esc_html( date_i18n( __( 'Y', 'podcast-player' ) ) ); ?></span></div>
+					<div class="pp-options-copyright"><span><?php esc_html_e( 'EasyPodcastPro', 'podcast-player' ); ?> &copy; <?php echo esc_html( date_i18n( __( 'Y', 'podcast-player' ) ) ); ?></span></div>
 				</div>
 			</div>
 		</div>
+		<?php if ( 'shortcode' !== $current_page ) : ?>
 		<div class="pp-options-sidebar">
 			<?php require PODCAST_PLAYER_DIR . '/backend/admin/templates/sidebar.php'; ?>
 		</div>
+		<?php endif; ?>
 	</div>
 	<div class="pp-action-feedback" id="pp-action-feedback">
 		<span class="dashicons dashicons-update"></span>
