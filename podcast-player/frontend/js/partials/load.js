@@ -119,10 +119,11 @@ class LoadmoreEpisodes {
 			firstElem = firstElem ? firstElem : id;
 
 			if ( 'undefined' !== typeof(episode) ) {
-				let {title, description, author, date, link, featured, fset, categories, tags} = episode;
+				let {title, description, author, date, link, featured, fset, categories, tags, season} = episode;
 				const cats = categories ? Object.keys(categories).join(' ') : '';
 				const ptags = tags ? Object.keys(tags).join(' ') : '';
-				let alltax = cats + ' ' + ptags;
+				const pseason = season ? season : '';
+				let alltax = cats + ' ' + ptags + ' ' + pseason;
 				let linkMarkup = jQuery('<a />', { href: link, class: epititle }).html( title );
 				let excerptLink = jQuery('<a />', { href: link, class: epititle }).html( '[...]' );
 				let titleMarkup = jQuery('<div />', { class: 'pod-entry__title' }).html( linkMarkup );
@@ -178,7 +179,7 @@ class LoadmoreEpisodes {
 					markup.removeClass('activeEpisode media-playing');
 					markup.attr( 'id', id );
 					markup.attr( 'data-search-term', title.toLowerCase() );
-					markup.attr( 'data-cats', cats )
+					markup.attr( 'data-cats', alltax.trim() )
 					markup.find('.pod-entry__title').replaceWith( titleMarkup );
 					markup.find('.pp-entry__mpost').attr( 'href', link );
 				} else {
@@ -186,7 +187,7 @@ class LoadmoreEpisodes {
 					markup.removeClass('activeEpisode media-playing');
 					markup.attr( 'id', id );
 					markup.attr( 'data-search-term', title.toLowerCase() );
-					markup.attr( 'data-cats', cats )
+					markup.attr( 'data-cats', alltax.trim() )
 					markup.find('.pod-entry__title').replaceWith( titleMarkup );
 					markup.find('.pod-entry__date').replaceWith( dateMarkup );
 					markup.find('.pod-entry__author').replaceWith( authorMarkup );

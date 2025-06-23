@@ -21,8 +21,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 $pp_cats     = isset( $item['categories'] ) && is_array( $item['categories'] ) ? array_keys( $item['categories'] ) : array();
 $pp_tags     = isset( $item['tags'] ) && is_array( $item['tags'] ) ? array_keys( $item['tags'] ) : array();
-$pp_combined = implode( ' ', array_merge( $pp_cats, $pp_tags ) );
-
+$pp_season   = isset( $item['season'] ) && $item['season'] ? array( 's-' . absint( $item['season'] ) ) : array();
+$pp_combined = implode( ' ', array_merge( $pp_cats, $pp_tags, $pp_season ) );
 ?>
 
 <div id="ppe-<?php echo esc_html( $ppe_id ); ?>" class="episode-list__entry pod-entry" data-search-term="<?php echo esc_attr( strtolower( $item['title'] ) ); ?>" data-cats="<?php echo esc_attr( $pp_combined ); ?>">

@@ -93,6 +93,7 @@ class ShortcodeGenerator {
 	}
 
 	updatePreview( input ) {
+		const _this = this;
 		const { instance, values } = this.getShortcodeFormValues();
 		// Let's get next set of episodes.
 		jQuery.ajax( {
@@ -112,6 +113,7 @@ class ShortcodeGenerator {
 					} else if ('undefined' !== typeof details.markup) {
 						const wrapper = jQuery('#pp-shortcode-preview');
 						wrapper.html( details.markup );
+						_this.updateFont();
 						// window.dptScriptData.instances = details.instances;
 					}
 				}
@@ -215,6 +217,7 @@ class ShortcodeGenerator {
 	}
 
 	loadShortcode(select) {
+		const _this = this;
 		const instance = select.val();
 		if ( ! instance ) {
 			jQuery('#pp-shortcode-form').html('');
@@ -278,6 +281,7 @@ class ShortcodeGenerator {
 								<a href="#" class="pp-copy-shortcode-text">(Copy shortcode)</a>
 							</div>
 						`);
+						_this.updateFont();
 						// window.ppScriptData.instances = details.instances;
 						jQuery(document).trigger('pp-widget-added');
 					}
@@ -287,6 +291,30 @@ class ShortcodeGenerator {
 				this.newResponse(errorThrown, 'pp-error');
 			}
 		} );
+	}
+
+	updateFont() {
+		const fontField = jQuery('#pp-options-module-shortcode .podcast-player-pp-fonts');
+		if (! fontField.length) return;
+		const gFont = fontField.val();
+		const allFonts = this.data.gfonts;
+		const fontLabel = gFont && allFonts[ gFont ] ? allFonts[ gFont ] : false;
+		if (! fontLabel) return;
+		const fontName = fontLabel.split( ' ' ).join( '+' );
+		if ( 0 === jQuery( 'link#podcast-player-fonts-css-temp' ).length ) {
+			const gfontUrl = '//fonts.googleapis.com/css?family=' + fontName;
+			const gfontlink = jQuery( '<link>', {
+				id: 'podcast-player-fonts-css-temp',
+				href: gfontUrl,
+				rel: 'stylesheet',
+				type: 'text/css'
+			} );
+			jQuery( 'link:last' ).after( gfontlink );
+		} else {
+			const elem = jQuery('link#podcast-player-fonts-css-temp');
+			const href = elem.attr('href');
+			elem.attr( 'href', href + '%7C' + fontName );
+		}
 	}
 
 	deleteShortcode(button) {

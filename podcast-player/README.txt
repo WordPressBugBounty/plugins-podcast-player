@@ -4,7 +4,7 @@ Tags: podcast, podcasting, rss feed, feed to audio, podcaster
 Requires at least: 4.9
 Tested up to: 6.8
 Requires PHP: 5.6
-Stable tag: 7.9.0
+Stable tag: 7.9.1
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -106,6 +106,11 @@ Podcast player plugin (on its own) does not create and save any cookies and does
 5. Podcast player on large size container
 
 == Changelog ==
+
+= 7.9.1 =
+* Add: Seasons Filter on the frontend in pro.
+* Bug Fix: Google Fonts issue on shortcode generator in the pro version.
+* Modify: Code and documentation Improvements.
 
 = 7.8.0 =
 * Bug Fix: Resolve PHP coding and comments issues to improve code qaulity.

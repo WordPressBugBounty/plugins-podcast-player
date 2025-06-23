@@ -118,6 +118,7 @@ class Feed extends Singleton {
 
 		// Add all podcast episode categories to display args.
 		$args['categories'] = isset( $feed['categories'] ) ? $feed['categories'] : array();
+		$args['seasons']    = isset( $feed['seasons'] ) ? $feed['seasons'] : array();
 
 		// Prepare feed items for further use.
 		$feed_items = $this->prepare_feed_items( $feed_items, $number, 0, $args );
@@ -196,7 +197,7 @@ class Feed extends Singleton {
 	 * @param array $args Podcast display args.
 	 */
 	private function get_required_data_fields( $args ) {
-		$default_fields = array( 'title', 'date', 'link', 'src', 'mediatype', 'duration', 'categories', 'episodetype' );
+		$default_fields = array( 'title', 'date', 'link', 'src', 'mediatype', 'duration', 'categories', 'episodetype', 'season' );
 		$conditional    = array(
 			'description' => 'hide-content',
 			'author'      => 'hide-author',

@@ -456,6 +456,11 @@ class Options {
 		);
 		if ( $current_screen && in_array( $current_screen->id, $load_on, true ) ) {
 
+			$gfonts = array();
+			if ( 'podcast-player_page_pp-shortcode' === $current_screen->id && class_exists( '\PP_Pro\Helper\Functions\Gfonts' ) ) {
+				$gfonts = \PP_Pro\Helper\Functions\Gfonts::get_list();
+			}
+
 			/**
 			 * Enqueue admin scripts.
 			 */
@@ -487,6 +492,7 @@ class Options {
 					array(
 						'ajaxurl'  => admin_url( 'admin-ajax.php' ),
 						'security' => wp_create_nonce( 'podcast-player-admin-options-ajax-nonce' ),
+						'gfonts'   => $gfonts,
 						'messages' => array(
 							'running'        => esc_html__( 'Performing Action', 'podcast-player' ),
 							'nourl'          => esc_html__( 'Please provide a valid podcast', 'podcast-player' ),
@@ -530,10 +536,6 @@ class Options {
 				$general = \PP_Pro\Inc\General\General::get_instance();
 				if ( method_exists( $general, 'enqueue_shortcodegen_styles' ) ) {
 					$general->enqueue_shortcodegen_styles();
-				}
-
-				if ( method_exists( $general, 'enqueue_fonts_styles' ) ) {
-					$general->enqueue_fonts_styles();
 				}
 			}
 		}

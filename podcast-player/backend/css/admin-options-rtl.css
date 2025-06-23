@@ -834,39 +834,6 @@
 {
     display: inline-block;
 }
-#pp-options-page .pp-sidebar-section
-{
-    padding: 20px;
-
-    background-color: #fff;
-}
-#pp-options-page .pp-sidebar-section h3
-{
-    margin: 0 0 20px;
-}
-#pp-options-page .pp-sidebar-section input,
-#pp-options-page .pp-sidebar-section select
-{
-    width: 100%;
-    max-width: 100% !important;
-    margin-bottom: 10px;
-}
-#pp-options-page .pp-sidebar-section input
-{
-    font-size: 15px;
-
-    height: 40px;
-    padding: 0 20px 1px;
-}
-#pp-options-page .pp-sidebar-section p.submit
-{
-    margin: 0;
-    padding: 0;
-}
-#pp-options-page .pp-sidebar-section .wrap
-{
-    margin: 0;
-}
 #pp-options-page .pp-docs-section-wrapper
 {
     line-height: 1.5;
@@ -910,8 +877,43 @@
     margin: 0;
     padding: 10px 0;
 }
+#pp-options-page .pp-sidebar-section
+{
+    padding: 16px;
+
+    color: #23282d;
+    border-right: 4px solid #0073aa;
+    border-radius: 4px;
+    background: #fff;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
+}
+#pp-options-page .pp-sidebar-section input,
+#pp-options-page .pp-sidebar-section select
+{
+    width: 100%;
+    max-width: 100% !important;
+    margin-bottom: 10px;
+}
+#pp-options-page .pp-sidebar-section input
+{
+    font-size: 15px;
+
+    height: 40px;
+    padding: 0 20px 1px;
+}
+#pp-options-page .pp-sidebar-section p.submit
+{
+    margin: 0;
+    padding: 0;
+}
+#pp-options-page .pp-sidebar-section .wrap
+{
+    margin: 0;
+}
 #pp-options-page ul.pp-pro-features li
 {
+    font-size: 14px;
+
     margin-bottom: 0;
     padding: 10px 0;
 
@@ -919,26 +921,40 @@
 }
 #pp-options-page a.pp-pro-more
 {
-    line-height: 40px;
+    font-size: 13px;
+    font-weight: 600;
 
-    height: auto !important;
+    display: flex;
+
+    width: 100%;
+    padding: 8px 14px;
+
+    transition: background-color .2s ease;
+    text-align: center;
+    text-decoration: none;
 
     color: #fff;
-    border-color: #7421b7;
-    border-radius: 20px;
-    background-color: #7421b7;
+    border-radius: 3px;
+    background: #0073aa;
+
+    align-items: center;
+    justify-content: center;
+}
+#pp-options-page a.pp-pro-more .dashicons
+{
+    margin-right: 5px;
 }
 #pp-options-page h3.pp-pro-title
 {
     position: relative;
 
+    margin-top: 0;
     padding-bottom: 20px;
 }
 #pp-options-page h3.pp-pro-title:after
 {
     position: absolute;
     bottom: 0;
-    right: 5px;
 
     display: block;
 
@@ -947,7 +963,7 @@
 
     content: '';
 
-    background-color: #fad366;
+    background-color: #0073aa;
 }
 #pp-options-page .icon:not(#pp-options-module-shortcode .icon)
 {
@@ -1399,7 +1415,9 @@
 
 #pp-shortcode-form
 {
-    flex-basis: 25%;
+    min-width: 20%;
+
+    flex-basis: 20%;
 }
 #pp-shortcode-form select,
 #pp-shortcode-form input[type=text],
@@ -1632,7 +1650,7 @@
     }
     #pp-options-page .pp-options-main .pp-options-sidebar
     {
-        width: calc(30% - 40px);
+        width: calc(20% - 40px);
         margin-right: 40px;
     }
 }
