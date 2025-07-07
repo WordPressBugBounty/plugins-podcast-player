@@ -52,7 +52,7 @@ use Podcast_Player\Helper\Functions\Markup as Markup_Fn;
 				</div>
 			</div>
 		</div>
-		<?php if ( 'shortcode' !== $current_page ||  ( 'shortcode' === $current_page && ! defined( 'PP_PRO_VERSION' ) ) ) : ?>
+		<?php if ( 'shortcode' !== $current_page && ( function_exists( 'pp_pro_license_options' ) || ! defined( 'PP_PRO_VERSION' ) ) ) : ?>
 		<div class="pp-options-sidebar">
 			<?php require PODCAST_PLAYER_DIR . '/backend/admin/templates/sidebar.php'; ?>
 		</div>

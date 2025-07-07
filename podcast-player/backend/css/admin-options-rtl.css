@@ -1651,6 +1651,7 @@
     #pp-options-page .pp-options-main .pp-options-sidebar
     {
         width: calc(20% - 40px);
+        min-width: 240px;
         margin-right: 40px;
     }
 }

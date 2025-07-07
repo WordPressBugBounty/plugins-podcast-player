@@ -866,6 +866,8 @@ button.episode-list__load-more:focus
 }
 .episode-single__header .single-author
 {
+    margin-left: 5px;
+
     color: #606060;
 }
 .episode-single__author
