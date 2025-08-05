@@ -463,6 +463,7 @@ class Feed extends Singleton {
 			'eunit'     => isset( $args['excerpt-unit'] ) ? esc_html( $args['excerpt-unit'] ) : '',
 			'teaser'    => isset( $args['teaser-text'] ) ? esc_html( $args['teaser-text'] ) : '',
 			'title'     => esc_html( str_replace( '&quot;', '&#8221;', $title ) ),
+			'autoplay'  => isset( $args['autoplay'] ) ? esc_html( $args['autoplay'] ) : '',
 		);
 
 		/**

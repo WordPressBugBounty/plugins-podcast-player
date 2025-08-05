@@ -633,6 +633,8 @@ class PlayEpisode {
 				const newItem = this.listItem.prev('.episode-list__entry');
 				if (newItem.length) this.prevBtn.attr('disabled', false);
 				return;
+			} else {
+				this.listItem.removeClass( 'activeEpisode media-playing' );
 			}
 		}
 		this.prevBtn.blur();
@@ -1249,7 +1251,16 @@ class PlayEpisode {
 			if (this.msgMediaObj) this.msgMediaObj.media.play();
 		} else {
 			if (this.listItem && !this.listItem.hasClass('episode-list__search-entry')) {
-				this.playNextEpisode();
+				const pid = `pp-podcast-${this.instance}`;
+				const rdata = this.data[pid] ? this.data[pid].rdata : {};
+				const autoplay = rdata.autoplay ? rdata.autoplay : '';
+				if ('disable' === autoplay) {
+					this.listItem.removeClass( 'activeEpisode media-playing' );
+				} else if ('reverse' === autoplay ) {
+					this.playPreviousEpisode();
+				} else {
+					this.playNextEpisode();
+				}
 			}
 		}
 	}
@@ -1267,7 +1278,16 @@ class PlayEpisode {
 			this.mediaObj.media.play();
 		} else if (true === this.playAmsg) {
 			if (this.listItem && !this.listItem.hasClass('episode-list__search-entry')) {
-				this.playNextEpisode();
+				const pid = `pp-podcast-${this.instance}`;
+				const rdata = this.data[pid] ? this.data[pid].rdata : {};
+				const autoplay = rdata.autoplay ? rdata.autoplay : '';
+				if ('disable' === autoplay) {
+					this.listItem.removeClass( 'activeEpisode media-playing' );
+				} else if ('reverse' === autoplay ) {
+					this.playPreviousEpisode();
+				} else {
+					this.playNextEpisode();
+				}
 			}
 		}
 	}

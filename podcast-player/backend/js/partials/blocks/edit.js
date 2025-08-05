@@ -244,6 +244,7 @@ class PodcastPlayer extends Component {
 			feedURL,
 			sortBy,
 			filterBy,
+			autoPlay,
 			number,
 			offset,
 			teaserText,
@@ -1092,6 +1093,16 @@ class PodcastPlayer extends Component {
 								label={ __( 'Show episodes only if title contains following', 'podcast-player' ) }
 								value={ filterBy }
 								onChange={ ( value ) => setAttributes( { filterBy: value } ) }
+							/>
+							<SelectControl
+								label={ __( 'Autoplay Behavior', 'podcast-player' ) }
+								value={ autoPlay }
+								onChange={ ( value ) => setAttributes( { autoPlay: value } ) }
+								options={ [
+									{ value: '', label: __( 'Default (Follow visual list order)', 'podcast-player' ) },
+									{ value: 'reverse', label: __( 'Reverse (Opposite of visual list order)', 'podcast-player' ) },
+									{ value: 'disable', label: __( 'Disabled (No autoplay)', 'podcast-player' ) },
+								] }
 							/>
 							{
 								(1 < seasonList.length && 'feed' === fetchMethod) &&

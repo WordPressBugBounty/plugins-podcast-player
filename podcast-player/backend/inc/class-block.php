@@ -52,6 +52,10 @@ class Block extends Singleton {
 							'type'    => 'string',
 							'default' => '',
 						),
+						'autoPlay'         => array(
+							'type'    => 'string',
+							'default' => '',
+						),
 						'number'           => array(
 							'type'    => 'number',
 							'default' => 10,
@@ -421,6 +425,7 @@ class Block extends Singleton {
 				'url'               => $atts['feedURL'],
 				'sortby'            => $atts['sortBy'],
 				'filterby'          => $atts['filterBy'],
+				'autoplay'          => $atts['autoPlay'],
 				'number'            => absint( $atts['number'] ),
 				'menu'              => $atts['podcastMenu'],
 				'main_menu_items'   => $atts['mainMenuItems'],

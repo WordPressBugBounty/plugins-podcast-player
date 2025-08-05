@@ -4,7 +4,7 @@ Tags: podcast, podcasting, rss feed, feed to audio, podcaster
 Requires at least: 4.9
 Tested up to: 6.8
 Requires PHP: 5.6
-Stable tag: 7.9.2
+Stable tag: 7.9.3
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -19,7 +19,7 @@ Watch this introductory video to learn about the podcast player.
 
 Learn More About the Podcast Player Pro
 
-[https://www.youtube.com/watch?v=w8Y-ncR9Nwk]
+[youtube https://www.youtube.com/watch?v=w8Y-ncR9Nwk]
 
 We've created a quick walkthrough video series to help you get started with the podcast player easily.
 
@@ -106,6 +106,9 @@ Podcast player plugin (on its own) does not create and save any cookies and does
 5. Podcast player on large size container
 
 == Changelog ==
+
+= 7.9.3 =
+* Add: Option to modifiy episode autoplay feature.
 
 = 7.9.2 =
 * Bug Fix: Minor styling issues.
