@@ -88,7 +88,7 @@ class ShortcodeGenerator {
                 }
 			}
 		);
-        console.log(values);
+		console.log(instance);
 		return { instance, values };
 	}
 
@@ -158,7 +158,7 @@ class ShortcodeGenerator {
 						const formWrapper = jQuery('#pp-shortcode-form');
 						const previewWrapper = jQuery('#pp-shortcode-preview');
 						jQuery('.pp-shortcode-result').html( '' );
-						formWrapper.html( form ).attr('data-instance', details.instance);
+						formWrapper.html( form ).data('instance', details.instance);
 						previewWrapper.html( preview );
 						jQuery(document).trigger('pp-widget-added');
 						this.newResponse('Shortcode template created successfully', 'pp-success');
@@ -265,7 +265,7 @@ class ShortcodeGenerator {
 						const resultsWrapper = jQuery('.pp-shortcode-result');
 						const formWrapper = jQuery('#pp-shortcode-form');
 						const previewWrapper = jQuery('#pp-shortcode-preview');
-						formWrapper.html( form ).attr('data-instance', details.instance);
+						formWrapper.html( form ).data('instance', details.instance);
 						previewWrapper.html( preview );
 						resultsWrapper.html(`
 							<div class="pp-shortcode-sidebar-collapse">
