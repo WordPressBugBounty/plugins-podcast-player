@@ -4,7 +4,7 @@ Tags: podcast, podcasting, rss feed, feed to audio, podcaster
 Requires at least: 4.9
 Tested up to: 6.8
 Requires PHP: 5.6
-Stable tag: 7.9.4
+Stable tag: 7.9.5
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 

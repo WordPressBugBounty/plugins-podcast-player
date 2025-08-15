@@ -291,6 +291,13 @@ img.custom-widget-thumbnail
     border-radius: 4px;
 }
 
+.pp-product
+{
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+
+    border-bottom: 1px solid #e6e6e6;
+}
 .pp-product-title
 {
     margin-bottom: 10px;
@@ -308,6 +315,8 @@ img.custom-widget-thumbnail
 }
 .pp-product-link
 {
+    display: inline-block;
+
     padding: 10px 15px;
 
     border: 1px solid currentColor;
