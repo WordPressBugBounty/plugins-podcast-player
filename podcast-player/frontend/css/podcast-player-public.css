@@ -757,9 +757,11 @@ audio.pp-podcast-episode
     border-width: 0 0 0 1px !important;
     border-color: #e6e6e6 !important;
     border-radius: 0 !important;
+    background: none !important;
     background-color: transparent !important;
-    background-position: right .875em top 17px !important;
     box-shadow: none !important;
+
+    appearance: auto !important;
 }
 .episode-list__clear-search.pod-button
 {
@@ -2863,6 +2865,12 @@ a.ppjs__episode-excerpt .ppjs__more
 .pp-podcast.light-color.playerview[id^=pp-podcast-] .episode-list__load-more,
 .pp-podcast.light-text.postview[id^=pp-podcast-] .episode-list__load-more,
 .inline-view.light-color .episode-list__load-more
+{
+    color: #fff !important;
+}
+.pp-podcast.light-color.playerview[id^=pp-podcast-] .episode-list__filter-select,
+.pp-podcast.light-text.postview[id^=pp-podcast-] .episode-list__filter-select,
+.inline-view.light-color .episode-list__filter-select
 {
     color: #fff !important;
 }

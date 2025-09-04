@@ -219,8 +219,11 @@ class Get_Feed {
 	 * @param array $data Apply sort and filters on fetched data.
 	 */
 	private function modify_feed_data( $data ) {
-		$obj                   = Modify_Feed_Data::get_instance();
-		list( $total, $items ) = $obj->init( $data, $this->mods, $this->fields );
+		$obj         = Modify_Feed_Data::get_instance();
+		$custom_data = Get_Fn::get_modified_feed_data( $this->feed_url );
+		$custom_data = $custom_data instanceof FeedData ? $custom_data->retrieve() : array();
+		$data        = $obj->init( $data, $custom_data, $this->mods, $this->fields );
+		$items       = isset( $data['items'] ) ? $data['items'] : array();
 
 		if ( empty( $items ) ) {
 			return new \WP_Error(
@@ -229,45 +232,21 @@ class Get_Feed {
 			);
 		}
 
-		$data['items'] = $items;
-		$data['total'] = $total;
-
 		return $data;
 	}
 
 	/**
-	 * Check and use custom data for feed items..
+	 * Check and use custom data for feed items.
+	 *
+	 * Original override customization has been merged with modify_feed_data method. Keeping this for
+	 * compatibility and possibility for further customization.
 	 *
 	 * @since  3.3.0
 	 *
 	 * @param array $data Feed data to be overridden by customizations.
 	 */
 	private function override_customizations( $data ) {
-		$custom_data = Get_Fn::get_modified_feed_data( $this->feed_url );
-		if ( ! $custom_data instanceof FeedData ) {
-			return $data;
-		}
-
-		$custom_data       = $custom_data->retrieve();
-		$custom_data_items = isset( $custom_data['items'] ) ? $custom_data['items'] : array();
-		$items             = isset( $data['items'] ) ? $data['items'] : array();
-		// Exclude deleted and filtered items from the custom data.
-		$custom_data_items = array_intersect_key( $custom_data_items, $items );
-
-		// Remove date and duration fields from the required items.
-		$fields = array_diff( $this->fields, array( 'date', 'dur' ) );
-		$custom_data_items = array_filter( array_map(
-			function ( $item ) use ( $fields ) {
-				if ( ! $item instanceof ItemData ) {
-					return false;
-				}
-				return array_filter( $item->retrieve( 'echo', $fields ) );
-			},
-			$custom_data_items
-		) );
-		$custom_data['items'] = $custom_data_items;
-		$custom_data = array_filter( $custom_data );
-
+		
 		/**
 		 * Filters the custom data for the feed to override original data.
 		 *
@@ -277,11 +256,7 @@ class Get_Feed {
 		 * @param string $feed_url    Feed URL.
 		 * @return array Modified custom data for the feed.
 		 */
-		$custom_data = apply_filters(
-			'podcast_player_custom_data',
-			$custom_data,
-			$this->feed_url
-		);
+		$custom_data = apply_filters( 'podcast_player_custom_data', array(), $this->feed_url );
 
 		// Return if custom data do not exist.
 		if ( ! $custom_data || ! is_array( $custom_data ) ) {
@@ -289,17 +264,6 @@ class Get_Feed {
 		}
 
 		$data  = array_replace_recursive( $data, $custom_data );
-		$items = $data['items'];
-
-		// Get cumulative array of all available seasons.
-		$seasons = array_values( array_filter( array_unique( array_column( $items, 'season' ) ) ) );
-
-		// Get cumulative array of all available categories.
-		$cats = array_column( $items, 'categories' );
-		$cats = array_unique( call_user_func_array( 'array_merge', $cats ) );
-
-		$data['seasons']    = $seasons;
-		$data['categories'] = $cats;
 		return $data;
 	}
 

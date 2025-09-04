@@ -28,18 +28,34 @@ class Modify_Feed_Data extends Singleton {
 	 *
 	 * @since  3.3.0
 	 *
-	 * @param array $data   Fetched feed data to modified.
-	 * @param array $mods   Modification args.
-	 * @param array $fields Item data fields to retrieve.
+	 * @param array $data        Fetched feed data to modified.
+	 * @param array $custom_data Custom data for the feed.
+	 * @param array $mods        Modification args.
+	 * @param array $fields      Item data fields to retrieve.
 	 */
-	public function init( $data, $mods, $fields ) {
+	public function init( $data, $custom_data, $mods, $fields ) {
 
 		// Prepare feed modification data.
 		$defaults = $this->get_mod_defaults();
 		$mods     = wp_parse_args( $mods, $defaults );
 
 		// Get feed items.
-		$feed_items = $data['items'];
+		$feed_items        = $data['items'];
+		$custom_data_items = empty( $custom_data['items'] ) ? array() : $custom_data['items'];
+		$custom_fields     = array( 'title', 'featured', 'featured_id', 'season', 'categories', 'author' );
+
+		foreach ( $feed_items as $key => $item ) {
+			$custom_item = isset( $custom_data_items[ $key ] ) ? $custom_data_items[ $key ] : false;
+			if ( empty( $custom_item ) || ! $custom_item instanceof ItemData  ) {
+				continue;
+			}
+
+			$props = array_filter( $custom_item->get( $custom_fields, 'none' ) );
+			if ( ! empty( $props ) ) {
+				$item->set( $props, false, 'none' );
+				$feed_items[ $key ] = $item;
+			}
+		}
 
 		// Compatibility with the older pro version. It should be removed after two updates.
 		if ( defined( 'PP_PRO_VERSION' ) && version_compare( PP_PRO_VERSION, '5.6.0', '<' ) ) {
@@ -64,8 +80,27 @@ class Modify_Feed_Data extends Singleton {
 		// Get total available items after applying all filters.
 		$total_items = count( $items );
 		if ( ! $total_items ) {
-			return array( $total_items, array() );
+			// return array( $total_items, array() );
+			$data['total'] = $total_items;
+			$data['items'] = array();
+			return $data;
 		}
+
+		$new_items = array_map(
+			function ( $val ) {
+				return $val->retrieve( 'echo', array( 'categories', 'season' ) );
+			},
+			$items
+		);
+
+		// We must get all seasons and categories after filter and before trimming required items. So that, we get
+		// everything to filter items on the front-end.
+		// Get cumulative array of all available seasons.
+		$seasons = array_values( array_filter( array_unique( array_column( $new_items, 'season' ) ) ) );
+
+		// Get cumulative array of all available categories.
+		$cats = array_column( $new_items, 'categories' );
+		$cats = array_unique( call_user_func_array( 'array_merge', $cats ) );
 
 		// Sort filtered items by data or title.
 		$items = $this->sort_data( $items, $mods['sortby'] );
@@ -83,7 +118,12 @@ class Modify_Feed_Data extends Singleton {
 			}
 		);
 
-		return array( $total_items, $items );
+		$data['total']      = $total_items;
+		$data['items']      = $items;
+		$data['seasons']    = $seasons;
+		$data['categories'] = $cats;
+
+		return $data;
 	}
 
 	/**
