@@ -1602,6 +1602,10 @@ button.episode-list__load-more:focus
 {
     flex-direction: row-reverse;
 }
+.pp-podcast.single-episode .ppjs__list-reveal
+{
+    display: none;
+}
 .ppjs__list-reveal .ppjs__button
 {
     position: relative;
