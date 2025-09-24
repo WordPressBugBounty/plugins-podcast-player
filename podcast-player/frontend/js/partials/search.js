@@ -123,21 +123,18 @@ class SearchEpisodes {
 	filterItems() {
 		const filter = this.filterDropdown.val() || '';
 		const searchTerm = this.searchBox.val().trim().toLowerCase();
-		const isSearchTerm = (Boolean)(searchTerm && searchTerm.length > 0);
+		const isSearchTerm = Boolean(searchTerm && searchTerm.length > 0);
 		const episodeList = this.episodes.find('.episode-list__entry');
+
 		episodeList.each(function() {
-			const $this = jQuery( this );
-			const data = $this.data( 'cats' );
-			if ( data.includes( filter ) || filter.length < 1 ) {
-				if ( isSearchTerm ) {
-					if ( $this.data( 'search-term' ).includes( searchTerm ) ) {
-						$this.show();
-					} else {
-						$this.hide();
-					}
-				} else {
-					$this.show();
-				}
+			const $this = jQuery(this);
+			const data = ($this.data('cats') || '').toString().split(/\s+/); // split by spaces into array
+
+			const matchesCategory = (filter.length < 1) || data.includes(filter);
+			const matchesSearch = !isSearchTerm || ($this.data('search-term') || '').toString().includes(searchTerm);
+
+			if (matchesCategory && matchesSearch) {
+				$this.show();
 			} else {
 				$this.hide();
 			}
