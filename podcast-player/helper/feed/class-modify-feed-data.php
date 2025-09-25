@@ -42,6 +42,7 @@ class Modify_Feed_Data extends Singleton {
 		// Get feed items.
 		$feed_items        = $data['items'];
 		$custom_data_items = empty( $custom_data['items'] ) ? array() : $custom_data['items'];
+		$custom_fields     = array( 'title', 'description', 'author', 'featured', 'featured_id', 'episode', 'season', 'post_id' );
 
 		foreach ( $feed_items as $key => $item ) {
 			$custom_item = isset( $custom_data_items[ $key ] ) ? $custom_data_items[ $key ] : false;
@@ -49,7 +50,7 @@ class Modify_Feed_Data extends Singleton {
 				continue;
 			}
 
-			$props = array_filter( $custom_item->retrieve( 'none' ) );
+			$props = array_filter( $custom_item->get( $custom_fields, 'none' ) );
 			if ( ! empty( $props ) ) {
 				$item->set( $props, false, 'none' );
 				$feed_items[ $key ] = $item;
