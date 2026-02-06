@@ -937,6 +937,18 @@ class PlayEpisode {
 	}
 
 	/**
+	 * Decode HTML entities.
+	 *
+	 * @param {*} str 
+	 * @returns 
+	 */
+	decodeHtmlEntities(str) {
+		const txt = document.createElement('textarea');
+		txt.innerHTML = str;
+		return txt.value;
+	}
+
+	/**
 	 * Display btn image.
 	 * 
 	 * @since 2.3
@@ -956,9 +968,10 @@ class PlayEpisode {
 
 		const { title, featured, fset } = details;
 		let fratio = details.fratio || 1;
+		const confset = this.decodeHtmlEntities(fset);
 
 		if (featured) {
-			this.player.find('.ppjs__img-btn').attr('srcset', fset).attr('src', featured).attr('alt', title).closest('.ppjs__img-wrapper').removeClass('noimg');
+			this.player.find('.ppjs__img-btn').attr('srcset', confset).attr('src', featured).attr('alt', title).closest('.ppjs__img-wrapper').removeClass('noimg');
 
 			fratio = fratio * 100;
 			fratio = fratio + '%';
@@ -967,10 +980,10 @@ class PlayEpisode {
 
 			// Compatibility with lazy load plugins (Only if they use data-src attribute).
 			if ( typeof dsrc !== typeof undefined && dsrc !== false ) {
-				this.player.find('.ppjs__img-btn').attr('data-srcset', fset).attr('data-src', featured);
+				this.player.find('.ppjs__img-btn').attr('data-srcset', confset).attr('data-src', featured);
 			}
 			if (this.modalObj) {
-				this.modalObj.modal.find('.ppjs__img-btn').attr('scrset', fset).attr('src', featured).attr('alt', title).closest('.ppjs__img-wrapper').removeClass('noimg');
+				this.modalObj.modal.find('.ppjs__img-btn').attr('scrset', confset).attr('src', featured).attr('alt', title).closest('.ppjs__img-wrapper').removeClass('noimg');
 			}
 		} else {
 			this.player.find('.ppjs__img-wrapper').addClass('noimg');

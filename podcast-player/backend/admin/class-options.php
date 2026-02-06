@@ -11,6 +11,11 @@
 
 namespace Podcast_Player\Backend\Admin;
 
+// Return if called directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 use Podcast_Player\Helper\Functions\Getters as Get_Fn;
 use Podcast_Player\Helper\Functions\Utility as Utility_Fn;
 use Podcast_Player\Helper\Functions\Validation as Validation_Fn;

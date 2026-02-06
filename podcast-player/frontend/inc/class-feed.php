@@ -361,6 +361,7 @@ class Feed extends Singleton {
 				$is_download = false;
 			}
 
+			// TODO: $item['featured'] contains original image URL, its md5 should not match with $img_src1. Then, why is it there?
 			if ( isset( $item['featured_id'] ) && $item['featured_id'] ) {
 				$img_src1 = wp_get_attachment_image_src( $item['featured_id'], 'large' );
 				$img_src1 = is_array( $img_src1 ) && isset( $img_src1[0] ) ? $img_src1[0] : '';

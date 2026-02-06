@@ -35,7 +35,15 @@ class ShortcodeGenerator {
 		});
 
 		widget.on('click', '#pp-shortcode-generator-delete-btn', function() {
+			widget.find('#pp-shortcode-action-modal').removeClass( 'podcast-player-hidden' );
+		});
+
+		widget.on('click', '#pp-shortcode-deletion-btn', function() {
 			_this.deleteShortcode( jQuery(this) );
+		});
+
+		widget.on('click', '#pp-shortcode-deletion-cancel', function() {
+			widget.find('#pp-shortcode-action-modal').addClass( 'podcast-player-hidden' );
 		});
 
 		widget.on('click', '#pp-shortcode-generator-update-btn', function() {
@@ -321,6 +329,7 @@ class ShortcodeGenerator {
 		const widget   = jQuery('#pp-options-module-shortcode');
 		const instance = widget.find('#pp-shortcode-form').data('instance');
 		const dropdown = widget.find('select.pp-shortcode-dropdown');
+		widget.find('#pp-shortcode-action-modal').addClass( 'podcast-player-hidden' );
 		if ( 'undefined' === typeof instance ) {
 			return;
 		}

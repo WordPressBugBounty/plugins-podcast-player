@@ -26,6 +26,13 @@ use Podcast_Player\Helper\Feed\Get_Feed;
 class Background_Tasks extends Singleton {
 
     /**
+     * There are cases where download data is not saved properly due to some error, server settings,
+     * custom codes or conflict with other plugin. These edge cases sometimes cause plugin to
+     * download a large number of images. Let's put a hard cap on that to prevent any issues on user's website.
+     */
+    const MAX_TOTAL_IMAGE_DOWNLOADS = 1000;
+
+    /**
      * Download episode featured images.
      *
      * @since 7.4.0
@@ -39,6 +46,19 @@ class Background_Tasks extends Singleton {
         if ( 'yes' !== Get_Fn::get_plugin_option( 'img_save' ) ) {
             // Skip task and remove it from the queue.
             return array( true, $args['data'] );
+        }
+
+        // GLOBAL SAFETY STOP
+        if ( $this->image_download_limit_reached() ) {
+            $this->disable_image_downloads();
+
+            return array(
+                new \WP_Error(
+                    'image-limit-reached',
+                    esc_html__( 'Global image download limit reached. Image saving disabled.', 'podcast-player' )
+                ),
+                false
+            );
         }
 
         $feed_url = isset( $args['identifier'] ) ? $args['identifier'] : '';
@@ -98,17 +118,71 @@ class Background_Tasks extends Singleton {
 		require_once ABSPATH . 'wp-admin/includes/file.php';
 		require_once ABSPATH . 'wp-admin/includes/image.php';
         foreach ( $pending as $key => $item ) {
+
+            // Hard Stop if download limit has reached.
+            if ( $this->image_download_limit_reached() ) {
+                $this->disable_image_downloads();
+                return array(
+                    new \WP_Error(
+                        'image-limit-reached',
+                        esc_html__( 'Global image limit reached. Downloads stopped.', 'podcast-player' )
+                    ),
+                    false
+                );
+            }
+
             $image_url = isset( $item['featured'] ) ? $item['featured'] : '';
             $title     = isset( $item['title'] ) ? $item['title'] : '';
             if ( empty( $image_url ) ) {
                 $completed[ $key ] = array_merge( $item, array( 'post_id' => false ) );
             } else {
-                $post_id = media_sideload_image( $image_url, 0, $item['title'], 'id' );
-                if ( ! is_wp_error( $post_id ) ) {
-                    add_post_meta( $post_id, 'pp_featured_key', md5( $image_url ), true );
-                    $completed[ $key ] = array_merge( $item, array( 'post_id' => $post_id ) );
+                // 1. Download the REAL URL (unchanged!)
+                $tmp = download_url( $image_url );
+
+                if ( is_wp_error( $tmp ) ) {
+                    return ( array( $tmp, false ) );
+                }
+
+                // 2. Force a correct "filename" for WP regardless of the remote URL
+                // Try using MIME type to get correct extension
+                $headers  = wp_remote_head( $image_url );
+                $mime     = wp_remote_retrieve_header( $headers, 'content-type' );
+                $ext      = Get_Fn::get_extension_from_mime( $mime );
+                $filename = 'podcast-episode-image-' . md5( $image_url ) . '.' . $ext;
+
+                // 3. Build array as if it was a file upload
+                $file = [
+                    'name'     => $filename,
+                    'tmp_name' => $tmp,
+                ];
+
+                // 4. Let WP handle the upload
+                $attachment_id = media_handle_sideload( $file, 0, $title );
+
+                if ( ! is_wp_error( $attachment_id ) ) {
+
+                    // Count successful downloads.
+                    $this->increment_image_download_count();
+
+                    add_post_meta( $attachment_id, 'pp_featured_key', md5( $image_url ), true );
+
+                    // Let's do post_meta verification to see if data is getting saved correctly.
+                    $stored = get_post_meta( $attachment_id, 'pp_featured_key', true );
+                    if ( $stored !== md5( $image_url ) ) {
+                        $this->disable_image_downloads();
+                        return array(
+                            new \WP_Error(
+                                'meta-write-failed',
+                                esc_html__( 'Failed to persist image meta. Downloads stopped.', 'podcast-player' )
+                            ),
+                            false
+                        );
+                    }
+
+                    $completed[ $key ] = array_merge( $item, array( 'post_id' => $attachment_id ) );
                 } else {
-					return ( array( $post_id, false ) );
+                    wp_delete_file( $tmp );
+					return ( array( $attachment_id, false ) );
 				}
             }
         }
@@ -231,5 +305,48 @@ class Background_Tasks extends Singleton {
             return array( true, false );
         }
         return array( true, $data );
+    }
+
+    /**
+     * Get how many image download operations have been performed successfully.
+     *
+     * @since 7.9.14
+     */
+    private function get_total_image_download_count() {
+        return (int) get_option( 'pp_total_image_downloads', 0 );
+    }
+
+    /**
+     * Increase image download operations by one.
+     *
+     * @since 7.9.14
+     */
+    private function increment_image_download_count() {
+        $count = $this->get_total_image_download_count();
+        update_option( 'pp_total_image_downloads', $count + 1, false );
+    }
+
+    /**
+     * Check if image download limit has been reached.
+     *
+     * @since 7.9.14
+     */
+    private function image_download_limit_reached() {
+        return $this->get_total_image_download_count() >= self::MAX_TOTAL_IMAGE_DOWNLOADS;
+    }
+
+    /**
+     * Disable image download options and reset the counter.
+     *
+     * @since 7.9.14
+     */
+    private function disable_image_downloads() {
+        $options = get_option( 'pp-common-options', array() );
+        if ( ! isset( $options['img_save'] ) || 'yes' !== $options['img_save'] ) {
+            return; // already disabled
+        }
+        $options['img_save'] = 'no';
+        update_option( 'pp-common-options', $options );
+        delete_option( 'pp_total_image_downloads' );
     }
 }

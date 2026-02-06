@@ -2,9 +2,9 @@
 Contributors: vedathemes
 Tags: podcast, podcasting, rss feed, feed to audio, podcaster
 Requires at least: 4.9
-Tested up to: 6.8
+Tested up to: 6.9
 Requires PHP: 5.6
-Stable tag: 7.9.9
+Stable tag: 7.9.14
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -15,7 +15,7 @@ The [Podcast Player](https://easypodcastpro.com/podcast-player/) is your ultimat
 
 Watch this introductory video to learn about the podcast player.
 
-[youtube https://www.youtube.com/watch?v=XwA7ZBp1vMM]
+[youtube https://www.youtube.com/watch?v=0FqVN5-Ja0A]
 
 Learn More About the Podcast Player Pro
 
@@ -106,6 +106,24 @@ Podcast player plugin (on its own) does not create and save any cookies and does
 5. Podcast player on large size container
 
 == Changelog ==
+= 7.9.14 =
+* Modify: Put hard cap on Image download feature to prevent unwanted image downloads in case of any error.
+* Bug Fix: Prevent direct file access to critical files.
+
+= 7.9.12 =
+* Add: Added a filter to bypass media verification and allow any media.
+* Add: Handle non-standard image URLs by hosting platforms.
+
+= 7.9.11 =
+* Bug Fix: Player episode image handling on play button click.
+* Bug Fix: Podcast Inbuilt category import option reinstated.
+* Bug Fix: Player time rail color improvements.
+
+= 7.9.10 =
+* Bug Fix: Category dropdown filter background color in dark mode in default playerview.
+* Bug Fix: Custom Categories not appearing
+* Bug Fix: Minor color issues
+* Add: Additional confirmation before deleting shortcode.
 
 = 7.9.9 =
 * Bug Fix: Podcast Episode date display error.
@@ -113,8 +131,6 @@ Podcast player plugin (on its own) does not create and save any cookies and does
 = 7.9.7 =
 * Bug Fix: Pro import toolkit not showing already imported episodes.
 * Bug Fix: Category filter changed from partial match to full match.
-
-= 7.9.7 =
 * Bug Fix: Mini player show navigation buttons even for single episode players.
 
 = 7.9.6 =

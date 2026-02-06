@@ -50,3 +50,11 @@ $shortcodegen = new ShortCodeGen();
         </div>
     </div>
 </div>
+<div id="pp-shortcode-action-modal" class="pp-shortcode-action-modal podcast-player-hidden">
+    <div class="pp-shortcode-action-wrapper">
+        <h3><?php esc_html_e( 'Confirm Deletion', 'podcast-player' ); ?></h3>
+        <p><?php esc_html_e( 'Are you sure you want to delete this shortcode?', 'podcast-player' ); ?></p>
+        <button id="pp-shortcode-deletion-btn" class="button button-primary"><?php esc_html_e( 'Delete Shortcode', 'podcast-player' ); ?></button>
+        <button id="pp-shortcode-deletion-cancel" class="button button-secondary"><?php esc_html_e( 'Cancel', 'podcast-player' ); ?></button>
+    </div>
+</div>

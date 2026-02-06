@@ -187,6 +187,27 @@ class Render {
 		$mod  = ".modal-{$inst}";
 		$amod = ".aux-modal-{$inst}";
 
+		if ( $this->args['bgcolor'] ) {
+			$bgcolor      = sanitize_hex_color( $this->args['bgcolor'] );
+			$track_color  = Utility_Fn::adjust_hex_color_for_visibility( $bgcolor, 20 );
+			$buffer_color = Utility_Fn::adjust_hex_color_for_visibility( $bgcolor, 25 );
+			$css  .= sprintf(
+				'
+				%1$s,
+				%2$s,
+				%3$s {
+					--pp-light-bg-color: %4$s;
+					--pp-buffered-color: %5$s;
+				}
+				',
+				$id,
+				$mod,
+				$amod,
+				$track_color,
+				$buffer_color
+			);
+		}
+
 		if ( $this->args['accent-color'] ) {
 			$color = sanitize_hex_color( $this->args['accent-color'] );
 			$rgb   = Utility_Fn::hex_to_rgb( $color, true );

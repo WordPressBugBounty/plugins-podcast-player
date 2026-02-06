@@ -32,5 +32,5 @@ if ( isset( $item['fratio'] ) && is_numeric( $item['fratio'] ) ) {
 	<div class="ppjs__img-btn-cover">
 		<img class="ppjs__img-btn" src="<?php echo esc_url( $item['featured'] ); ?>" srcset="<?php echo esc_attr( $srcset ); ?>" sizes="(max-width: 640px) 100vw, 300px" alt="<?php echo esc_attr( $item['title'] ); ?>">
 	</div>
-	<span class="ppjs__img-btn-style" style="display: block; width: 100%; padding-top: <?php echo esc_attr( $fratio ); ?>">
+	<div><span class="ppjs__img-btn-style" style="display: block; width: 100%; padding-top: <?php echo esc_attr( $fratio ); ?>"></div>
 </div>

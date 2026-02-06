@@ -369,7 +369,7 @@ class Shortcode extends Singleton {
 		$shortcode_list = $shortcodegen->shortcode_settings;
 		if ( false === $args || false === $inst || ! isset( $shortcode_list[ $inst ] ) ) {
 			echo wp_json_encode( array(
-				'error'     => __( 'Shortcode data not provided correctly.', 'display-post-types' ),
+				'error'     => __( 'Shortcode data not provided correctly.', 'podcast-player' ),
 			) );
 			wp_die();
 		}
@@ -377,7 +377,7 @@ class Shortcode extends Singleton {
 		$shortcodegen->shortcode_settings = $shortcode_list;
 		$shortcodegen->save();
 		echo wp_json_encode( array(
-			'success' => __( 'Shortcode updated successfully.', 'display-post-types' ),
+			'success' => __( 'Shortcode updated successfully.', 'podcast-player' ),
 		) );
 		wp_die();
 	}

@@ -13,6 +13,11 @@
 
 namespace Podcast_Player\Helper\Core;
 
+// Return if called directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Handle background jobs to import episodes, download images and update feeds.
  *
@@ -124,6 +129,11 @@ class Background_Jobs extends Singleton {
 			$prev_task = $queue[ $unique_id ];
 			$prev_data = $prev_task['data'];
 			$new_data  = array_merge( $prev_data, $task_data['data'] );
+
+			// Limit to 10 images only.
+			if ( 'download_image' === $task_type ) {
+				$new_data = array_slice( $new_data, 0, 10, true ); 
+			}
 			$queue[ $unique_id ] = array_merge( $prev_task, array( 'data' => $new_data ) );
 		} else {
 			$queue[ $unique_id ] = $task_data;

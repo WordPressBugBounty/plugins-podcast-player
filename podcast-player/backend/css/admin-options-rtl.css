@@ -1341,6 +1341,38 @@
 {
     display: none;
 }
+#pp-options-page #pp-options-module-shortcode
+{
+    position: relative;
+}
+#pp-options-page .pp-shortcode-action-modal
+{
+    position: absolute;
+    z-index: 99;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+
+    -webkit-backdrop-filter: blur(4px);
+            backdrop-filter: blur(4px);
+}
+#pp-options-page .pp-shortcode-action-wrapper
+{
+    position: absolute;
+    top: 50%;
+    right: 50%;
+
+    width: auto;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 40px;
+
+    transform: translate(50%, -50%);
+
+    background-color: #fff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, .25);
+}
 
 .pp-shortcode-generator
 {

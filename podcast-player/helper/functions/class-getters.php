@@ -173,7 +173,7 @@ class Getters {
 				$media_type = 'video';
 			}
 		}
-		return $media_type;
+		return apply_filters( 'podcast_player_media_type', $media_type, $media );
 	}
 
 	/**
@@ -540,5 +540,34 @@ class Getters {
 		}
 
 		return new FeedData();
+	}
+
+	/**
+	 * Get extension from mime type.
+	 *
+	 * @since 7.9.12
+	 *
+	 * @param string $mime Mime Type.
+	 */
+	public static function get_extension_from_mime( $mime ) {
+
+		if ( ! $mime ) {
+			return 'jpg'; // fallback
+		}
+
+		$mime_types = wp_get_mime_types(); 
+
+		foreach ( $mime_types as $exts => $type ) {
+			if ( strtolower( $type ) === strtolower( $mime ) ) {
+				$list = explode( '|', $exts );
+				return $list[0];
+			}
+		}
+
+		if ( strpos( $mime, 'image/' ) === 0 ) {
+			return str_replace( 'image/', '', $mime );
+		}
+
+		return 'jpg';
 	}
 }

@@ -11,6 +11,11 @@
 
 namespace Podcast_Player\Frontend;
 
+// Return if called directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 use Podcast_Player\Helper\Functions\Getters as Get_Fn;
 use Podcast_Player\Frontend\Inc\Loader;
 use Podcast_Player\Frontend\Inc\Feed;

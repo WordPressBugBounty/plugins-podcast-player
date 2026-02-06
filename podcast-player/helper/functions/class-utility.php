@@ -62,6 +62,56 @@ class Utility {
 	}
 
 	/**
+	 * Adjust a HEX color for visibility.
+	 * - Lightens medium/dark colors.
+	 * - Darkens colors that are already very light.
+	 *
+	 * @param string $hex_color Base hex color (e.g. "#3498db" or "f5f5f5").
+	 * @param float  $percent   Adjustment amount (0–100). Default 20%.
+	 *
+	 * @return string Adjusted HEX color (lighter or darker, depending on brightness).
+	 */
+	public static function adjust_hex_color_for_visibility( $hex_color, $percent = 20 ) {
+		// Clean input
+		$hex_color = preg_replace( '/[^0-9A-Fa-f]/', '', $hex_color );
+
+		// Expand shorthand form (#abc → #aabbcc)
+		if ( strlen( $hex_color ) === 3 ) {
+			$hex_color = str_repeat( substr( $hex_color, 0, 1 ), 2 )
+					. str_repeat( substr( $hex_color, 1, 1 ), 2 )
+					. str_repeat( substr( $hex_color, 2, 1 ), 2 );
+		}
+
+		if ( strlen( $hex_color ) !== 6 ) {
+			return false; // Invalid color
+		}
+
+		// Convert to RGB
+		$r = hexdec( substr( $hex_color, 0, 2 ) );
+		$g = hexdec( substr( $hex_color, 2, 2 ) );
+		$b = hexdec( substr( $hex_color, 4, 2 ) );
+
+		// Calculate perceived brightness (0–255)
+		$brightness = ( $r * 0.299 ) + ( $g * 0.587 ) + ( $b * 0.114 );
+
+		if ( $brightness > 200 ) {
+			// Too light → darken instead
+			$r = max( 0, round( $r - $r * ( $percent / 100 ) ) );
+			$g = max( 0, round( $g - $g * ( $percent / 100 ) ) );
+			$b = max( 0, round( $b - $b * ( $percent / 100 ) ) );
+		} else {
+			// Normal → lighten toward white
+			$r = min( 255, round( $r + ( 255 - $r ) * ( $percent / 100 ) ) );
+			$g = min( 255, round( $g + ( 255 - $g ) * ( $percent / 100 ) ) );
+			$b = min( 255, round( $b + ( 255 - $b ) * ( $percent / 100 ) ) );
+		}
+
+		// Return as hex
+		return sprintf( "#%02x%02x%02x", $r, $g, $b );
+	}
+
+
+	/**
 	 * Calculate color contrast.
 	 *
 	 * The returned value should be bigger than 5 for best readability.
@@ -121,7 +171,7 @@ class Utility {
 	 * @param string $title Podcast episode title.
 	 */
 	public static function upload_image( $url = '', $title = '' ) {
-		$url   = esc_url_raw( $url );
+		$url = esc_url_raw( $url );
 		$title = sanitize_text_field( $title );
 		if ( ! $url ) {
 			return false;
@@ -129,27 +179,52 @@ class Utility {
 
 		global $wpdb;
 
-		$fid     = md5( $url );
-		$sql     = $wpdb->prepare(
+		$fid = md5( $url );
+		$sql = $wpdb->prepare(
 			"SELECT post_id FROM $wpdb->postmeta WHERE meta_key = 'pp_featured_key' AND meta_value = %s",
 			$fid
 		);
-		$post_id = $wpdb->get_var( $sql );
-		$post_id = (int) $post_id;
+		$post_id = (int) $wpdb->get_var( $sql );
 		if ( $post_id ) {
 			return $post_id;
-		} else {
-			// Require relevant WordPress core files for processing images.
-			require_once ABSPATH . 'wp-admin/includes/media.php';
-			require_once ABSPATH . 'wp-admin/includes/file.php';
-			require_once ABSPATH . 'wp-admin/includes/image.php';
-			$post_id = media_sideload_image( $url, 0, $title, 'id' );
-			if ( ! is_wp_error( $post_id ) ) {
-				add_post_meta( $post_id, 'pp_featured_key', $fid, true );
-				return $post_id;
-			}
 		}
-		return false;
+
+		// Load WordPress media libs
+		require_once ABSPATH . 'wp-admin/includes/media.php';
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		require_once ABSPATH . 'wp-admin/includes/image.php';
+
+		// 1. Download the REAL URL (unchanged!)
+		$tmp = download_url( $url );
+
+		if ( is_wp_error( $tmp ) ) {
+			return false;
+		}
+
+		// 2. Force a correct "filename" for WP regardless of the remote URL
+		// Try using MIME type to get correct extension
+		$headers  = wp_remote_head( $url );
+		$mime     = wp_remote_retrieve_header( $headers, 'content-type' );
+		$ext      = Get_Fn::get_extension_from_mime( $mime );
+		$filename = 'podcast-episode-image-' . md5( $url ) . '.' . $ext;
+
+		// 3. Build array as if it was a file upload
+		$file = [
+			'name'     => $filename,
+			'tmp_name' => $tmp,
+		];
+
+		// 4. Let WP handle the upload
+		$attachment_id = media_handle_sideload( $file, 0, $title );
+
+		if ( is_wp_error( $attachment_id ) ) {
+			wp_delete_file( $tmp );
+			return false;
+		}
+
+		add_post_meta( $attachment_id, 'pp_featured_key', $fid, true );
+
+		return $attachment_id;
 	}
 
 	/**

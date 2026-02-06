@@ -62,21 +62,50 @@ class Validation {
 	 * @param string $image Image url to be checked.
 	 */
 	public static function is_valid_image_url( $image ) {
-		$img_url = $image ? preg_replace( '/\?.*/', '', $image ) : false;
-		if ( ! $img_url ) {
+		$allowed_ext = array( 'jpg', 'jpeg', 'jpe', 'gif', 'png', 'bmp', 'tiff', 'tif', 'ico' );
+    
+		if ( ! $image ) {
 			return false;
 		}
 
-		$file_type   = wp_check_filetype( $img_url, wp_get_mime_types() );
-		$allowed_ext = array( 'jpg', 'jpeg', 'jpe', 'gif', 'png', 'bmp', 'tiff', 'tif', 'ico' );
+		// 1. First attempt: Treat the URL as-is (useful for URLs without query strings).
+		$file_type = wp_check_filetype( $image, wp_get_mime_types() );
 		if ( in_array( strtolower( $file_type['ext'] ), $allowed_ext, true ) ) {
 			return true;
-		} else {
-			// Some podcasts add ? mark in the image URL. So let's try without removing it.
-			$file_type   = wp_check_filetype( $image, wp_get_mime_types() );
-			$allowed_ext = array( 'jpg', 'jpeg', 'jpe', 'gif', 'png', 'bmp', 'tiff', 'tif', 'ico' );
+		}
+
+		// 2. Second attempt: Remove any standard query string (everything after the first ?)
+		$img_url_no_query = preg_replace( '/\?.*/', '', $image );
+		if ( $img_url_no_query && $img_url_no_query !== $image ) {
+			$file_type = wp_check_filetype( $img_url_no_query, wp_get_mime_types() );
 			if ( in_array( strtolower( $file_type['ext'] ), $allowed_ext, true ) ) {
 				return true;
+			}
+		}
+
+		// This handles malformed URLs like "file?.jpg" by essentially removing
+		// everything after the last known file extension part, assuming 
+		// the true extension is immediately after a dot.
+		
+		// Find the position of the last dot (.)
+		$last_dot_pos = strrpos( $image, '.' );
+
+		// If a dot is found, find the position of the first '?' after that dot.
+		if ( $last_dot_pos !== false ) {
+			$first_q_after_dot = strpos( $image, '?', $last_dot_pos );
+
+			if ( $first_q_after_dot !== false ) {
+				// If a '?' is found after the last dot, we'll strip everything from that '?' onwards.
+				// This transforms '.../file?.jpg' into '.../file' and '.jpg' is lost, 
+				// so we instead grab the filename part right before the '?'
+
+				$potential_filename_part = substr( $image, $last_dot_pos ); 
+				
+				// Now, we'll try to check the file type just on this last segment.
+				$file_type = wp_check_filetype( $potential_filename_part, wp_get_mime_types() );
+				if ( in_array( strtolower( $file_type['ext'] ), $allowed_ext, true ) ) {
+					return true;
+				}
 			}
 		}
 

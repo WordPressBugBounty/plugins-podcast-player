@@ -1254,7 +1254,7 @@ button.episode-list__load-more:focus
 {
     display: flex;
 
-    background-color: #d2d2d2;
+    background-color: rgba(0, 0, 0, .08);
 }
 .ppjs__audio-timer
 {
@@ -2322,7 +2322,7 @@ a.ppjs__episode-excerpt .ppjs__more
     height: 5px !important;
 
     border-radius: 10px !important;
-    background: linear-gradient(to right, var(--pp-accent-color, #65b84f) 0%, var(--pp-accent-color, #65b84f) var(--pp-progress-value, 0%), var(--pp-buffered-color, rgba(0, 0, 0, .1)) var(--pp-progress-value, 0%), var(--pp-buffered-color, rgba(0, 0, 0, .1)) var(--buffered-width, 0%), #d2d2d2 var(--buffered-width, 0%), #d2d2d2 100%) !important;
+    background: linear-gradient(to right, var(--pp-accent-color, #65b84f) 0%, var(--pp-accent-color, #65b84f) var(--pp-progress-value, 0%), var(--pp-buffered-color, rgba(0, 0, 0, .1)) var(--pp-progress-value, 0%), var(--pp-buffered-color, rgba(0, 0, 0, .1)) var(--buffered-width, 0%), var(--pp-light-bg-color, #d2d2d2) var(--buffered-width, 0%), var(--pp-light-bg-color, #d2d2d2) 100%) !important;
     box-shadow: none !important;
 }
 .ppjs__controls input[type=range]::-moz-range-track
@@ -2331,7 +2331,7 @@ a.ppjs__episode-excerpt .ppjs__more
     height: 5px !important;
 
     border-radius: 10px !important;
-    background: linear-gradient(to right, var(--pp-accent-color, #65b84f) 0%, var(--pp-accent-color, #65b84f) var(--pp-progress-value, 0%), var(--pp-buffered-color, rgba(0, 0, 0, .1)) var(--pp-progress-value, 0%), var(--pp-buffered-color, rgba(0, 0, 0, .1)) var(--buffered-width, 0%), #d2d2d2 var(--buffered-width, 0%), #d2d2d2 100%) !important;
+    background: linear-gradient(to right, var(--pp-accent-color, #65b84f) 0%, var(--pp-accent-color, #65b84f) var(--pp-progress-value, 0%), var(--pp-buffered-color, rgba(0, 0, 0, .1)) var(--pp-progress-value, 0%), var(--pp-buffered-color, rgba(0, 0, 0, .1)) var(--buffered-width, 0%), var(--pp-light-bg-color, #d2d2d2) var(--buffered-width, 0%), var(--pp-light-bg-color, #d2d2d2) 100%) !important;
     box-shadow: none !important;
 }
 .ppjs__controls input[type=range]::-ms-track
@@ -2340,7 +2340,7 @@ a.ppjs__episode-excerpt .ppjs__more
     height: 5px !important;
 
     border-radius: 10px !important;
-    background: linear-gradient(to right, var(--pp-accent-color, #65b84f) 0%, var(--pp-accent-color, #65b84f) var(--pp-progress-value, 0%), var(--pp-buffered-color, rgba(0, 0, 0, .1)) var(--pp-progress-value, 0%), var(--pp-buffered-color, rgba(0, 0, 0, .1)) var(--buffered-width, 0%), #d2d2d2 var(--buffered-width, 0%), #d2d2d2 100%) !important;
+    background: linear-gradient(to right, var(--pp-accent-color, #65b84f) 0%, var(--pp-accent-color, #65b84f) var(--pp-progress-value, 0%), var(--pp-buffered-color, rgba(0, 0, 0, .1)) var(--pp-progress-value, 0%), var(--pp-buffered-color, rgba(0, 0, 0, .1)) var(--buffered-width, 0%), var(--pp-light-bg-color, #d2d2d2) var(--buffered-width, 0%), var(--pp-light-bg-color, #d2d2d2) 100%) !important;
     box-shadow: none !important;
 }
 .ppjs__controls input[type=range]::-ms-fill-upper
@@ -2877,6 +2877,7 @@ a.ppjs__episode-excerpt .ppjs__more
 .inline-view.light-color .episode-list__filter-select
 {
     color: #fff !important;
+    background-color: rgba(0, 0, 0, .85) !important;
 }
 .pp-podcast.light-color.playerview[id^=pp-podcast-] .ppjs__audio-controls .ppjs__secondary-controls .ppjs__button button:hover,
 .pp-podcast.light-color.playerview[id^=pp-podcast-] .ppjs__audio-controls .ppjs__secondary-controls .ppjs__button button:hover *,
@@ -2956,11 +2957,23 @@ a.ppjs__episode-excerpt .ppjs__more
 {
     color: #fff !important;
 }
-.pp-podcast.light-color.playerview[id^=pp-podcast-].postview .episode-list__filters,
-.pp-podcast.light-text.postview[id^=pp-podcast-].postview .episode-list__filters,
-.inline-view.light-color.postview .episode-list__filters
+.pp-podcast.light-color.playerview[id^=pp-podcast-].modern.wide-player .ppjs__controls input[type=range],
+.pp-podcast.light-text.postview[id^=pp-podcast-].modern.wide-player .ppjs__controls input[type=range],
+.inline-view.light-color.modern.wide-player .ppjs__controls input[type=range]
 {
-    border: 1px solid rgba(255, 255, 255, .5);
+    background: rgba(255, 255, 255, .25) !important;
+}
+.pp-podcast.light-color.playerview[id^=pp-podcast-].modern.wide-player input[type=range]::-moz-range-track,
+.pp-podcast.light-text.postview[id^=pp-podcast-].modern.wide-player input[type=range]::-moz-range-track,
+.inline-view.light-color.modern.wide-player input[type=range]::-moz-range-track
+{
+    border-color: rgba(255, 255, 255, .25) !important;
+}
+.pp-podcast.light-color.playerview[id^=pp-podcast-] .episode-list__filters,
+.pp-podcast.light-text.postview[id^=pp-podcast-] .episode-list__filters,
+.inline-view.light-color .episode-list__filters
+{
+    border-color: rgba(255, 255, 255, .5);
 }
 
 .pp-podcast.light-accent[id^=pp-podcast-] button.pod-button,

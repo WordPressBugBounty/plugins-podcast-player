@@ -11,6 +11,11 @@
 
 namespace Podcast_Player\Backend;
 
+// Return if called directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 use Podcast_Player\Backend\Inc\Loader;
 use Podcast_Player\Backend\Admin\Options;
 use Podcast_Player\Backend\Inc\Shortcode;
