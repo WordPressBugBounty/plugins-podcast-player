@@ -96,7 +96,6 @@ class ShortcodeGenerator {
                 }
 			}
 		);
-		console.log(instance);
 		return { instance, values };
 	}
 
@@ -166,7 +165,7 @@ class ShortcodeGenerator {
 						const formWrapper = jQuery('#pp-shortcode-form');
 						const previewWrapper = jQuery('#pp-shortcode-preview');
 						jQuery('.pp-shortcode-result').html( '' );
-						formWrapper.html( form ).data('instance', details.instance);
+						formWrapper.html( form ).attr('data-instance', details.instance);
 						previewWrapper.html( preview );
 						jQuery(document).trigger('pp-widget-added');
 						this.newResponse('Shortcode template created successfully', 'pp-success');
@@ -181,7 +180,6 @@ class ShortcodeGenerator {
 
 	createNewShortcode() {
 		const { instance, values } = this.getShortcodeFormValues();
-		const title = values.title || 'Podcast Player Shortcode' + ' ' + (instance + 1);
 		// Let's get next set of episodes.
 		jQuery.ajax( {
 			url: this.data.ajaxurl,
@@ -199,6 +197,8 @@ class ShortcodeGenerator {
 					if ('undefined' !== typeof details.error) {
 						this.newResponse(details.error, 'pp-error');
 					} else if ('undefined' !== typeof details.success) {
+						const savedInstance = 'undefined' !== typeof details.instance ? details.instance : instance;
+						const title = values.title || 'Podcast Player Shortcode' + ' ' + savedInstance;
 						const widget   = jQuery('#pp-options-module-shortcode');
 						const wrapper  = widget.find('.pp-shortcode-action');
 						let dropdown = widget.find('select.pp-shortcode-dropdown');
@@ -211,8 +211,8 @@ class ShortcodeGenerator {
 							`);
 							dropdown = widget.find('select.pp-shortcode-dropdown');
 						}
-						dropdown.append(`<option value="${instance}">${title}</option>`);
-						dropdown.val(instance);
+						dropdown.append(`<option value="${savedInstance}">${title}</option>`);
+						dropdown.val(savedInstance);
 						dropdown.trigger('change');
 						this.newResponse('New shortcode created successfully', 'pp-success');
 					}

@@ -100,7 +100,15 @@ class Modify_Feed_Data extends Singleton {
 
 		// Get cumulative array of all available categories.
 		$cats = array_column( $new_items, 'categories' );
-		$cats = array_unique( call_user_func_array( 'array_merge', $cats ) );
+		$cats = array_filter(
+			array_map(
+				function ( $val ) {
+					return is_array( $val ) ? $val : array();
+				},
+				$cats
+			)
+		);
+		$cats = empty( $cats ) ? array() : array_unique( call_user_func_array( 'array_merge', $cats ) );
 
 		// Sort filtered items by data or title.
 		$items = $this->sort_data( $items, $mods['sortby'] );

@@ -14,6 +14,7 @@ namespace Podcast_Player\Backend\Inc;
 use Podcast_Player\Frontend\Inc\Display;
 use Podcast_Player\Helper\Core\Singleton;
 use Podcast_Player\Backend\Admin\ShortCodeGen;
+use Podcast_Player\Helper\Functions\Utility as Utility_Fn;
 
 /**
  * Class used to display podcast episodes from a feed url.
@@ -231,6 +232,7 @@ class Shortcode extends Singleton {
 	 */
 	public function get_pp_preview() {
 		check_ajax_referer( 'podcast-player-admin-options-ajax-nonce', 'security' );
+		Utility_Fn::require_capabilities( 'manage_options', 'pp_render_preview' );
 		$shortcodegen = new ShortCodeGen();
 		$args = isset( $_POST['data'] ) ? $shortcodegen->escape( wp_unslash( $_POST['data'] ) ) : false;
 		if ( false === $args || ! is_array( $args ) ) {
@@ -258,9 +260,9 @@ class Shortcode extends Singleton {
 	 */
 	public function get_shortcode_form() {
 		check_ajax_referer( 'podcast-player-admin-options-ajax-nonce', 'security' );
+		Utility_Fn::require_capabilities( 'manage_options', 'pp_blank_shortcode_template' );
 		$shortcodegen = new ShortCodeGen();
-		$shortcode_list = $shortcodegen->shortcode_settings;
-		$instance       = empty( $shortcode_list ) || ! is_array( $shortcode_list ) ? 0 : max( array_keys( $shortcode_list ) ) + 1;
+		$instance       = $shortcodegen->get_next_instance_id();
 		ob_start();
 		$shortcodegen->form( $instance );
 		$form = ob_get_clean();
@@ -278,6 +280,7 @@ class Shortcode extends Singleton {
 	 */
 	public function create_new_shortcode() {
 		check_ajax_referer( 'podcast-player-admin-options-ajax-nonce', 'security' );
+		Utility_Fn::require_capabilities( 'manage_options', 'pp_create_new_shortcode' );
 		$shortcodegen = new ShortCodeGen();
 		$args = isset( $_POST['data'] ) ? $shortcodegen->sanitize( wp_unslash( $_POST['data'] ) ) : false;
 		$inst = isset( $_POST['instance'] ) ? absint(wp_unslash( $_POST['instance'] )) : false;
@@ -288,11 +291,15 @@ class Shortcode extends Singleton {
 			wp_die();
 		}
 		$shortcode_list = $shortcodegen->shortcode_settings;
+		if ( isset( $shortcode_list[ $inst ] ) ) {
+			$inst = $shortcodegen->get_next_instance_id();
+		}
 		$shortcode_list[ $inst ] = $args;
 		$shortcodegen->shortcode_settings = $shortcode_list;
 		$shortcodegen->save();
 		echo wp_json_encode( array(
-			'success' => __( 'Shortcode created successfully.', 'podcast-player' ),
+			'success'  => __( 'Shortcode created successfully.', 'podcast-player' ),
+			'instance' => $inst,
 		) );
 		wp_die();
 	}
@@ -304,6 +311,7 @@ class Shortcode extends Singleton {
 	 */
 	public function load_shortcode() {
 		check_ajax_referer( 'podcast-player-admin-options-ajax-nonce', 'security' );
+		Utility_Fn::require_capabilities( 'manage_options', 'pp_load_shortcode' );
 		$instance = isset( $_POST['instance'] ) ? absint( wp_unslash( $_POST['instance'] ) ) : false;
 		if ( false === $instance ) {
 			echo wp_json_encode( array(
@@ -336,6 +344,7 @@ class Shortcode extends Singleton {
 	 */
 	public function delete_shortcode() {
 		check_ajax_referer( 'podcast-player-admin-options-ajax-nonce', 'security' );
+		Utility_Fn::require_capabilities( 'manage_options', 'pp_delete_shortcode' );
 		$instance = isset( $_POST['instance'] ) ? absint( wp_unslash( $_POST['instance'] ) ) : false;
 		if ( false === $instance ) {
 			echo wp_json_encode( array(
@@ -363,6 +372,7 @@ class Shortcode extends Singleton {
 	 */
 	public function update_shortcode() {
 		check_ajax_referer( 'podcast-player-admin-options-ajax-nonce', 'security' );
+		Utility_Fn::require_capabilities( 'manage_options', 'pp_update_shortcode' );
 		$shortcodegen = new ShortCodeGen();
 		$args = isset( $_POST['data'] ) ? $shortcodegen->sanitize( wp_unslash( $_POST['data'] ) ) : false;
 		$inst = isset( $_POST['instance'] ) ? absint(wp_unslash( $_POST['instance'] )) : false;

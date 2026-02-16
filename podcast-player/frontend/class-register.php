@@ -106,6 +106,9 @@ class Register {
 	 * @param object $instance PP front loader instance.
 	 */
 	public static function load_resources( $instance ) {
+		// Register and conditionally enqueue styles in head when detectable.
+		add_action( 'wp_enqueue_scripts', array( $instance, 'register_styles' ), 1 );
+		add_action( 'wp_enqueue_scripts', array( $instance, 'maybe_enqueue_styles_early' ), 20 );
 
 		// The script must be loaded before mediaelement-migrate script.
 		add_action( 'wp_enqueue_scripts', array( $instance, 'mm_error_fix' ), 9999 );

@@ -149,6 +149,91 @@ class Loader extends Singleton {
 	}
 
 	/**
+	 * Register podcast player front-end stylesheet.
+	 *
+	 * @since 8.0.0
+	 */
+	public function register_styles() {
+		wp_register_style(
+			'pppublic',
+			PODCAST_PLAYER_URL . 'frontend/css/podcast-player-public.css',
+			array(),
+			PODCAST_PLAYER_VERSION,
+			'all'
+		);
+		wp_style_add_data( 'pppublic', 'rtl', 'replace' );
+	}
+
+	/**
+	 * Attempt to enqueue podcast player styles in head.
+	 *
+	 * @since 8.0.0
+	 */
+	public function maybe_enqueue_styles_early() {
+		if ( ! $this->should_enqueue_styles_early() ) {
+			return;
+		}
+
+		$this->enqueue_styles();
+	}
+
+	/**
+	 * Check whether podcast player styles can be enqueued early.
+	 *
+	 * @since 8.0.0
+	 *
+	 * @return bool
+	 */
+	private function should_enqueue_styles_early() {
+
+		// Never run this in admin pages.
+		if ( is_admin() ) {
+			return false;
+		}
+
+		// Respect existing customizer/Ajax conditions.
+		if ( $this->has_podcast_player() ) {
+			return true;
+		}
+
+		// Check known frontend render markers in singular content.
+		if ( is_singular() ) {
+			$post = get_queried_object();
+			if ( $post instanceof \WP_Post && $this->has_podcast_markup( $post->post_content ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Check if content includes known podcast player markers.
+	 *
+	 * @since 8.0.0
+	 *
+	 * @param string $content Post content.
+	 * @return bool
+	 */
+	private function has_podcast_markup( $content ) {
+		if ( ! is_string( $content ) || '' === $content ) {
+			return false;
+		}
+
+		// Podcast player shortcodes.
+		if ( has_shortcode( $content, 'podcastplayer' ) || has_shortcode( $content, 'showpodcastplayer' ) ) {
+			return true;
+		}
+
+		// Podcast player dynamic block.
+		if ( function_exists( 'has_block' ) && has_block( 'podcast-player/podcast-player', $content ) ) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
 	 * Enqueue podcast player front-end styles and scripts in footer.
 	 *
 	 * @since 1.0.0
@@ -200,14 +285,10 @@ class Loader extends Singleton {
 	 * @since    1.0.0
 	 */
 	public function enqueue_styles() {
-		wp_enqueue_style(
-			'pppublic',
-			PODCAST_PLAYER_URL . 'frontend/css/podcast-player-public.css',
-			array(),
-			PODCAST_PLAYER_VERSION,
-			'all'
-		);
-		wp_style_add_data( 'pppublic', 'rtl', 'replace' );
+		if ( ! wp_style_is( 'pppublic', 'registered' ) ) {
+			$this->register_styles();
+		}
+		wp_enqueue_style( 'pppublic' );
 	}
 
 	/**

@@ -62,12 +62,14 @@ class Background_Jobs extends Singleton {
 		$instance   = self::get_instance();
 		$identifier = wp_http_validate_url( $identifier ) ? md5( $identifier ) : $identifier;
 		$unique_id  = substr( md5( $identifier . $task_type ), 0, 12 );
+		$lock_token = $instance->acquire_queue_lock();
 		$queue      = $instance->get_tasks_queue( false );
 
 		// Do not add new download image jobs, if queue is already large. Also trim the backlog.
 		if ( 'download_image' === $task_type && count( $queue ) > 50 ) {
 			$queue = array_slice( $queue, 0, 50 );
 			$instance->set_tasks_queue( $queue );
+			$instance->release_queue_lock( $lock_token );
 			return $instance;
 		}
 
@@ -84,6 +86,7 @@ class Background_Jobs extends Singleton {
 			$queue[ $unique_id ] = $task_data;
 			$instance->set_tasks_queue( $queue );
 		}
+		$instance->release_queue_lock( $lock_token );
         return $instance;
     }
 
@@ -93,12 +96,29 @@ class Background_Jobs extends Singleton {
 	 * @since 7.4.0
 	 */
 	public function dispatch() {
+		return $this->dispatch_internal( false );
+	}
+
+	/**
+	 * Dispatch an async request to start processing the queue.
+	 *
+	 * @since 7.9.15
+	 *
+	 * @param bool $force Skip recent dispatch throttle.
+	 */
+	private function dispatch_internal( $force = false ) {
 		$instance = self::get_instance();
-		if ( $this->is_processing() || $this->is_queue_empty() || $this->recently_dispatched() ) {
+		if ( $force && $this->force_dispatch_throttled() ) {
+			return;
+		}
+		if ( $this->is_processing() || $this->is_queue_empty() || ( ! $force && $this->recently_dispatched() ) ) {
 			return;
 		}
 
 		$this->set_recent_dispatch();
+		if ( $force ) {
+			$this->set_force_dispatch();
+		}
 
 		$url  = add_query_arg( $instance->get_query_args(), $instance->get_query_url() );
 		$args = $instance->get_post_args();
@@ -112,6 +132,15 @@ class Background_Jobs extends Singleton {
 	
 	private function set_recent_dispatch() {
 		set_transient( $this->identifier . '_recent_dispatch', 1, 60 ); // 60 seconds
+	}
+
+	private function force_dispatch_throttled() {
+		return get_transient( $this->identifier . '_force_dispatch' );
+	}
+
+	private function set_force_dispatch() {
+		$interval = apply_filters( $this->identifier . '_force_dispatch_interval', 30 );
+		set_transient( $this->identifier . '_force_dispatch', 1, $interval );
 	}
 
 	/**
@@ -235,6 +264,11 @@ class Background_Jobs extends Singleton {
 		// Let the server sleep for a few seconds.
 		sleep( 5 );
 		$this->unlock_process();
+
+		// If import tasks are pending and current task didn't error, re-dispatch to prioritize completion.
+		if ( ! $error && $this->has_pending_type( 'import_episodes' ) ) {
+			$this->dispatch_internal( true );
+		}
 	}
 
 	/**
@@ -269,8 +303,10 @@ class Background_Jobs extends Singleton {
 	 * @param array $data    Data to update the task.
 	 */
 	private function update_tasks_queue( $task_id, $data ) {
-		$queue = $this->get_tasks_queue();
+		$lock_token = $this->acquire_queue_lock();
+		$queue      = $this->get_tasks_queue();
 		if ( ! isset( $queue[ $task_id ] ) ) {
+			$this->release_queue_lock( $lock_token );
 			return;
 		}
 		$task_args = $queue[ $task_id ];
@@ -292,6 +328,7 @@ class Background_Jobs extends Singleton {
 			unset( $queue[ $task_id ] );
 		}
 		$this->set_tasks_queue( $queue );
+		$this->release_queue_lock( $lock_token );
 	}
 
 	/**
@@ -303,6 +340,22 @@ class Background_Jobs extends Singleton {
 	 */
 	private function set_tasks_queue( $tasks ) {
 		update_option( $this->identifier, $tasks, 'no' );
+	}
+
+	/**
+	 * Check if queue has pending task of a specific type.
+	 *
+	 * @param string $type Task type.
+	 * @return bool
+	 */
+	private function has_pending_type( $type ) {
+		$queue = $this->get_tasks_queue( false );
+		foreach ( $queue as $task ) {
+			if ( isset( $task['type'] ) && $type === $task['type'] ) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -424,6 +477,47 @@ class Background_Jobs extends Singleton {
 	private function unlock_process() {
 		delete_transient( $this->identifier . '_process_lock' );
 		return $this;
+	}
+
+	/**
+	 * Acquire a short-lived queue lock to reduce race conditions.
+	 *
+	 * @return string|false Lock token or false if not acquired.
+	 */
+	private function acquire_queue_lock() {
+		$lock_key = $this->identifier . '_queue_lock';
+		$token    = wp_generate_uuid4();
+		$start    = microtime( true );
+		$ttl      = apply_filters( $this->identifier . '_queue_lock_ttl', 10 );
+
+		do {
+			$current = get_transient( $lock_key );
+			if ( empty( $current ) ) {
+				set_transient( $lock_key, $token, $ttl );
+				if ( get_transient( $lock_key ) === $token ) {
+					return $token;
+				}
+			}
+			usleep( 20000 ); // 20ms
+		} while ( ( microtime( true ) - $start ) < 2 );
+
+		return false;
+	}
+
+	/**
+	 * Release the queue lock if owned.
+	 *
+	 * @param string|false $token Lock token.
+	 */
+	private function release_queue_lock( $token ) {
+		if ( ! $token ) {
+			return;
+		}
+		$lock_key = $this->identifier . '_queue_lock';
+		$stored_t = get_transient( $lock_key );
+		if ( $stored_t === $token ) {
+			delete_transient( $lock_key );
+		}
 	}
 
 	/**

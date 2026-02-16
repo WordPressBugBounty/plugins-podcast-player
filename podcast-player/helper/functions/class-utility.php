@@ -34,6 +34,34 @@ class Utility {
 	public function __construct() {}
 
 	/**
+	 * Require a capability for admin-ajax actions.
+	 *
+	 * Call this after nonce verification in admin-ajax handlers.
+	 *
+	 * @since 7.9.1
+	 *
+	 * @param string $cap     Capability required to proceed.
+	 * @param string $context Optional context string for filters/logs.
+	 */
+	public static function require_capabilities( $cap = 'manage_options', $context = '' ) {
+		$cap = apply_filters( 'podcast_player_ajax_capability', $cap, $context );
+
+		if ( ! wp_doing_ajax() ) {
+			wp_send_json_error(
+				array( 'message' => esc_html__( 'Invalid request context.', 'podcast-player' ) ),
+				400
+			);
+		}
+
+		if ( ! is_user_logged_in() || ! current_user_can( $cap ) ) {
+			wp_send_json_error(
+				array( 'message' => esc_html__( 'Unauthorized', 'podcast-player' ) ),
+				403
+			);
+		}
+	}
+
+	/**
 	 * Convert hex color code to equivalent RGB code.
 	 *
 	 * @since 3.3.0
@@ -110,6 +138,27 @@ class Utility {
 		return sprintf( "#%02x%02x%02x", $r, $g, $b );
 	}
 
+	/**
+	 * Normalize a media URL for stable hashing.
+	 *
+	 * Strips query and fragment to reduce cache-busting noise.
+	 *
+	 * @since 7.9.15
+	 *
+	 * @param string $url Media URL.
+	 * @return string Normalized URL or original if parsing fails.
+	 */
+	public static function normalize_media_url( $url ) {
+		$url   = trim( (string) $url );
+		$parts = wp_parse_url( $url );
+
+		if ( empty( $parts ) || empty( $parts['host'] ) || empty( $parts['path'] ) ) {
+			return $url;
+		}
+
+		$scheme = isset( $parts['scheme'] ) ? $parts['scheme'] : 'https';
+		return $scheme . '://' . $parts['host'] . $parts['path'];
+	}
 
 	/**
 	 * Calculate color contrast.

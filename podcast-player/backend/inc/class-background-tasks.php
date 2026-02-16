@@ -72,32 +72,60 @@ class Background_Tasks extends Singleton {
         }
 
         // Process maximum 50 items at a time.
-        $items     = array_slice( $items, 0, 50 );
-        $in_clause = implode( ',', array_filter( array_map( function ( $item ) use ( $wpdb ) {
-            if ( ! empty( $item['featured'] ) ) {
-                return $wpdb->prepare( '%s', md5( $item['featured'] ) );
+        $items        = array_slice( $items, 0, 50 );
+        $hashes       = array();
+        $item_hashes  = array();
+        foreach ( $items as $key => $item ) {
+            if ( empty( $item['featured'] ) ) {
+                continue;
             }
-            return false;
-        }, $items ) ) );
+            $raw_hash = md5( $item['featured'] );
+            $norm_url = Utility_Fn::normalize_media_url( $item['featured'] );
+            $norm_hash = md5( $norm_url );
+
+            $item_hashes[ $key ] = array(
+                'raw'  => $raw_hash,
+                'norm' => $norm_hash,
+            );
+            $hashes[] = $raw_hash;
+            $hashes[] = $norm_hash;
+        }
+        $hashes    = array_unique( array_filter( $hashes ) );
+        $in_clause = implode( ',', array_map( function ( $hash ) use ( $wpdb ) {
+            return $wpdb->prepare( '%s', $hash );
+        }, $hashes ) );
 
         if ( empty( $in_clause ) ) {
             // No valid items to process; return early.
             return array( new \WP_Error( 'no-valid-items', esc_html__( 'No valid featured images found.', 'podcast-player' ) ), false );
         }
 
-        $sql           = "SELECT post_id, meta_value FROM {$wpdb->postmeta} WHERE meta_key = 'pp_featured_key' AND meta_value IN ( $in_clause )";
+        $sql           = "SELECT post_id, meta_value FROM {$wpdb->postmeta} WHERE meta_key IN ( 'pp_featured_key', 'pp_featured_key_norm' ) AND meta_value IN ( $in_clause )";
         $results       = $wpdb->get_results( $sql, ARRAY_A );
         $featured_keys = array_column( $results, 'post_id', 'meta_value' );
         $completed     = array();
         $pending       = array();
         foreach ( $items as $key => $item ) {
-            $item_image_key = isset( $item['featured'] ) ? md5( $item['featured'] ) : '';
-            if ( ! empty( $item_image_key ) && isset( $featured_keys[ $item_image_key ] ) ) {
-                $completed[ $key ] = array_merge( $item, array( 'post_id' => $featured_keys[ $item_image_key ] ) );
-                continue;
+            $hash_pair = isset( $item_hashes[ $key ] ) ? $item_hashes[ $key ] : array();
+            $raw_hash  = isset( $hash_pair['raw'] ) ? $hash_pair['raw'] : '';
+            $norm_hash = isset( $hash_pair['norm'] ) ? $hash_pair['norm'] : '';
+
+            $matched_post_id = false;
+            if ( $raw_hash && isset( $featured_keys[ $raw_hash ] ) ) {
+                $matched_post_id = $featured_keys[ $raw_hash ];
+            } elseif ( $norm_hash && isset( $featured_keys[ $norm_hash ] ) ) {
+                $matched_post_id = $featured_keys[ $norm_hash ];
             }
 
-            $pending[ $key ] = $item;
+            if ( $matched_post_id ) {
+                // Backfill normalized hash for future de-dupes if missing.
+                if ( $norm_hash ) {
+                    add_post_meta( $matched_post_id, 'pp_featured_key_norm', $norm_hash, true );
+                }
+                $completed[ $key ] = array_merge( $item, array( 'post_id' => $matched_post_id ) );
+            } else {
+                $pending[ $key ] = $item;
+            }
         }
 
         $pending = array_slice( $pending, 0, 2 );
@@ -165,6 +193,8 @@ class Background_Tasks extends Singleton {
                     $this->increment_image_download_count();
 
                     add_post_meta( $attachment_id, 'pp_featured_key', md5( $image_url ), true );
+                    $normalized_url = Utility_Fn::normalize_media_url( $image_url );
+                    add_post_meta( $attachment_id, 'pp_featured_key_norm', md5( $normalized_url ), true );
 
                     // Let's do post_meta verification to see if data is getting saved correctly.
                     $stored = get_post_meta( $attachment_id, 'pp_featured_key', true );

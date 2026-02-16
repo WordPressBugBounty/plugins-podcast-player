@@ -509,7 +509,7 @@ class Fetch_Feed {
 				$link_mod = Add_External_Link_Attr::get_instance();
 				$content  = $link_mod->init( $content );
 			}
-			return $content;
+			return apply_filters( 'podcast_player_feed_episode_content', $content );
 		} else {
 			return '';
 		}
@@ -861,7 +861,7 @@ class Fetch_Feed {
 					}
 				}
 			} else {
-				trim( (string) $links );
+				return trim( (string) $links );
 			}
 		}
 		return '';
@@ -1096,6 +1096,20 @@ class Fetch_Feed {
 	 * @param array $episodes Array of podcast feed episodes object.
 	 */
 	private function get_podcast_analysis( $episodes ) {
+		if ( empty( $episodes ) ) {
+			return array( false, 0, 0, 7 * DAY_IN_SECONDS );
+		}
+
+		$episodes = array_filter(
+			$episodes,
+			function ( $episode ) {
+				return $episode instanceof ItemData;
+			}
+		);
+		if ( empty( $episodes ) ) {
+			return array( false, 0, 0, 7 * DAY_IN_SECONDS );
+		}
+
 		// Step 1: Sort episodes according to their release date.
 		usort( $episodes, function( $a, $b ) {
 			return $a->get( 'date' )['date'] < $b->get( 'date' )['date'] ? -1 : 1;
@@ -1144,10 +1158,11 @@ class Fetch_Feed {
 		}
 
 		// Step 6: Calculate when the last episode was released
-		$last_episode_release_date = end( $episodes )->get( 'date' )['date'];
+		$last_episode = end( $episodes );
+		$last_episode_release_date = $last_episode ? $last_episode->get( 'date' )['date'] : 0;
 
 		// Step 7: Calculate how mamy days ago last episode was released
-		$days_since_last_episode = ( time() - $last_episode_release_date ) / (60 * 60 * 24);
+		$days_since_last_episode = $last_episode_release_date ? ( time() - $last_episode_release_date ) / (60 * 60 * 24) : 0;
 
 		// Step 8: Check if podcast is active ( Release an episode in last 3 months )
 		$is_active = $days_since_last_episode <= 90;

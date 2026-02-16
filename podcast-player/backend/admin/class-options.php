@@ -89,7 +89,7 @@ class Options {
 		add_action( 'admin_enqueue_scripts', array( $inst, 'page_scripts' ) );
 		add_action( 'podcast_player_options_page_content', array( $inst, 'display_content' ) );
 		add_action( 'wp_ajax_pp_feed_editor', array( $inst, 'feed_editor_new' ) );
-		add_action( 'wp_ajax_nopriv_pp_feed_editor', array( $inst, 'feed_editor_new' ) );
+		// add_action( 'wp_ajax_nopriv_pp_feed_editor', array( $inst, 'feed_editor_new' ) );
 		add_action( 'wp_ajax_pp_migrate_podcast', array( $inst, 'migrate_podcast_source' ) );
 		add_action( 'wp_ajax_pp_delete_source', array( $inst, 'delete_podcast_source' ) );
 	}
@@ -190,7 +190,7 @@ class Options {
 					'section'     => 'optimize',
 				),
 				'check_cache_headers' => array(
-					'name'        => esc_html__( 'Vertify cache headers for feed update.', 'podcast-player' ),
+					'name'        => esc_html__( 'Verify cache headers for feed update.', 'podcast-player' ),
 					'id'          => 'check_cache_headers',
 					'description' => esc_html__( 'We vertify cache headers to quickly check if feed has been updated or not. It is recommended to enable this option. However, if your podcast is not updating, disable this option and check again.', 'podcast-player' ),
 					'link'        => '',
@@ -583,6 +583,7 @@ class Options {
 	 */
 	public function feed_editor_new() {
 		check_ajax_referer( 'podcast-player-admin-options-ajax-nonce', 'security' );
+		Utility_Fn::require_capabilities( 'manage_options', 'pp_feed_editor' );
 
 		$type = isset( $_POST['atype'] ) ? sanitize_text_field( wp_unslash( $_POST['atype'] ) ) : 'refresh';
 		$fprn = isset( $_POST['feedUrl'] ) ? sanitize_text_field( wp_unslash( $_POST['feedUrl'] ) ) : '';
@@ -644,6 +645,7 @@ class Options {
 	 */
 	public function migrate_podcast_source() {
 		check_ajax_referer( 'podcast-player-admin-options-ajax-nonce', 'security' );
+		Utility_Fn::require_capabilities( 'manage_options', 'pp_migrate_podcast' );
 
 		$podcast_id = isset( $_POST['podcast_id'] ) ? sanitize_text_field( wp_unslash( $_POST['podcast_id'] ) ) : false;
 		$source_url = isset( $_POST['source_url'] ) ? wp_unslash( $_POST['source_url'] ) : false; // Sanitized in line below after validation.
@@ -716,6 +718,7 @@ class Options {
 	 */
 	public function delete_podcast_source() {
 		check_ajax_referer( 'podcast-player-admin-options-ajax-nonce', 'security' );
+		Utility_Fn::require_capabilities( 'manage_options', 'pp_delete_source' );
 
 		$podcast_id = isset( $_POST['podcast_id'] ) ? sanitize_text_field( wp_unslash( $_POST['podcast_id'] ) ) : false;
 

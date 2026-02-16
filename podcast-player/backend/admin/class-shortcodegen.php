@@ -1438,6 +1438,44 @@ class ShortCodeGen {
 	}
 
 	/**
+	 * Get a unique shortcode instance ID.
+	 *
+	 * @since 7.9.1
+	 *
+	 * @return int
+	 */
+	public function get_next_instance_id() {
+		$shortcode_list = $this->shortcode_settings;
+
+		if ( empty( $shortcode_list ) || ! is_array( $shortcode_list ) ) {
+			return 1;
+		}
+
+		$keys = array_map( 'absint', array_keys( $shortcode_list ) );
+		$max  = ! empty( $keys ) ? max( $keys ) : 0;
+
+		$candidate = $max + 1;
+		if ( ! isset( $shortcode_list[ $candidate ] ) ) {
+			return $candidate;
+		}
+
+		// Fallback: randomize to avoid collisions in concurrent requests.
+		for ( $i = 0; $i < 5; $i++ ) {
+			$candidate = wp_rand( 1000, 999999999 );
+			if ( ! isset( $shortcode_list[ $candidate ] ) ) {
+				return $candidate;
+			}
+		}
+
+		// Final fallback: increment until a free ID is found.
+		$candidate = $max + 1;
+		while ( isset( $shortcode_list[ $candidate ] ) ) {
+			$candidate++;
+		}
+		return $candidate;
+	}
+
+	/**
 	 * Save shortcode settings to the database.
 	 *
 	 * @since 2.6.0
