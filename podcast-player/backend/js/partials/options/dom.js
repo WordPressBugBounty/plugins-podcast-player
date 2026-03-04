@@ -14,11 +14,13 @@ class DomManipulation {
 			jQuery(this).next().slideToggle("fast");
 		});
 
-		jQuery('#pp-options-module-toolkit .pp-toolkit-content').hide();
-		jQuery('#pp-options-module-toolkit .pp-toolkit-title').on('click', function(){
-			jQuery(this).toggleClass("pp-toggle");
-			jQuery(this).next().slideToggle("fast");
-		});
+		if ( ! jQuery('#pp-options-module-toolkit .pp-toolkit-page').hasClass('pp-toolkit-modern') ) {
+			jQuery('#pp-options-module-toolkit .pp-toolkit-content').hide();
+			jQuery('#pp-options-module-toolkit .pp-toolkit-title').on('click', function(){
+				jQuery(this).toggleClass("pp-toggle");
+				jQuery(this).next().slideToggle("fast");
+			});
+		}
 
 		jQuery('.pp-hidden-settings').hide();
 		jQuery('.pp-hidden-settings-title').on('click', function(){

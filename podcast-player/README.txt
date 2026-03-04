@@ -4,7 +4,7 @@ Tags: podcast, podcasting, rss feed, feed to audio, podcaster
 Requires at least: 4.9
 Tested up to: 6.9
 Requires PHP: 5.6
-Stable tag: 8.0.0
+Stable tag: 8.0.1
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -106,6 +106,13 @@ Podcast player plugin (on its own) does not create and save any cookies and does
 5. Podcast player on large size container
 
 == Changelog ==
+= 8.0.1 =
+* Modify: Code Refactoring and improvements
+
+= 8.0.0 =
+* Bug Fix: Security fixes in Ajax requests
+* Modify: Code refactoring and improvements
+
 = 7.9.14 =
 * Modify: Put hard cap on Image download feature to prevent unwanted image downloads in case of any error.
 * Bug Fix: Prevent direct file access to critical files.

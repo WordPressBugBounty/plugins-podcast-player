@@ -111,16 +111,21 @@ class Options {
 			'settings' => array(
 				'label' => esc_html__( 'Settings', 'podcast-player' ),
 			),
-			'toolkit'  => array(
-				'label' => esc_html__( 'Toolkit', 'podcast-player' ),
-			),
-			'help'     => array(
-				'label' => esc_html__( 'Help & Support', 'podcast-player' ),
-			),
-			'products' => array(
-				'label' => esc_html__( 'Other Products', 'podcast-player' ),
-			),
 		);
+
+		// Toolkit is available only when Pro plugin is active.
+		if ( defined( 'PP_PRO_VERSION' ) ) {
+			$this->modules['toolkit'] = array(
+				'label' => esc_html__( 'Toolkit', 'podcast-player' ),
+			);
+		}
+
+		$this->modules['help'] = array(
+			'label' => esc_html__( 'Help & Support', 'podcast-player' ),
+		);
+		// $this->modules['products'] = array(
+		// 	'label' => esc_html__( 'Other Products', 'podcast-player' ),
+		// );
 
 		// Declare different sections of Podcast player options page (Sections).
 		$this->sections = array(
@@ -267,10 +272,13 @@ class Options {
 		$submenu_pages = array(
 			'pp-shortcode' => __( 'Shortcode', 'podcast-player' ),
 			'pp-settings' => __( 'Settings', 'podcast-player' ),
-			'pp-toolkit'  => __( 'Toolkit', 'podcast-player' ),
-			'pp-help'     => __( 'Help & Support', 'podcast-player' ),
-			'pp-products' => __( 'Other Products', 'podcast-player' ),
 		);
+
+		if ( defined( 'PP_PRO_VERSION' ) ) {
+			$submenu_pages['pp-toolkit'] = __( 'Toolkit', 'podcast-player' );
+		}
+		$submenu_pages['pp-help']     = __( 'Help & Support', 'podcast-player' );
+		$submenu_pages['pp-products'] = __( 'Other Products', 'podcast-player' );
 
 		foreach ( $submenu_pages as $key => $label ) {
 			add_submenu_page(
@@ -416,7 +424,7 @@ class Options {
 					$current_page = 'settings';
 					break;
 				case 'pp-toolkit':
-					$current_page = 'toolkit';
+					$current_page = defined( 'PP_PRO_VERSION' ) ? 'toolkit' : 'home';
 					break;
 				case 'pp-help':
 					$current_page = 'help';
