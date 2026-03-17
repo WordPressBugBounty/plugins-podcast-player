@@ -632,7 +632,6 @@ button.episode-list__load-more {
 }
 button.episode-list__load-more:hover, button.episode-list__load-more:focus {
   background-color: transparent !important;
-  background: currentColor !important;
 }
 
 .episode-list__search-results {

@@ -46,7 +46,6 @@ class PlayEpisode {
 		this.controls = jQuery(this.mediaObj.controls);
 		this.layers = this.controls.prev('.ppjs__layers');
 		this.plBtn = this.controls.find( '.ppjs__playpause-button > button' );
-		this.ccBtn = this.controls.find( '.ppjs__cc-button > a' );
 		this.prevBtn = this.podcast.find('.pp-prev-btn').attr('disabled', true);
 		this.nxtBtn = this.podcast.find('.pp-next-btn');
 		this.copylink = this.podcast.find('.ppsocial__copylink');
@@ -62,10 +61,9 @@ class PlayEpisode {
 		this.runCookieUpdate = false;
 		this.listItem = false;
 		this.audioFirstPlay = true;
-		this.isCaptionOpen = false;
-		this.currentCaptions = false;
-		this.userFeedBack = false;
 		setTimeout(() => {this.timeOut = true}, 3000);
+
+		this.dispatchAnalyticsAction( 'podcast_player_analytics_ready' );
 
 		this.events();
 	}
@@ -79,13 +77,6 @@ class PlayEpisode {
 
 		const _this = this;
 		const modal = _this.modalObj ? _this.modalObj.modal : false;
-		const captionsWrap = modal ? modal.find('.pp-caption-text') : false;
-		const pid = `pp-podcast-${this.instance}`;
-		const rdata = this.data[pid] ? this.data[pid].rdata : false;
-		const timeToSeconds = (time) => {
-			const [hours, minutes, seconds] = time.split(':');
-			return parseInt(hours) * 3600 + parseInt(minutes) * 60 + parseFloat(seconds);
-		}
 		if (_this.podcast.hasClass('modern')) {
 			_this.list.on('click', '.pod-entry__mplay, .pod-entry__title', function(e) {
 				e.preventDefault();
@@ -213,7 +204,7 @@ class PlayEpisode {
 		// If cookie creation is allowed for podcast player.
 		if (this.isPremium && isCookieEnabled) {
 			this.mediaObj.media.addEventListener('playing', this.updateCookie.bind(this));
-			this.mediaObj.media.addEventListener('paused', this.stopCookieUpdate.bind(this));
+			this.mediaObj.media.addEventListener('pause', this.stopCookieUpdate.bind(this));
 			this.mediaObj.media.addEventListener('ended', this.deleteCookie.bind(this));
 		}
 
@@ -222,300 +213,14 @@ class PlayEpisode {
 		// If analytics creation is allowed for podcast player.
 		if (this.settings.isPremium && this.settings.analytics) {
 		    this.media.addEventListener('play', this.playAnalytics.bind(this));
+			this.media.addEventListener('pause', this.pauseAnalytics.bind(this));
+			this.media.addEventListener('ended', this.endAnalytics.bind(this));
+			document.addEventListener('visibilitychange', this.visibilityAnalytics.bind(this));
+			window.addEventListener('beforeunload', this.beforeUnloadAnalytics.bind(this));
 		}
 
-		// If podcast caption to be displayed.
-		if (this.settings.isPremium && this.settings.transcripts) {
-			this.media.addEventListener('play', this.displayCaptions.bind(this));
-			this.media.addEventListener('pause', this.hideCaptions.bind(this));
-			this.ccBtn.on('click', this.toggleCaptions.bind(this));
-			if (this.modal) {
-				this.modal.find('.pp-caption-close').on('click', function() {
-					this.isCaptionOpen = false;
-					this.modal.find('#pp-closed-captions').hide();
-					this.modal.find('.pp-caption-text').html('');
-				}.bind(this));
-			}
-			this.media.addEventListener('timeupdate', () => {
-				const currentTime = this.media.currentTime;
-				if (! currentTime || ! this.isCaptionOpen || ! this.currentCaptions || ! captionsWrap) return;
-				const captions = this.currentCaptions;
-		
-				const activeCaption = captions.find(caption => 
-					currentTime >= timeToSeconds(caption.start) && 
-					currentTime <= timeToSeconds(caption.end)
-				);
-
-				if (activeCaption) {
-					captionsWrap.html(activeCaption.text);
-				}
-			});
-		}
-
-		if (modal && this.settings.isPremium && rdata && rdata.showFormTime) {
-			const feedbackWrapper = modal.find('#pp-user-feedback');
-			const message = feedbackWrapper.find('.pp-user-feedback-message');
-			const closeBtn = feedbackWrapper.find('.pp-fback-close');
-			const likeBtn = feedbackWrapper.find('.pp-thumbs-up');
-			const dislikeBtn = feedbackWrapper.find('.pp-thumbs-down');
-			const fResponse = feedbackWrapper.find('.pp-user-feedback-response');
-			this.media.addEventListener('play', () => {
-				this.userFeedBack = false;
-				feedbackWrapper.find('.pp-user-feedback-initial').show();
-				feedbackWrapper.hide();
-				fResponse.html('');
-			});
-			this.media.addEventListener('timeupdate', () => {
-				const currentTime = this.media.currentTime;
-				if ( ! this.userFeedBack && currentTime >= rdata.showFormTime ) {
-					this.userFeedBack = true;
-					message.html(rdata.feedbackText);
-					feedbackWrapper.fadeIn();
-				}
-			});
-
-			closeBtn.on('click', () => {
-				feedbackWrapper.hide();
-				fResponse.html('');
-			});
-			likeBtn.on('click', () => {
-				feedbackWrapper.find('.pp-user-feedback-initial').hide();
-				const url = rdata.positiveUrl ? `<a href="${rdata.positiveUrl}" target=_blank>${rdata.positiveUrl}</a>` : '';
-				const text = rdata.positiveText ? rdata.positiveText : '';
-				fResponse.html(text ? `<p>${text} ${url}</p>` : '');
-				this.submitUserFeedback(true);
-				setTimeout(() => {
-					feedbackWrapper.fadeOut('fast', () => {
-						fResponse.html('');
-					});
-				}, 3000);
-			});
-			dislikeBtn.on('click', () => {
-				feedbackWrapper.find('.pp-user-feedback-initial').hide();
-				const showForm = rdata.negativeForm ? true : false;
-				const text = rdata.negativeText ? rdata.negativeText : '';
-				const wheelMarkup = jQuery('<span />', { class: 'pp-feedback__loading'})
-				.html(this.settings.ppVidLoading);
-				let form = '';
-				if (showForm) {
-					form = `
-						<div class="pp-user-feedback-form">
-							<div>
-								<label for="pp-user-feedback-message">${this.i18n.message || 'Your Message'}</label>
-								<textarea id="pp-user-feedback-message" name="pp-user-feedback-message" required></textarea>
-							</div>
-							<div>
-								<label for="pp-user-feedback-name">${this.i18n.name || 'Your Name'}</label>
-								<input type="text" id="pp-user-feedback-name" name="pp-user-feedback-name" required>
-							</div>
-							<div>
-								<label for="pp-user-feedback-email">${this.i18n.email || 'Your Email'}</label>
-								<input type="email" id="pp-user-feedback-email" name="pp-user-feedback-email" required>
-							</div>
-							<button class="pp-user-feedback-send">${wheelMarkup[0].outerHTML}<span class="pp-feedback-send-text">${this.i18n.send || 'Send'}</span></button>
-						</div>`;
-				}
-				fResponse.html(text ? `<p>${text}</p>${form}` : '');
-				this.submitUserFeedback(false);
-			});
-			fResponse.on('click', '.pp-user-feedback-send', (e) => {
-				const target = jQuery(e.target).closest('.pp-user-feedback-send');
-				const wrapper = fResponse[0] ? fResponse[0] : false;
-				if (! wrapper) return;
-				const feedbackField = wrapper.querySelector('#pp-user-feedback-message');
-				const emailField = wrapper.querySelector('#pp-user-feedback-email');
-				const nameField = wrapper.querySelector('#pp-user-feedback-name');
-				let isValid = true;
-
-				if (! feedbackField || ! emailField || ! nameField) return;
-
-				const showError = (field, message) => {
-					let errorSpan = field.parentNode.querySelector('.pp-feedback-error-message');
-					if (!errorSpan || !errorSpan.classList.contains('pp-feedback-error-message')) {
-						errorSpan = document.createElement('span');
-						errorSpan.classList.add('pp-feedback-error-message');
-						field.parentNode.appendChild(errorSpan);
-					}
-					errorSpan.textContent = message;
-					field.classList.add('pp-border-red');
-				};
-
-				const clearError = (field) => {
-					let errorSpan = field.parentNode.querySelector('.pp-feedback-error-message');
-					if (errorSpan && errorSpan.classList.contains('pp-feedback-error-message')) {
-						errorSpan.remove();
-					}
-					field.classList.remove('pp-border-red');
-				};
-
-				if (!feedbackField.value.trim()) {
-					showError(feedbackField, "Feedback is required.");
-					isValid = false;
-				} else {
-					clearError(feedbackField);
-				}
-
-				if (!nameField.value.trim()) {
-					showError(nameField, "Name is required.");
-					isValid = false;
-				} else {
-					clearError(nameField);
-				}
-
-				// Validate Email Field
-				if (!emailField.value.trim()) {
-					showError(emailField, "Email is required.");
-					isValid = false;
-				} else if (!/^\S+@\S+\.\S+$/.test(emailField.value.trim())) {
-					showError(emailField, "Enter a valid email address.");
-					isValid = false;
-				} else {
-					clearError(emailField);
-				}
-
-                if (isValid) {
-					target.addClass('pp-sending');
-					this.submitFeedbackForm(feedbackField.value.trim(), nameField.value.trim(), emailField.value.trim(), feedbackWrapper, fResponse);
-                }
-
-				[feedbackField, nameField, emailField].forEach(field => {
-					field.addEventListener('input', () => {
-						if (field.value.trim()) {
-							clearError(field);
-						} else {
-							showError(field, "This field is required.");
-						}
-					});
-				});
-			});
-		}
-	}
-
-	/**
-	 * Submit user feedback to the server.
-	 *
-	 * @since 7.6.0
-	 *
-	 * @param bool isPositive
-	 */
-	submitUserFeedback(isPositive) {
-		const pid = `pp-podcast-${this.instance}`;
-		const rdata = this.data[pid] ? this.data[pid].rdata : false;
-		const id = this.listItem.attr('id') || this.listItem.attr('data-pid');
-		const ajax = this.data.ajax_info;
-		let details = {};
-		// Update podcast data on single podcast wrapper.
-		if ( this.listItem.hasClass( 'episode-list__search-entry' ) ) {
-			details = this.data.search[id];
-		} else {
-			details = this.data[pid][id];
-		}
-
-		const podcast = rdata.fprint || rdata.podcast || false;
-		const episode = details.key || rdata.episode || false;
-
-		if ( ! podcast || ! episode ) {
-			console.log( 'Cannot Submit User Feedback.' );
-			return;
-		}
-
-		const data = {
-			action : 'pp_user_likes_feedback',
-			type: isPositive ? 'positive' : 'negative',
-			security: ajax.security,
-			podcast,
-			episode,
-		};
-
-		// Let's get next set of episodes.
-		jQuery.ajax( {
-			url: ajax.ajaxurl,
-			data: data,
-			type: 'POST',
-			timeout: 4000,
-			success: response => {
-				const details = JSON.parse( response );
-
-				if ( details.success ) {
-					console.log( 'Feedback Submitted Successfully' );
-				}
-			},
-			error: (jqXHR, textStatus, errorThrown) => {
-				console.log( errorThrown );
-			}
-		} );
-	}
-
-	/**
-	 * Submit user feedback form data.
-	 *
-	 * @since 7.6.0
-	 *
-	 * @param string message
-	 * @param string name
-	 * @param string email
-	 * @param Obj    feedbackWrapper
-	 * @param Obj    fResponse
-	 */
-	submitFeedbackForm(message, name, email, feedbackWrapper, fResponse) {
-		const pid = `pp-podcast-${this.instance}`;
-		const rdata = this.data[pid] ? this.data[pid].rdata : false;
-		const id = this.listItem.attr('id') || this.listItem.attr('data-pid');
-		const ajax = this.data.ajax_info;
-		let details = {};
-		// Update podcast data on single podcast wrapper.
-		if ( this.listItem.hasClass( 'episode-list__search-entry' ) ) {
-			details = this.data.search[id];
-		} else {
-			details = this.data[pid][id];
-		}
-
-		const podcast = rdata.fprint || rdata.podcast || false;
-		const episode = details.key || rdata.episode || false;
-
-		if ( ! podcast || ! episode ) {
-			console.log( 'Cannot Send User Feedback.' );
-			return;
-		}
-
-		const data = {
-			action : 'pp_send_feedback_mail',
-			message,
-			name,
-			email,
-			security: ajax.security,
-			podcast,
-			episode,
-		};
-
-		// Let's get next set of episodes.
-		jQuery.ajax( {
-			url: ajax.ajaxurl,
-			data: data,
-			type: 'POST',
-			timeout: 4000,
-			success: response => {
-				const details = JSON.parse( response );
-
-				if ( details.success ) {
-					console.log( 'Feedback Mailed Successfully' );
-				}
-				fResponse.innerHTML = `${this.i18n.thanks || 'Thanks for your feedback'}`;
-				setTimeout(() => {
-					feedbackWrapper.fadeOut('fast', () => {
-						fResponse.html('');
-					});
-				}, 3000);
-			},
-			error: (jqXHR, textStatus, errorThrown) => {
-				console.log( errorThrown );
-				setTimeout(() => {
-					feedbackWrapper.fadeOut('fast', () => {
-						fResponse.html('');
-					});
-				}, 3000);
-			}
-		} );
+		this.dispatchHook('podcast_player_transcripts_setup', this, { modal });
+		this.dispatchHook('podcast_player_feedback_setup', this, { modal });
 	}
 
 	/**
@@ -797,6 +502,8 @@ class PlayEpisode {
 	 * @since 2.0
 	 */
 	common() {
+		this.endAnalytics();
+
 		const pid = `pp-podcast-${this.instance}`;
 		const rdata = this.data[pid] ? this.data[pid].rdata : false;
 		const info = this.data[pid] ? this.data[pid].load_info : false;
@@ -1321,192 +1028,35 @@ class PlayEpisode {
 	}
 
 	playAnalytics() {
-		if (! this.audioFirstPlay) return;
-		this.audioFirstPlay = false;
-		if (! this.listItem || ! this.data) return;
-		// Delay time should be at least 10 seconds or audio duration (if less than 10 seconds).
-		// Analytics will be recorded only if the audio play for at least 10 seconds.
-		let delayTime = this.settings.stat_threshold;
-		if ( ! delayTime && 0 !== delayTime ) {
-			delayTime = 10;
-		}
-		clearTimeout(this.statTimeOut);
-		this.statTimeOut = setTimeout(() => {
-			if (! this.media.paused) {
-				this.recordAnalytics();
-			}
-		}, delayTime * 1000);
+		this.dispatchAnalyticsAction( 'podcast_player_analytics_play' );
 	}
 
-	recordAnalytics() {
-		const pid = `pp-podcast-${this.instance}`;
-		const rdata = this.data[pid] ? this.data[pid].rdata : false;
-		const id = this.listItem.attr('id') || this.listItem.attr('data-pid');
-		const ajax = this.data.ajax_info;
-		let details = {};
-		// Update podcast data on single podcast wrapper.
-		if ( this.listItem.hasClass( 'episode-list__search-entry' ) ) {
-			details = this.data.search[id];
-		} else {
-			details = this.data[pid][id];
-		}
-
-		const podcast = details.podkey || rdata.fprint || rdata.podcast || false;
-		const episode = details.key || rdata.episode || false;
-
-		if ( ! podcast || ! episode ) {
-			console.log( 'Analytics could not be recorded.' );
-			return;
-		}
-
-		const data = {
-			action : 'pp_podcast_statistics',
-			type: 'play',
-			security: ajax.security,
-			podcast,
-			episode,
-		};
-
-		// Let's get next set of episodes.
-		jQuery.ajax( {
-			url: ajax.ajaxurl,
-			data: data,
-			type: 'POST',
-			timeout: 4000,
-			success: response => {
-				const details = JSON.parse( response );
-
-				if ( details.success ) {
-					console.log( 'Analytics recorded successfully.' );
-				}
-			},
-			error: (jqXHR, textStatus, errorThrown) => {
-				console.log( errorThrown );
-			}
-		} );
+	pauseAnalytics() {
+		this.dispatchAnalyticsAction( 'podcast_player_analytics_pause' );
 	}
 
-	displayCaptions() {
+	endAnalytics() {
+		this.dispatchAnalyticsAction( 'podcast_player_analytics_end' );
+	}
 
-		// Reset previous captions.
-		this.currentCaptions = false;
-		this.isCaptionOpen = false;
-		this.controls.find( '.ppjs__cc-button' ).hide();
-		if (this.modal) {
-			this.modal.find('.pp-caption-text').html('');
-			this.modal.find('#pp-closed-captions').hide();
-		}
-
-		const pid = `pp-podcast-${this.instance}`;
-		const rdata = this.data[pid] ? this.data[pid].rdata : false;
-		const id = this.listItem.attr('id') || this.listItem.attr('data-pid');
-		const ajax = this.data.ajax_info;
-		let details = {};
-		// Update podcast data on single podcast wrapper.
-		if ( this.listItem.hasClass( 'episode-list__search-entry' ) ) {
-			details = this.data.search[id];
-		} else {
-			details = this.data[pid][id];
-		}
-
-		const podcast = rdata.fprint || rdata.podcast || false;
-		const episode = details.key || rdata.episode || false;
-		if ( ! podcast || ! episode ) {
-			return;
-		}
-
-		const transcript = Array.isArray( details.transcript ) ? details.transcript[0] : false;
-		const captions = Array.isArray( details.captions ) ? details.captions : false;
-
-		// Check if transcript is an object.
-		if ( ! transcript || 'object' !== typeof transcript || ! transcript.url ) {
-			return;
-		}
-
-		const button = this.controls.find( '.ppjs__cc-button' );
-		const link   = button.find( '.pp-cc' );
-
-		if ( ! transcript.type || ( 'text/vtt' !== transcript.type && 'application/x-subrip' !== transcript.type && 'application/srt' !== transcript.type ) ) {
-			link.attr( 'href', transcript.url ).attr( 'target', '_blank' );
-			this.controls.find( '.ppjs__cc-button' ).fadeIn();
-			return;
-		} else {
-			if (! this.modal) return;
-			if ( captions ) {
-				this.isCaptionOpen = true;
-				this.currentCaptions = captions;
-				this.controls.find( '.ppjs__cc-button' ).fadeIn();
-				this.modal.find('#pp-closed-captions').fadeIn();
-			} else {
-				const captionData = {
-					action  : 'pp_podcast_captions',
-					url     : transcript.url,
-					type    : transcript.type,
-					rel     : transcript.rel,
-					aurl    : ajax.ajaxurl,
-					security: ajax.security,
-					podcast,
-					episode,
-				};
-				this.ccFetch(captionData);
-			}
+	visibilityAnalytics() {
+		if (document.hidden) {
+			this.dispatchAnalyticsAction( 'podcast_player_analytics_hidden' );
 		}
 	}
 
-	toggleCaptions(e) {
-		e.preventDefault();
-		if ( this.isCaptionOpen ) {
-			this.isCaptionOpen = false;
-			if (this.modal) {
-				this.modal.find('#pp-closed-captions').hide();
-				this.modal.find('.pp-caption-text').html('');
-			}
-		} else {
-			this.isCaptionOpen = true;
-			if (this.modal) {
-				this.modal.find('#pp-closed-captions').show();
-				this.modal.find('.pp-caption-text').html('');
-			}
+	beforeUnloadAnalytics() {
+		this.dispatchAnalyticsAction( 'podcast_player_analytics_unload' );
+	}
+
+	dispatchHook( actionName, ...args ) {
+		if ( window.PP_Hooks && 'function' === typeof window.PP_Hooks.doAction ) {
+			window.PP_Hooks.doAction( actionName, ...args );
 		}
 	}
 
-	hideCaptions() {
-		this.isCaptionOpen = false;
-		this.currentCaptions = false;
-		this.controls.find( '.ppjs__cc-button' ).fadeOut();
-		if (this.modal) {
-			this.modal.find('#pp-closed-captions').hide();
-			this.modal.find('.pp-caption-text').html('');
-		}
-	}
-
-	ccFetch(captionData) {
-		if ( ! captionData || ! captionData.url ) {
-			return;
-		}
-
-		// Let's get next set of episodes.
-		jQuery.ajax( {
-			url: captionData.aurl,
-			data: captionData,
-			type: 'POST',
-			timeout: 4000,
-			success: response => {
-				const details = JSON.parse( response );
-
-				if ( details.success ) {
-					this.currentCaptions = details.data;
-					this.isCaptionOpen = true;
-					this.controls.find( '.ppjs__cc-button' ).fadeIn();
-					this.modal.find('#pp-closed-captions').fadeIn();
-				} else {
-					console.log( 'We did not find captions.' );
-				}
-			},
-			error: (jqXHR, textStatus, errorThrown) => {
-				console.log( errorThrown );
-			}
-		} );
+	dispatchAnalyticsAction( actionName ) {
+		this.dispatchHook( actionName, this );
 	}
 }
 

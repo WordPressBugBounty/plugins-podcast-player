@@ -68,13 +68,35 @@ class SearchEpisodes {
 	}
 
 	/**
+	 * Safely parse ajax responses that can arrive as JSON string or object.
+	 *
+	 * @since 7.7.0
+	 *
+	 * @param {*} response
+	 * @returns {Object|false}
+	 */
+	parseResponse(response) {
+		if (response && 'object' === typeof response) {
+			return response;
+		}
+		if ('string' !== typeof response) {
+			return false;
+		}
+		try {
+			return JSON.parse(response);
+		} catch (err) {
+			return false;
+		}
+	}
+
+	/**
 	 * Create markup for additional set of episodes (if any).
 	 * 
 	 * @since 1.3
 	 */
 	initSearch() {
 
-		let searchTerm = this.searchBox.val();
+		let searchTerm = this.searchBox.val().trim().toLowerCase();
 		if ( this.term === searchTerm ) {
 			return;
 		}
@@ -93,7 +115,6 @@ class SearchEpisodes {
 		// Filter already loaded episodes.
 		clearTimeout(this.localTimeOut);
 		this.localTimeOut = setTimeout(function() {
-			searchTerm = this.searchBox.val().trim().toLowerCase();
 			if (searchTerm) {
 				this.filterItems();
 			}
@@ -177,6 +198,7 @@ class SearchEpisodes {
 
 		const filter = this.filterDropdown.val() || '';
 		const searchTerm = this.searchBox.val().trim().toLowerCase();
+		this.prevSearchTerm = searchTerm;
 
 		this.flushSearchResults();
 		if ( searchTerm.length < 1 && filter.length < 1 ) {
@@ -252,7 +274,11 @@ class SearchEpisodes {
 			type: 'POST',
 			timeout: 4000,
 			success: response => {
-				let details = JSON.parse( response );
+				let details = this.parseResponse(response);
+				if (!details) {
+					this.flushSearchResults();
+					return;
+				}
 				if ( jQuery.isEmptyObject( details ) ) {
 					this.flushSearchResults();
 					this.searchAnalytics( load.src, searchTerm, [] );
@@ -311,12 +337,20 @@ class SearchEpisodes {
 			type: 'POST',
 			timeout: 4000,
 			success: response => {
-				let details = JSON.parse( response );
+				let details = this.parseResponse(response);
+				if (!details) {
+					this.flushSearchResults();
+					return;
+				}
+				const rdata = this.data[pid] ? this.data[pid].rdata : {};
+				const podcast = rdata.fprint || rdata.podcast || pid;
 				if ( jQuery.isEmptyObject( details ) ) {
 					this.flushSearchResults();
+					this.searchAnalytics( podcast, searchTerm, [] );
 				} else {
 					this.data.search = details.episodes;
 					this.showSearchResults(details.episodes);
+					this.searchAnalytics( podcast, searchTerm, details.episodes );
 				}
 			},
 			error: () => {
@@ -482,41 +516,9 @@ class SearchEpisodes {
 	}
 
 	searchAnalytics( feed, term, results ) {
-		if (! this.settings.isPremium || ! this.settings.analytics) {
-			return;
+		if ( window.PP_Hooks && 'function' === typeof window.PP_Hooks.doAction ) {
+			window.PP_Hooks.doAction( 'podcast_player_analytics_search', this, feed, term, results );
 		}
-		const ajax = this.data.ajax_info;
-		const episodeList = this.episodes.find('.episode-list__entry');
-		// Count the visible items in episodeList
-		const visibleItemCount = episodeList.filter(':not(:hidden)').length;
-		let totalResults = Object.keys( results ).length || 0;
-		totalResults = totalResults + visibleItemCount;
-		const data = {
-			action : 'pp_podcast_statistics',
-			type: 'search',
-			security: ajax.security,
-			podcast: feed,
-			term: term,
-			count: totalResults,
-		};
-
-		// Let's get next set of episodes.
-		jQuery.ajax( {
-			url: ajax.ajaxurl,
-			data: data,
-			type: 'POST',
-			timeout: 4000,
-			success: response => {
-				const details = JSON.parse( response );
-
-				if ( details.success ) {
-					console.log( 'Analytics recorded successfully.' );
-				}
-			},
-			error: () => {
-				console.log( 'Analytics recording failed.' );
-			}
-		} );
 	}
 }
 

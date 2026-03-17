@@ -109,6 +109,7 @@ class Register {
 		// Register and conditionally enqueue styles in head when detectable.
 		add_action( 'wp_enqueue_scripts', array( $instance, 'register_styles' ), 1 );
 		add_action( 'wp_enqueue_scripts', array( $instance, 'maybe_enqueue_styles_early' ), 20 );
+		add_action( 'wp_enqueue_scripts', array( $instance, 'maybe_enqueue_scripts_early' ), 21 );
 
 		// The script must be loaded before mediaelement-migrate script.
 		add_action( 'wp_enqueue_scripts', array( $instance, 'mm_error_fix' ), 9999 );

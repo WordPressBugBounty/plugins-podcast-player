@@ -178,6 +178,19 @@ class Loader extends Singleton {
 	}
 
 	/**
+	 * Attempt to enqueue podcast player scripts in head.
+	 *
+	 * @since 8.0.0
+	 */
+	public function maybe_enqueue_scripts_early() {
+		if ( ! $this->should_enqueue_styles_early() ) {
+			return;
+		}
+
+		$this->enqueue_public_script();
+	}
+
+	/**
 	 * Check whether podcast player styles can be enqueued early.
 	 *
 	 * @since 8.0.0
@@ -302,6 +315,19 @@ class Loader extends Singleton {
 		$cdata         = apply_filters( 'podcast_player_script_data', array() );
 		$ppjs_settings = apply_filters( 'podcast_player_mediaelement_settings', array() );
 
+		$this->enqueue_public_script();
+
+		wp_localize_script( 'pppublic', 'podcastPlayerData', $cdata );
+		wp_localize_script( 'pppublic', 'ppmejsSettings', $ppjs_settings );
+	}
+
+	/**
+	 * Enqueue public facing javascripts.
+	 *
+	 * @since 8.0.0
+	 */
+	private function enqueue_public_script() {
+
 		$deps = array( 'jquery' );
 		// Enqueue mediaelement player.
 		if ( $this->has_mediaelement() ) {
@@ -318,9 +344,6 @@ class Loader extends Singleton {
 			PODCAST_PLAYER_VERSION,
 			true
 		);
-
-		wp_localize_script( 'pppublic', 'podcastPlayerData', $cdata );
-		wp_localize_script( 'pppublic', 'ppmejsSettings', $ppjs_settings );
 	}
 
 	/**

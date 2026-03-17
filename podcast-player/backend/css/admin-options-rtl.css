@@ -287,9 +287,9 @@
 .pp-stat-action {
   display: flex;
   padding: 10px;
-  border: 1px solid rgba(238, 190, 2, 0.5);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 5px;
-  background-color: rgba(238, 190, 2, 0.15);
+  background-color: rgba(0, 0, 0, 0.02);
   margin-bottom: 15px;
 }
 
@@ -311,7 +311,7 @@
 }
 
 .pp-stat-action-button {
-  flex: 10%;
+  flex: 20%;
   align-self: baseline;
   cursor: pointer;
 }
