@@ -33,6 +33,11 @@ class Background_Tasks extends Singleton {
     const MAX_TOTAL_IMAGE_DOWNLOADS = 1000;
 
     /**
+     * Short-lived image lock TTL to reduce duplicate sideloads while a request is still processing.
+     */
+    const IMAGE_DOWNLOAD_LOCK_TTL = 900;
+
+    /**
      * Download episode featured images.
      *
      * @since 7.4.0
@@ -120,7 +125,7 @@ class Background_Tasks extends Singleton {
             if ( $matched_post_id ) {
                 // Backfill normalized hash for future de-dupes if missing.
                 if ( $norm_hash ) {
-                    add_post_meta( $matched_post_id, 'pp_featured_key_norm', $norm_hash, true );
+                    update_post_meta( $matched_post_id, 'pp_featured_key_norm', $norm_hash );
                 }
                 $completed[ $key ] = array_merge( $item, array( 'post_id' => $matched_post_id ) );
             } else {
@@ -164,56 +169,80 @@ class Background_Tasks extends Singleton {
             if ( empty( $image_url ) ) {
                 $completed[ $key ] = array_merge( $item, array( 'post_id' => false ) );
             } else {
-                // 1. Download the REAL URL (unchanged!)
-                $tmp = download_url( $image_url );
-
-                if ( is_wp_error( $tmp ) ) {
-                    return ( array( $tmp, false ) );
+                $lookup = $this->get_image_lookup_data( $image_url );
+                $existing_attachment_id = $this->find_existing_attachment_for_image( $lookup );
+                if ( $existing_attachment_id ) {
+                    $this->persist_image_lookup_meta( $existing_attachment_id, $lookup );
+                    $completed[ $key ] = array_merge( $item, array( 'post_id' => $existing_attachment_id ) );
+                    continue;
                 }
 
-                // 2. Force a correct "filename" for WP regardless of the remote URL
-                // Try using MIME type to get correct extension
-                $headers  = wp_remote_head( $image_url );
-                $mime     = wp_remote_retrieve_header( $headers, 'content-type' );
-                $ext      = Get_Fn::get_extension_from_mime( $mime );
-                $filename = 'podcast-episode-image-' . md5( $image_url ) . '.' . $ext;
+                $lock_key = $this->get_image_lock_key( $lookup );
+                if ( ! $this->acquire_image_download_lock( $lock_key ) ) {
+                    // Another request is already working on this exact image. Leave it pending.
+                    continue;
+                }
 
-                // 3. Build array as if it was a file upload
-                $file = [
-                    'name'     => $filename,
-                    'tmp_name' => $tmp,
-                ];
-
-                // 4. Let WP handle the upload
-                $attachment_id = media_handle_sideload( $file, 0, $title );
-
-                if ( ! is_wp_error( $attachment_id ) ) {
-
-                    // Count successful downloads.
-                    $this->increment_image_download_count();
-
-                    add_post_meta( $attachment_id, 'pp_featured_key', md5( $image_url ), true );
-                    $normalized_url = Utility_Fn::normalize_media_url( $image_url );
-                    add_post_meta( $attachment_id, 'pp_featured_key_norm', md5( $normalized_url ), true );
-
-                    // Let's do post_meta verification to see if data is getting saved correctly.
-                    $stored = get_post_meta( $attachment_id, 'pp_featured_key', true );
-                    if ( $stored !== md5( $image_url ) ) {
-                        $this->disable_image_downloads();
-                        return array(
-                            new \WP_Error(
-                                'meta-write-failed',
-                                esc_html__( 'Failed to persist image meta. Downloads stopped.', 'podcast-player' )
-                            ),
-                            false
-                        );
+                try {
+                    $existing_attachment_id = $this->find_existing_attachment_for_image( $lookup );
+                    if ( $existing_attachment_id ) {
+                        $this->persist_image_lookup_meta( $existing_attachment_id, $lookup );
+                        $completed[ $key ] = array_merge( $item, array( 'post_id' => $existing_attachment_id ) );
+                        continue;
                     }
 
-                    $completed[ $key ] = array_merge( $item, array( 'post_id' => $attachment_id ) );
-                } else {
-                    wp_delete_file( $tmp );
-					return ( array( $attachment_id, false ) );
-				}
+                // 1. Download the REAL URL (unchanged!)
+                    $tmp = download_url( $image_url );
+
+                    if ( is_wp_error( $tmp ) ) {
+                        return ( array( $tmp, false ) );
+                    }
+
+                    // 2. Force a correct "filename" for WP regardless of the remote URL
+                    // Try using MIME type to get correct extension
+                    $headers  = wp_remote_head( $image_url );
+                    $mime     = wp_remote_retrieve_header( $headers, 'content-type' );
+                    $ext      = Get_Fn::get_extension_from_mime( $mime );
+                    $filename = $lookup['filename_stem'] . '.' . $ext;
+
+                    // 3. Build array as if it was a file upload
+                    $file = array(
+                        'name'     => $filename,
+                        'tmp_name' => $tmp,
+                    );
+
+                    // 4. Let WP handle the upload
+                    $attachment_id = media_handle_sideload( $file, 0, $title );
+
+                    if ( ! is_wp_error( $attachment_id ) ) {
+
+                        // Count successful downloads.
+                        $this->increment_image_download_count();
+
+                        $this->persist_image_lookup_meta( $attachment_id, $lookup );
+
+                        // Let's do post_meta verification to see if data is getting saved correctly.
+                        $stored = get_post_meta( $attachment_id, 'pp_featured_key', true );
+                        if ( $stored !== $lookup['raw_hash'] ) {
+                            wp_delete_attachment( $attachment_id, true );
+                            $this->disable_image_downloads();
+                            return array(
+                                new \WP_Error(
+                                    'meta-write-failed',
+                                    esc_html__( 'Failed to persist image meta. Downloads stopped.', 'podcast-player' )
+                                ),
+                                false
+                            );
+                        }
+
+                        $completed[ $key ] = array_merge( $item, array( 'post_id' => $attachment_id ) );
+                    } else {
+                        wp_delete_file( $tmp );
+                        return ( array( $attachment_id, false ) );
+                    }
+                } finally {
+                    $this->release_image_download_lock( $lock_key );
+                }
             }
         }
         $this->update_episode_featured_id( $feed_url, $completed );
@@ -378,5 +407,129 @@ class Background_Tasks extends Singleton {
         $options['img_save'] = 'no';
         update_option( 'pp-common-options', $options );
         delete_option( 'pp_total_image_downloads' );
+    }
+
+    /**
+     * Build stable lookup values used for de-dupe checks and locks.
+     *
+     * @param string $image_url Image URL.
+     * @return array
+     */
+    private function get_image_lookup_data( $image_url ) {
+        $raw_hash      = md5( $image_url );
+        $normalized_url = Utility_Fn::normalize_media_url( $image_url );
+        $norm_hash     = md5( $normalized_url );
+
+        return array(
+            'raw_hash'      => $raw_hash,
+            'norm_hash'     => $norm_hash,
+            'filename_stem' => 'podcast-episode-image-' . $raw_hash,
+        );
+    }
+
+    /**
+     * Find a previously downloaded attachment for this image.
+     *
+     * Falls back to generated filename matching so we can recover from cases where the
+     * attachment was created but our custom de-dupe meta was never written.
+     *
+     * @param array $lookup Lookup data.
+     * @return int
+     */
+    private function find_existing_attachment_for_image( $lookup ) {
+        global $wpdb;
+
+        $hashes = array_filter(
+            array_unique(
+                array(
+                    isset( $lookup['raw_hash'] ) ? $lookup['raw_hash'] : '',
+                    isset( $lookup['norm_hash'] ) ? $lookup['norm_hash'] : '',
+                )
+            )
+        );
+
+        if ( ! empty( $hashes ) ) {
+            $in_clause = implode(
+                ',',
+                array_map(
+                    function ( $hash ) use ( $wpdb ) {
+                        return $wpdb->prepare( '%s', $hash );
+                    },
+                    $hashes
+                )
+            );
+
+            $post_id = (int) $wpdb->get_var(
+                "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key IN ( 'pp_featured_key', 'pp_featured_key_norm' ) AND meta_value IN ( $in_clause ) ORDER BY post_id ASC LIMIT 1"
+            );
+            if ( $post_id ) {
+                return $post_id;
+            }
+        }
+
+        $filename_stem = isset( $lookup['filename_stem'] ) ? $lookup['filename_stem'] : '';
+        if ( empty( $filename_stem ) ) {
+            return 0;
+        }
+
+        return (int) $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_wp_attached_file' AND meta_value LIKE %s ORDER BY post_id ASC LIMIT 1",
+                '%' . $wpdb->esc_like( $filename_stem ) . '%'
+            )
+        );
+    }
+
+    /**
+     * Persist de-dupe metadata for a downloaded attachment.
+     *
+     * @param int   $attachment_id Attachment ID.
+     * @param array $lookup        Lookup data.
+     */
+    private function persist_image_lookup_meta( $attachment_id, $lookup ) {
+        $raw_hash  = isset( $lookup['raw_hash'] ) ? $lookup['raw_hash'] : '';
+        $norm_hash = isset( $lookup['norm_hash'] ) ? $lookup['norm_hash'] : '';
+
+        if ( $raw_hash ) {
+            update_post_meta( $attachment_id, 'pp_featured_key', $raw_hash );
+        }
+
+        if ( $norm_hash ) {
+            update_post_meta( $attachment_id, 'pp_featured_key_norm', $norm_hash );
+        }
+    }
+
+    /**
+     * Get a transient key for a specific image download.
+     *
+     * @param array $lookup Lookup data.
+     * @return string
+     */
+    private function get_image_lock_key( $lookup ) {
+        $hash = ! empty( $lookup['norm_hash'] ) ? $lookup['norm_hash'] : $lookup['raw_hash'];
+        return 'pp_img_lock_' . $hash;
+    }
+
+    /**
+     * Acquire a short-lived lock for a specific image download.
+     *
+     * @param string $lock_key Lock key.
+     * @return bool
+     */
+    private function acquire_image_download_lock( $lock_key ) {
+        if ( get_transient( $lock_key ) ) {
+            return false;
+        }
+
+        return set_transient( $lock_key, 1, self::IMAGE_DOWNLOAD_LOCK_TTL );
+    }
+
+    /**
+     * Release a short-lived image download lock.
+     *
+     * @param string $lock_key Lock key.
+     */
+    private function release_image_download_lock( $lock_key ) {
+        delete_transient( $lock_key );
     }
 }

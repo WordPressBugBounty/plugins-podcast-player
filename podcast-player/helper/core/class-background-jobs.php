@@ -37,6 +37,27 @@ class Background_Jobs extends Singleton {
 	protected $identifier = 'podcast_player_bg_jobs';
 
 	/**
+	 * Current task ID being processed.
+	 *
+	 * @var string
+	 */
+	private $current_task_id = '';
+
+	/**
+	 * Current task payload being processed.
+	 *
+	 * @var array
+	 */
+	private $current_task = array();
+
+	/**
+	 * Ensure the shutdown handler is only registered once per request.
+	 *
+	 * @var bool
+	 */
+	private $shutdown_registered = false;
+
+	/**
 	 * Get the name of the queue.
 	 *
 	 * @since 7.4.0
@@ -216,10 +237,13 @@ class Background_Jobs extends Singleton {
 	 * within server memory and time limit constraints.
 	 */
 	private function handle() {
+		$this->register_shutdown_handler();
 		$this->lock_process();
 		$queue           = $this->get_tasks_queue();
 		$current_task_id = array_key_first( $queue );
 		$current_task    = $queue[ $current_task_id ];
+		$this->current_task_id = $current_task_id;
+		$this->current_task    = $current_task;
 		$error           = false;
 
 		try {
@@ -243,32 +267,106 @@ class Background_Jobs extends Singleton {
 		}
 
 		if ( $error ) {
-			$current_task['attempts'] = $current_task['attempts'] + 1;
-			$new_queue                = $this->get_tasks_queue();
-			if ( $current_task['attempts'] < 3 ) {
-				$new_queue[ $current_task_id ] = $current_task;
-			} else {
-				unset( $new_queue[ $current_task_id ] );
-
-				// If error is in image download. Let's disable image download to prevent infinite loop.
-				if ( 'download_image' === $current_task['type'] ) {
-					$options = get_option( 'pp-common-options', array() );
-					$options['img_save'] = 'no';
-					update_option( 'pp-common-options', $options );
-				}
-			}
-			$this->set_tasks_queue( $new_queue );
-			$this->log_error( $error, $current_task['data'] );
+			$this->handle_task_error( $current_task_id, $current_task, $error );
 		}
 
 		// Let the server sleep for a few seconds.
 		sleep( 5 );
 		$this->unlock_process();
+		$this->reset_current_task();
 
 		// If import tasks are pending and current task didn't error, re-dispatch to prioritize completion.
 		if ( ! $error && $this->has_pending_type( 'import_episodes' ) ) {
 			$this->dispatch_internal( true );
 		}
+	}
+
+	/**
+	 * Register a shutdown handler to capture fatal processing failures.
+	 */
+	private function register_shutdown_handler() {
+		if ( $this->shutdown_registered ) {
+			return;
+		}
+
+		register_shutdown_function( array( $this, 'handle_fatal_shutdown' ) );
+		$this->shutdown_registered = true;
+	}
+
+	/**
+	 * Handle fatal shutdowns that bypass normal exception handling.
+	 */
+	public function handle_fatal_shutdown() {
+		$error = error_get_last();
+		if ( empty( $this->current_task_id ) || empty( $this->current_task ) || ! $this->is_fatal_error( $error ) ) {
+			return;
+		}
+
+		$message = isset( $error['message'] ) ? $error['message'] : esc_html__( 'Unknown fatal error.', 'podcast-player' );
+		$this->handle_task_error( $this->current_task_id, $this->current_task, $message );
+		$this->unlock_process();
+		$this->reset_current_task();
+	}
+
+	/**
+	 * Determine if the provided shutdown error should be treated as fatal.
+	 *
+	 * @param array|false $error Last PHP error.
+	 * @return bool
+	 */
+	private function is_fatal_error( $error ) {
+		if ( empty( $error ) || ! is_array( $error ) || empty( $error['type'] ) ) {
+			return false;
+		}
+
+		return in_array(
+			(int) $error['type'],
+			array( E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR, E_RECOVERABLE_ERROR ),
+			true
+		);
+	}
+
+	/**
+	 * Update queue state after a task failure.
+	 *
+	 * @param string $task_id  Task ID.
+	 * @param array  $task     Task payload.
+	 * @param string $error    Error message.
+	 */
+	private function handle_task_error( $task_id, $task, $error ) {
+		$lock_token = $this->acquire_queue_lock();
+		$new_queue  = $this->get_tasks_queue( false );
+
+		if ( ! isset( $new_queue[ $task_id ] ) ) {
+			$this->release_queue_lock( $lock_token );
+			return;
+		}
+
+		$new_queue[ $task_id ]['attempts'] = isset( $new_queue[ $task_id ]['attempts'] ) ? (int) $new_queue[ $task_id ]['attempts'] + 1 : 1;
+		$attempts                         = $new_queue[ $task_id ]['attempts'];
+
+		if ( $attempts >= 3 ) {
+			unset( $new_queue[ $task_id ] );
+
+			// If error is in image download. Let's disable image download to prevent infinite loop.
+			if ( isset( $task['type'] ) && 'download_image' === $task['type'] ) {
+				$options = get_option( 'pp-common-options', array() );
+				$options['img_save'] = 'no';
+				update_option( 'pp-common-options', $options );
+			}
+		}
+
+		$this->set_tasks_queue( $new_queue );
+		$this->release_queue_lock( $lock_token );
+		$this->log_error( $error, isset( $task['data'] ) ? $task['data'] : array() );
+	}
+
+	/**
+	 * Clear current task tracking after processing completes.
+	 */
+	private function reset_current_task() {
+		$this->current_task_id = '';
+		$this->current_task    = array();
 	}
 
 	/**
