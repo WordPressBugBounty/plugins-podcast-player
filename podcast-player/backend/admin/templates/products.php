@@ -20,16 +20,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<div><a class="pp-product-link" href="https://easypodcastpro.com/selfhost-podcasting/" target="_blank">Create a Podcast</a></div>
 		</li>
 		<li class="pp-product">
-			<h2 class="pp-product-title"><?php esc_html_e( 'Podcast Feed Composer', 'podcast-player' ); ?></h2>
+			<h2 class="pp-product-title"><?php esc_html_e( 'Podcast Composer', 'podcast-player' ); ?></h2>
 			<div class="pp-product-subtitle"><?php esc_html_e( 'Create new podcast feeds by merging, splitting, rearranging your existing feeds', 'podcast-player' ); ?></div>
 			<p class="pp-product-description"><?php esc_html_e( 'Personalize your feed URL, merge and split podcasts, rearrange and edit episodes, and do so much more with our WordPress plugin.', 'podcast-player' ); ?></p>
-			<div><a class="pp-product-link" href="https://easypodcastpro.com/podcast-feed-composer/" target="_blank">Learn More</a></div>
+			<div><a class="pp-product-link" href="https://easypodcastpro.com/podcast-composer/" target="_blank">Learn More</a></div>
 		</li>
 		<li class="pp-product">
-			<h2 class="pp-product-title"><?php esc_html_e( 'Book - Podcasting the Human Way', 'podcast-player' ); ?></h2>
-			<div class="pp-product-subtitle"><?php esc_html_e( 'A heartfelt novel about the human side of podcasting, purpose, and connection.', 'podcast-player' ); ?></div>
-			<p class="pp-product-description"><?php esc_html_e( '"Podcasting The Human Way" is a heartfelt novel about a first-time podcaster navigating doubt, purpose, and connection. More than a guide, it’s a story for creators and listeners who value meaning over metrics. Perfect for those who believe podcasting is about people, not just plays.', 'podcast-player' ); ?></p>
-			<div><a class="pp-product-link" href="https://easypodcastpro.com/book/" target="_blank">Read Now</a></div>
+			<h2 class="pp-product-title"><?php esc_html_e( 'Easy Tubecasting', 'podcast-player' ); ?></h2>
+			<div class="pp-product-subtitle"><?php esc_html_e( 'Display YouTube videos, playlists, channels, and video podcasts in a responsive Spotlight player block.', 'podcast-player' ); ?></div>
+			<p class="pp-product-description"><?php esc_html_e( 'Easy TubeCasting helps you turn YouTube videos, playlists, channels, handles, and video podcasts into a clean WordPress video experience. Add the block, paste a YouTube URL, choose your display settings, and publish a responsive YouTube player with an interactive playlist.', 'podcast-player' ); ?></p>
+			<div><a class="pp-product-link" href="https://easypodcastpro.com/easy-tubecasting/" target="_blank">Learn More</a></div>
 		</li>
 	</ol>
 </div>
