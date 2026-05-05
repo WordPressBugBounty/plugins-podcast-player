@@ -18,8 +18,9 @@ $country_codes = Country_Codes::get_cc();
 ?>
 
 <div class="pp-toolkit-wrapper pp-toolkit-reviews">
-	<h3 class="pp-toolkit-title"><span>Apple Podcast Reviews</span><span class="dashicons dashicons-arrow-down-alt2"></span></h3>
+	<h3 class="pp-toolkit-title"><span><?php esc_html_e( 'Apple Podcast Reviews', 'podcast-player' ); ?></span><span class="dashicons dashicons-arrow-down-alt2"></span></h3>
 	<div class="pp-toolkit-content">
+		<div class="pp-notice-info"><?php esc_html_e( 'Fetch Apple Podcast reviews from selected countries so you can display or manage review data for a saved podcast.', 'podcast-player' ); ?></div>
 		<div class="pp-toolkit-review-dropdown">
 			<?php if ( $feed_index && is_array( $feed_index ) && ! empty( $feed_index ) ) : ?>
 				<?php
@@ -40,9 +41,8 @@ $country_codes = Country_Codes::get_cc();
 					?>
 				</select>
 			<?php else : ?>
-				<div style="font-size: 20px !important; font-weight: bold; margin-bottom: 15px;"><?php esc_html_e( 'No Podcasts Added So Far.', 'podcast-player' ); ?></div>
-				<div style="font-size: 16px; margin-bottom: 5px;" class="pp-sub-title"><?php esc_html_e( 'Possible Reasons :-', 'podcast-player' ); ?></div>
-				<div style="font-size: 15px;">You are new to Podcast Player and did not add any podcast yet. Do not worry, just head to our <a href="https://easypodcastpro.com/docs7/" target="_blank">documenation page</a> to know how to add podcast player to your site. If that's not enough just <a href="https://easypodcastpro.com/contact-us-2/">contact us</a> and we will help you out.</div>
+				<div style="font-size: 20px !important; font-weight: bold; margin-bottom: 15px;"><?php esc_html_e( 'No saved podcasts found.', 'podcast-player' ); ?></div>
+				<div style="font-size: 15px;"><?php esc_html_e( 'Add a podcast first, then return here to fetch Apple Podcast reviews for it.', 'podcast-player' ); ?> <a href="https://easypodcastpro.com/docs7/" target="_blank"><?php esc_html_e( 'Open the setup docs', 'podcast-player' ); ?></a>.</div>
 			<?php endif; ?>
 		</div>
 		<div class="pp-toolkit-feedback" style=" margin-bottom: 15px; margin-top: 0">
@@ -53,22 +53,22 @@ $country_codes = Country_Codes::get_cc();
 		</div>
 		<div class="pp-toolkit-review-form" style="display: none;">
 			<div class="pp-podcast-apple-url">
-				<span style="display: block;margin-bottom: 5px;"><?php esc_html_e( 'Your Apple Podcast ID', 'podcast-player' ); ?></span>
+				<span style="display: block;margin-bottom: 5px;"><?php esc_html_e( 'Apple Podcast ID', 'podcast-player' ); ?></span>
 				<label class="pp-apple-podcast-url-label">
-					<input class="pp-apple-podcast-url-input" type="url" placeholder="Your Apple Podcast ID" title="Apple Podcast ID">
+					<input class="pp-apple-podcast-url-input" type="url" placeholder="<?php esc_attr_e( 'Enter Apple Podcast ID', 'podcast-player' ); ?>" title="<?php esc_attr_e( 'Apple Podcast ID', 'podcast-player' ); ?>">
 				</label>
 			</div>
 			<div class="pp-podcast-apple-country">
-				<span style="display: block;margin-bottom: 5px;"><?php esc_html_e( 'Select Countries (Fetch reviews from selected countries)', 'podcast-player' ); ?></span>
+				<span style="display: block;margin-bottom: 5px;"><?php esc_html_e( 'Countries to fetch reviews from', 'podcast-player' ); ?></span>
 				<?php Markup_Fn::multiple_checkbox( 'pp-select-country', $country_codes, array(), array(), 'Search Country' ); ?>
 			</div>
 			<div class="pp-review-action-buttons" style="margin-top: 15px;">
 				<button class="button podcast-reviews-refresh">
-					<span class="pp-refresh-label">Refresh Reviews</span>
-					<span class="pp-fetch-label"">Fetch Reviews</span>
+					<span class="pp-refresh-label"><?php esc_html_e( 'Refresh Reviews', 'podcast-player' ); ?></span>
+					<span class="pp-fetch-label"><?php esc_html_e( 'Fetch Reviews', 'podcast-player' ); ?></span>
 				</button>
 				<button class="button podcast-reviews-delete">
-					<span class="pp-delete-label">Delete Reviews</span>
+					<span class="pp-delete-label"><?php esc_html_e( 'Delete Reviews', 'podcast-player' ); ?></span>
 				</button>
 			</div>
 		</div>

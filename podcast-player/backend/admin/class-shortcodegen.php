@@ -260,7 +260,7 @@ class ShortCodeGen {
 			);
 			$sub_array[ $sub_key ] = array(
 				'setting'       => $sub_key,
-				'desc'          => esc_html__( 'Add a Podcast Subscription link', 'podcast-player' ),
+				'desc'          => esc_html__( 'Enter the subscription URL for this service. Leave it empty if you do not want to show this link.', 'podcast-player' ),
 				'type'          => 'url',
 				'hide_callback' => function () use ( $widget, $settings ) {
 					return $settings['podcast_menu'] && $settings['main_menu_items'];
@@ -276,13 +276,13 @@ class ShortCodeGen {
 			array(
 				'podcast_menu'    => array(
 					'setting' => 'podcast_menu',
-					'label'   => esc_html__( 'Podcast Subscription Menu.', 'podcast-player' ),
+					'label'   => esc_html__( 'Subscription menu', 'podcast-player' ),
 					'type'    => 'select',
 					'choices' => $menu_arr,
 				),
 				'main_menu_items' => array(
 					'setting'       => 'main_menu_items',
-					'label'         => esc_html__( 'Number of Primary Subscription Links', 'podcast-player' ),
+					'label'         => esc_html__( 'Number of primary subscription links', 'podcast-player' ),
 					'type'          => 'number',
 					'input_attrs'   => array(
 						'step' => 1,
@@ -336,7 +336,7 @@ class ShortCodeGen {
 						),
 						'number'            => array(
 							'setting'       => 'number',
-							'label'         => esc_html__( 'Number of episodes to show at a time.', 'podcast-player' ),
+							'label'         => esc_html__( 'Episodes to show at a time', 'podcast-player' ),
 							'type'          => 'number',
 							'input_attrs'   => array(
 								'step' => 1,
@@ -349,7 +349,7 @@ class ShortCodeGen {
 						),
 						'pp_no_scroll'   => array(
 							'setting'       => 'pp_no_scroll',
-							'label'         => esc_html__( 'Show initial loaded episodes without scrolling.', 'podcast-player' ),
+							'label'         => esc_html__( 'Show initial episodes without scrolling', 'podcast-player' ),
 							'type'          => 'checkbox',
 							'hide_callback' => function () use ( $widget, $settings ) {
 								return $widget->is_option_not_equal( 'pp_display_style', '', $settings ) && $widget->is_option_not_equal( 'pp_display_style', 'modern', $settings );
@@ -357,7 +357,7 @@ class ShortCodeGen {
 						),
 						'offset'            => array(
 							'setting'       => 'offset',
-							'label'         => esc_html__( 'Number of episodes to skip from the beginning.', 'podcast-player' ),
+							'label'         => esc_html__( 'Episodes to skip from the beginning', 'podcast-player' ),
 							'type'          => 'number',
 							'input_attrs'   => array(
 								'step' => 1,
@@ -375,7 +375,7 @@ class ShortCodeGen {
 							'choices'       => array(
 								''     => esc_html__( 'Show Excerpt', 'podcast-player' ),
 								'full' => esc_html__( 'Show Full Content', 'podcast-player' ),
-								'none' => esc_html__( 'Do not Show Teaser Text', 'podcast-player' ),
+								'none' => esc_html__( 'Hide Teaser Text', 'podcast-player' ),
 							),
 							'hide_callback' => function () use ( $widget, $settings ) {
 								return ! Validation_Fn::is_style_support( $settings['pp_display_style'], 'excerpt' ) || $widget->is_option_equal( 'pp_fetch_method', 'link', $settings );
@@ -421,7 +421,7 @@ class ShortCodeGen {
 					'items'       => array(
 						'pp_header_default'   => array(
 							'setting'       => 'pp_header_default',
-							'label'         => esc_html__( 'Show Podcast Header by Default.', 'podcast-player' ),
+							'label'         => esc_html__( 'Show podcast header by default', 'podcast-player' ),
 							'type'          => 'checkbox',
 							'hide_callback' => function () use ( $widget, $settings ) {
 								return $widget->is_option_not_equal( 'pp_display_style', '', $settings ) && $widget->is_option_not_equal( 'pp_display_style', 'legacy', $settings ) && $widget->is_option_not_equal( 'pp_display_style', 'modern', $settings );
@@ -429,7 +429,7 @@ class ShortCodeGen {
 						),
 						'pp_list_default'     => array(
 							'setting'       => 'pp_list_default',
-							'label'         => esc_html__( 'Show episodes list by default on mini player.', 'podcast-player' ),
+							'label'         => esc_html__( 'Show episode list by default on mini player', 'podcast-player' ),
 							'type'          => 'checkbox',
 							'hide_callback' => function () use ( $widget, $settings ) {
 								return $widget->is_option_not_equal( 'pp_display_style', '', $settings ) && $widget->is_option_not_equal( 'pp_display_style', 'legacy', $settings ) && $widget->is_option_not_equal( 'pp_display_style', 'modern', $settings );
@@ -437,12 +437,12 @@ class ShortCodeGen {
 						),
 						'pp_hide_header'      => array(
 							'setting' => 'pp_hide_header',
-							'label'   => esc_html__( 'Hide Podcast Header Information.', 'podcast-player' ),
+							'label'   => esc_html__( 'Hide podcast header information', 'podcast-player' ),
 							'type'    => 'checkbox',
 						),
 						'pp_hide_cover'       => array(
 							'setting'       => 'pp_hide_cover',
-							'label'         => esc_html__( 'Hide cover image.', 'podcast-player' ),
+							'label'         => esc_html__( 'Hide cover image', 'podcast-player' ),
 							'type'          => 'checkbox',
 							'hide_callback' => function () use ( $widget, $settings ) {
 								return $widget->is_option_equal( 'pp_hide_header', 'yes', $settings );
@@ -450,7 +450,7 @@ class ShortCodeGen {
 						),
 						'pp_hide_title'       => array(
 							'setting'       => 'pp_hide_title',
-							'label'         => esc_html__( 'Hide Podcast Title.', 'podcast-player' ),
+							'label'         => esc_html__( 'Hide podcast title', 'podcast-player' ),
 							'type'          => 'checkbox',
 							'hide_callback' => function () use ( $widget, $settings ) {
 								return $widget->is_option_equal( 'pp_hide_header', 'yes', $settings );
@@ -458,7 +458,7 @@ class ShortCodeGen {
 						),
 						'pp_hide_description' => array(
 							'setting'       => 'pp_hide_description',
-							'label'         => esc_html__( 'Hide Podcast Description.', 'podcast-player' ),
+							'label'         => esc_html__( 'Hide podcast description', 'podcast-player' ),
 							'type'          => 'checkbox',
 							'hide_callback' => function () use ( $widget, $settings ) {
 								return $widget->is_option_equal( 'pp_hide_header', 'yes', $settings );
@@ -466,7 +466,7 @@ class ShortCodeGen {
 						),
 						'pp_hide_subscribe'   => array(
 							'setting'       => 'pp_hide_subscribe',
-							'label'         => esc_html__( 'Hide Custom menu.', 'podcast-player' ),
+							'label'         => esc_html__( 'Hide custom menu', 'podcast-player' ),
 							'type'          => 'checkbox',
 							'hide_callback' => function () use ( $widget, $settings ) {
 								return $widget->is_option_equal( 'pp_hide_header', 'yes', $settings );
@@ -474,17 +474,17 @@ class ShortCodeGen {
 						),
 						'pp_hide_search'      => array(
 							'setting' => 'pp_hide_search',
-							'label'   => esc_html__( 'Hide Podcast Search.', 'podcast-player' ),
+							'label'   => esc_html__( 'Hide podcast search', 'podcast-player' ),
 							'type'    => 'checkbox',
 						),
 						'pp_hide_author'      => array(
 							'setting' => 'pp_hide_author',
-							'label'   => esc_html__( 'Hide Episode Author/Podcaster Name.', 'podcast-player' ),
+							'label'   => esc_html__( 'Hide episode author or podcaster name', 'podcast-player' ),
 							'type'    => 'checkbox',
 						),
 						'pp_hide_content'     => array(
 							'setting'       => 'pp_hide_content',
-							'label'         => esc_html__( 'Hide Episode Text Content/Transcript.', 'podcast-player' ),
+							'label'         => esc_html__( 'Hide episode text content or transcript', 'podcast-player' ),
 							'type'          => 'checkbox',
 							'hide_callback' => function () use ( $widget, $settings ) {
 								return $widget->is_premium && $widget->is_option_not_equal( 'pp_fetch_method', 'feed', $settings );
@@ -492,22 +492,22 @@ class ShortCodeGen {
 						),
 						'pp_hide_loadmore'    => array(
 							'setting' => 'pp_hide_loadmore',
-							'label'   => esc_html__( 'Hide Load More Episodes Button.', 'podcast-player' ),
+							'label'   => esc_html__( 'Hide load more episodes button', 'podcast-player' ),
 							'type'    => 'checkbox',
 						),
 						'pp_hide_download'    => array(
 							'setting' => 'pp_hide_download',
-							'label'   => esc_html__( 'Hide Episode Download Link.', 'podcast-player' ),
+							'label'   => esc_html__( 'Hide episode download link', 'podcast-player' ),
 							'type'    => 'checkbox',
 						),
 						'pp_hide_social'      => array(
 							'setting' => 'pp_hide_social',
-							'label'   => esc_html__( 'Hide Social Share Links.', 'podcast-player' ),
+							'label'   => esc_html__( 'Hide social share links', 'podcast-player' ),
 							'type'    => 'checkbox',
 						),
 						'pp_hide_featured'    => array(
 							'setting' => 'pp_hide_featured',
-							'label'   => esc_html__( 'Hide Episodes Featured Image.', 'podcast-player' ),
+							'label'   => esc_html__( 'Hide episode featured images', 'podcast-player' ),
 							'type'    => 'checkbox',
 						),
 					),
@@ -549,7 +549,7 @@ class ShortCodeGen {
 						),
 						'filterby' => array(
 							'setting' => 'filterby',
-							'label'   => esc_html__( 'Show episodes only if title contains following', 'podcast-player' ),
+							'label'   => esc_html__( 'Only show episodes whose title contains', 'podcast-player' ),
 							'type'    => 'text',
 						),
 						'autoplay' => array(

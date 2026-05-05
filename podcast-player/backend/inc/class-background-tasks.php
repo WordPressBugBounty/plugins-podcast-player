@@ -323,6 +323,7 @@ class Background_Tasks extends Singleton {
             return ( array( $error, false ) );
 		}
 
+        $import_settings['import_source'] = 'background';
         $imported_episodes = Utility_Fn::import_episodes( $feed_url, $elist, $import_settings );
         if ( is_wp_error( $imported_episodes ) ) {
             return array( $imported_episodes, false );

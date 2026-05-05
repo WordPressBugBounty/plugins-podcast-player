@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 ?>
 
-<p class="pp-notes"><?php esc_html_e( 'Make sure to update your feed in "Toolkit" section after making changes here.', 'podcast-player' ); ?></p>
+<p class="pp-notes"><?php esc_html_e( 'These settings apply across Podcast Player. If you change update or optimization options, refresh your podcasts from Toolkit so stored feed data uses the new settings.', 'podcast-player' ); ?></p>
 <?php
 $title_cls   = 'pp-section-title';
 $content_cls = 'pp-hide-section-content';
@@ -25,7 +25,7 @@ foreach ( $this->sections as $setkey => $setlabel ) {
 	printf( '<div class="pp-options-section-wrapper"><h3 class="%1$s">%2$s</h3><div class="%3$s">', esc_attr( $title_cls ), esc_html( $setlabel ), esc_attr( $content_cls ) );
 	if ( 'advanced' === $setkey ) {
 		?>
-		<p class="pp-notes" style="margin-bottom: 0;"><?php esc_html_e( 'These options are only for specific cases. DO NOT enable if you are not sure.', 'podcast-player' ); ?></p>
+		<p class="pp-notes" style="margin-bottom: 0;"><?php esc_html_e( 'Advanced options are for compatibility and troubleshooting. Leave them unchanged unless you are fixing a specific issue.', 'podcast-player' ); ?></p>
 		<?php
 	}
 	do_settings_sections( "pp_{$setkey}_settings" );

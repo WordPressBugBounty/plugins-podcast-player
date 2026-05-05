@@ -55,7 +55,7 @@ $feed_index = Get_Fn::get_feed_index();
 											<input type="text" class="pp-podcast-new-source-url mb-0 rounded-md border-slate-300 text-sm" placeholder="New Source URL" />
 											<button type="button" class="pp-podcast-new-source-btn ml-2 inline-flex h-9 items-center justify-center rounded-md border border-emerald-300 bg-emerald-50 px-3 text-emerald-700 hover:border-emerald-400 hover:text-emerald-900"><span class="dashicons dashicons-yes-alt"></span></button>
 										</div>
-										<span class="pp-podcast-new-source-desc mt-2 text-xs text-slate-500"><?php esc_html_e( 'If you have migrated this podcast to a new host, add new source URL here.', 'podcast-player' ); ?></span>
+										<span class="pp-podcast-new-source-desc mt-2 text-xs text-slate-500"><?php esc_html_e( 'Moved this podcast to a new host? Add the new source URL here so existing players keep using the same podcast entry.', 'podcast-player' ); ?></span>
 									</div>
 								</div>
 							</div>
@@ -79,9 +79,9 @@ $feed_index = Get_Fn::get_feed_index();
 			<div class="rounded-xl border border-slate-200 bg-slate-50 p-6 sm:p-8">
 				<h3 class="m-0 text-2xl font-semibold text-slate-900"><?php esc_html_e( 'Welcome to Podcast Player', 'podcast-player' ); ?></h3>
 				<div class="mt-4 space-y-3 text-base leading-relaxed text-slate-700">
-					<p class="m-0">Podcast player offers an easy and versatile way to show and play your <span class="pp-bold">existing podcast</span> on your website. You only need your <span class="pp-bold">podcast’s feed URL</span> to get started. Once you provide the feed URL, the player will automatically pull in your podcast information and episodes.</p>
-					<p class="m-0">You can display the player using Widget, Editor Block, Shortcode or even Elementor plugin. We have created a <a href="<?php echo esc_attr( esc_url( admin_url( 'admin.php?page=pp-help' ) ) ); ?>" class="pp-bold underline">Help &amp; Support</a> section to get started with the plugin.</p>
-					<p class="m-0">If you need any more help with our plugin, please feel free to <a class="font-medium text-sky-700 no-underline hover:underline" href="https://wordpress.org/support/plugin/podcast-player/" target="_blank">open a support ticket</a> or <a class="font-medium text-sky-700 no-underline hover:underline" href="https://easypodcastpro.com/contact-us-2/" target="_blank">contact us</a>.</p>
+					<p class="m-0">Want to play your existing podcast on this website? Add the podcast feed URL once and Podcast Player will pull in the podcast details and episodes automatically.</p>
+					<p class="m-0">You can place the player with a widget, editor block, shortcode, shortcode generator, or Elementor. Start with <a href="<?php echo esc_attr( esc_url( admin_url( 'admin.php?page=pp-help' ) ) ); ?>" class="pp-bold underline">Help &amp; Support</a> if you need the first setup steps.</p>
+					<p class="m-0">Need help with a feed or display issue? <a class="font-medium text-sky-700 no-underline hover:underline" href="https://wordpress.org/support/plugin/podcast-player/" target="_blank">Open a support ticket</a> or <a class="font-medium text-sky-700 no-underline hover:underline" href="https://easypodcastpro.com/contact-us-2/" target="_blank">contact us</a>.</p>
 				</div>
 			</div>
 		<?php endif; ?>

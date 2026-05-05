@@ -13,12 +13,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 ?>
 
 <div class="pp-toolkit-wrapper">
-	<h3 class="pp-toolkit-title"><span>Feed Updation Tool</span><span class="dashicons dashicons-arrow-down-alt2"></span></h3>
+	<h3 class="pp-toolkit-title"><span><?php esc_html_e( 'Feed Update Tool', 'podcast-player' ); ?></span><span class="dashicons dashicons-arrow-down-alt2"></span></h3>
 	<div class="pp-toolkit-content">
 		<?php if ( $feed_index && is_array( $feed_index ) && ! empty( $feed_index ) ) : ?>
+			<div class="pp-notice-info"><?php esc_html_e( 'Use this when a podcast has new episodes, changed artwork, or stale feed data. Updating refreshes the stored podcast data used by existing players.', 'podcast-player' ); ?></div>
 			<?php
 			$feed_index = array_merge(
-				array( '' => esc_html__( 'Select a Podcast to update / reset', 'podcast-player' ) ),
+				array( '' => esc_html__( 'Select a podcast to update or delete', 'podcast-player' ) ),
 				$feed_index
 			);
 			?>
@@ -42,7 +43,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			</button>
 			<div class="pp-toolkit-del-confirm">
 				<div class="pp-toolkit-del-msg">
-					<?php esc_html_e( 'All stored data for the podcast will be deleted. Please confirm to delete podcast.', 'podcast-player' ); ?>
+					<?php esc_html_e( 'This will delete all stored data for the selected podcast. Existing players using this podcast may need to fetch the feed again.', 'podcast-player' ); ?>
 				</div>
 				<button class="pp-toolkit-buttons pp-feed-reset button">
 					<span class="pp-toolkit-btn-text">Delete</span>
@@ -58,11 +59,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<span class="pp-feedback"></span>
 			</div>
 		<?php else : ?>
-			<div style="font-size: 20px !important; font-weight: bold; margin-bottom: 15px;"><?php esc_html_e( 'No podcast to update or Refresh.', 'podcast-player' ); ?></div>
-			<div style="font-size: 16px; margin-bottom: 5px;" class="pp-sub-title"><?php esc_html_e( 'Possible Reasons :-', 'podcast-player' ); ?></div>
-			<div style="font-size: 15px;">You are new to Podcast Player and did not add any podcast yet. Do not worry, just head to our <a href="https://easypodcastpro.com/docs7/" target="_blank">documenation page</a> to know how to add podcast player to your site. If that's not enough just <a href="https://easypodcastpro.com/contact-us-2/">contact us</a> and we will help you out.</div>
-			<div style="margin: 20px 0;">OR</div>
-			<div style="font-size: 15px;">All of your podcasts are already updated/ refreshed.</div>
+			<div style="font-size: 20px !important; font-weight: bold; margin-bottom: 15px;"><?php esc_html_e( 'No podcasts are ready to update.', 'podcast-player' ); ?></div>
+			<div style="font-size: 15px;"><?php esc_html_e( 'Add a podcast player first, then return here to refresh its stored feed data whenever the feed changes.', 'podcast-player' ); ?> <a href="https://easypodcastpro.com/docs7/" target="_blank"><?php esc_html_e( 'Open the setup docs', 'podcast-player' ); ?></a>.</div>
 		<?php endif; ?>
 	</div>
 </div>

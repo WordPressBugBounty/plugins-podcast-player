@@ -112,6 +112,11 @@ if ( $is_freemius_pro ) {
 				</div>
 			</div>
 		</div>
+		<?php
+		if ( 'home' === $current_page && ! defined( 'PP_PRO_VERSION' ) ) {
+			require PODCAST_PLAYER_DIR . '/backend/admin/templates/home-pro-upgrade.php';
+		}
+		?>
 	</div>
 	<div class="pp-action-feedback fixed left-1/2 top-5 z-50 -translate-x-1/2 rounded-lg border border-slate-300 bg-white/95 px-3 py-2 shadow-md" id="pp-action-feedback">
 		<span class="dashicons dashicons-update"></span>

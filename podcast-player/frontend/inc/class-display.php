@@ -51,6 +51,8 @@ class Display extends Singleton {
 		$defaults     = $this->get_defaults();
 		$args         = wp_parse_args( $args, $defaults );
 		$args         = $this->fetch_custom_fields( $args );
+		$args         = apply_filters( 'podcast_player_display_args_defaults', $args, $defaults );
+		unset( $args['_provided'] );
 		$args         = apply_filters( 'podcast_player_display_args', $args );
 		$podcast      = $this->get_fetch_instance( $args['fetch-method'] );
 

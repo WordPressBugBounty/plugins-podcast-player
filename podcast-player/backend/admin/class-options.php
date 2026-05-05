@@ -154,9 +154,9 @@ class Options {
 			'podcast_player_setting_fields',
 			array(
 				'refresh_interval' => array(
-					'name'        => esc_html__( 'Podcast update interval (in minutes).', 'podcast-player' ),
+					'name'        => esc_html__( 'Podcast update interval', 'podcast-player' ),
 					'id'          => 'refresh_interval',
-					'description' => esc_html__( 'Set how often your podcast updates automatically. The plugin will check for new episodes at the specified time interval. By default, it updates every 720 minutes (12 hours).', 'podcast-player' ),
+					'description' => esc_html__( 'Choose how often Podcast Player checks your feeds for new episodes. The default is 720 minutes, or every 12 hours.', 'podcast-player' ),
 					'link'        => '',
 					'type'        => 'number',
 					'default'     => 720,
@@ -168,9 +168,9 @@ class Options {
 					),
 				),
 				'update_method'    => array(
-					'name'        => esc_html__( 'Update podcasts using WP Cron.', 'podcast-player' ),
+					'name'        => esc_html__( 'Use WP-Cron for podcast updates', 'podcast-player' ),
 					'id'          => 'update_method',
-					'description' => esc_html__( 'Default update method is very efficient. However, if that\'s not working due to caching plugin, you can use cron update method.', 'podcast-player' ),
+					'description' => esc_html__( 'Turn this on only if your feeds are not updating because of hosting, caching, or background request limits.', 'podcast-player' ),
 					'link'        => '',
 					'type'        => 'checkbox',
 					'default'     => '',
@@ -179,43 +179,43 @@ class Options {
 				'img_save'         => array(
 					'name'        => esc_html__( 'Image Optimization', 'podcast-player' ),
 					'id'          => 'img_save',
-					'description' => esc_html__( 'Download podcast images to your WordPress media folder and display smaller sized images in the player.', 'podcast-player' ),
+					'description' => esc_html__( 'Save podcast images in your Media Library so the player can serve smaller, faster images.', 'podcast-player' ),
 					'link'        => '',
 					'type'        => 'checkbox',
 					'default'     => 'yes',
 					'section'     => 'optimize',
 				),
 				'rel_external'     => array(
-					'name'        => esc_html__( 'Add Rel Attributes to External Links.', 'podcast-player' ),
+					'name'        => esc_html__( 'Add rel attributes to external links', 'podcast-player' ),
 					'id'          => 'rel_external',
-					'description' => esc_html__( 'Add noopener, noreferrer and nofollow rel attributes to external links in episode content. It should improve SEO and security of your website.', 'podcast-player' ),
+					'description' => esc_html__( 'Add noopener, noreferrer, and nofollow to external links in episode content for better security and cleaner SEO signals.', 'podcast-player' ),
 					'link'        => '',
 					'type'        => 'checkbox',
 					'default'     => '',
 					'section'     => 'optimize',
 				),
 				'check_cache_headers' => array(
-					'name'        => esc_html__( 'Verify cache headers for feed update.', 'podcast-player' ),
+					'name'        => esc_html__( 'Check feed cache headers before updating', 'podcast-player' ),
 					'id'          => 'check_cache_headers',
-					'description' => esc_html__( 'We vertify cache headers to quickly check if feed has been updated or not. It is recommended to enable this option. However, if your podcast is not updating, disable this option and check again.', 'podcast-player' ),
+					'description' => esc_html__( 'Keep this on to skip unnecessary feed downloads. If a feed is not updating correctly, turn it off and try again.', 'podcast-player' ),
 					'link'        => '',
 					'type'        => 'checkbox',
 					'default'     => 'yes',
 					'section'     => 'advanced',
 				),
 				'is_ajax'          => array(
-					'name'        => esc_html__( 'Enable Ajax Website Compatibility.', 'podcast-player' ),
+					'name'        => esc_html__( 'Enable AJAX page compatibility', 'podcast-player' ),
 					'id'          => 'is_ajax',
-					'description' => esc_html__( 'Select this option if your website pages are loaded asynchronously using Ajax theme.', 'podcast-player' ),
+					'description' => esc_html__( 'Use this if your theme loads pages without a full browser refresh and players need to initialize after AJAX navigation.', 'podcast-player' ),
 					'link'        => '',
 					'type'        => 'checkbox',
 					'default'     => '',
 					'section'     => 'advanced',
 				),
 				'fonts'         => array(
-					'name'        => esc_html__( 'Podcast Player Font Scheme.', 'podcast-player' ),
+					'name'        => esc_html__( 'Player icon set', 'podcast-player' ),
 					'id'          => 'fonts',
-					'description' => esc_html__( 'Personalize your player with different for schemes.', 'podcast-player' ),
+					'description' => esc_html__( 'Choose the icon style used inside podcast players across your site.', 'podcast-player' ),
 					'link'        => '',
 					'type'        => 'select',
 					'choices'     => array(
@@ -230,16 +230,16 @@ class Options {
 				'hide_data'        => array(
 					'name'        => esc_html__( 'Protect Podcast Data from Exposure', 'podcast-player' ),
 					'id'          => 'hide_data',
-					'description' => esc_html__( 'Prevent unintentional display of podcast data, such as the audio URL and podcast feed URL, in the front-end page source.', 'podcast-player' ),
+					'description' => esc_html__( 'Hide sensitive podcast details, such as feed and audio URLs, from the front-end page source when possible.', 'podcast-player' ),
 					'link'        => '',
 					'type'        => 'checkbox',
 					'default'     => '',
 					'section'     => 'advanced',
 				),
 				'timezone'         => array(
-					'name'        => esc_html__( 'Set timezone for episode date.', 'podcast-player' ),
+					'name'        => esc_html__( 'Episode date timezone', 'podcast-player' ),
 					'id'          => 'timezone',
-					'description' => esc_html__( 'Select timezone to be used for Podcast episode dates.', 'podcast-player' ),
+					'description' => esc_html__( 'Choose which timezone Podcast Player should use when showing episode dates.', 'podcast-player' ),
 					'link'        => '',
 					'type'        => 'select',
 					'choices'     => array(
@@ -507,9 +507,9 @@ class Options {
 						'security' => wp_create_nonce( 'podcast-player-admin-options-ajax-nonce' ),
 						'gfonts'   => $gfonts,
 						'messages' => array(
-							'running'        => esc_html__( 'Performing Action', 'podcast-player' ),
-							'nourl'          => esc_html__( 'Please provide a valid podcast', 'podcast-player' ),
-							'nosource'       => esc_html__( 'Please provide a valid source', 'podcast-player' ),
+							'running'        => esc_html__( 'Working on it...', 'podcast-player' ),
+							'nourl'          => esc_html__( 'Choose a podcast first.', 'podcast-player' ),
+							'nosource'       => esc_html__( 'Enter a valid source URL first.', 'podcast-player' ),
 							'tlabel'         => esc_html__( 'Edit Title', 'podcast-player' ),
 							'alabel'         => esc_html__( 'Edit Author', 'podcast-player' ),
 							'slabel'         => esc_html__( 'Add/ Edit Season', 'podcast-player' ),
@@ -523,7 +523,7 @@ class Options {
 							'iselection'     => esc_html__( 'Inverse Selection', 'podcast-player' ),
 							'abort'          => esc_html__( 'Import Aborted', 'podcast-player' ),
 							'aborting'       => esc_html__( 'Aborting Import', 'podcast-player' ),
-							'nochange'       => esc_html__( 'Nothing to update', 'podcast-player' ),
+							'nochange'       => esc_html__( 'No changes to save.', 'podcast-player' ),
 							'loadmore'       => esc_html__( 'Load More Episodes', 'podcast-player' ),
 							'removeFeatured' => esc_html__( 'Remove Custom Image', 'podcast-player' ),
 							'uploadFeatured' => esc_html__( 'Upload Custom Image', 'podcast-player' ),
@@ -533,7 +533,7 @@ class Options {
 							'fetchId'        => esc_html__( 'Fetching Apple Podcast ID', 'podcast-player' ),
 							'fetchReviews'   => esc_html__( 'Looking for apple podcast reviews in', 'podcast-player' ),
 							'deleteReviews'  => esc_html__( 'Deleting Podcast Reviews', 'podcast-player' ),
-							'deleteSuccess'  => esc_html__( 'Successfully Deleted Podcast Reviews', 'podcast-player' ),
+							'deleteSuccess'  => esc_html__( 'Podcast reviews deleted.', 'podcast-player' ),
 						),
 					)
 				)
@@ -616,7 +616,7 @@ class Options {
 				if ( is_wp_error( $feed ) ) {
 					$error = '<p><strong>' . esc_html__( 'RSS Error:', 'podcast-player' ) . '</strong> ' . esc_html( $feed->get_error_message() ) . '</p>';
 				} else {
-					$message = esc_html__( 'Podcast Updated Successfully.', 'podcast-player' );
+					$message = esc_html__( 'Podcast data refreshed.', 'podcast-player' );
 				}
 				break;
 			case 'reset':
@@ -628,7 +628,7 @@ class Options {
 					$store_manager->hide_data( $fprn );
 				}
 
-				$message = esc_html__( 'Podcast Deleted Successfully.', 'podcast-player' );
+				$message = esc_html__( 'Podcast data deleted.', 'podcast-player' );
 				break;
 			default:
 				$error = esc_html__( 'Unexpected user input.', 'podcast-player' );
@@ -696,7 +696,7 @@ class Options {
 			$new_title  = $new_podcast_data->get( 'title' );
 			if ( $old_author !== $new_author || $old_title !== $new_title ) {
 				$output = array(
-					'error' => esc_html__( 'New Podcast data does not match with old data. Please check title and author.', 'podcast-player' ),
+					'error' => esc_html__( 'The new feed does not look like the same podcast. Please check the title and author before saving it as the new source.', 'podcast-player' ),
 				);
 				echo wp_json_encode( $output );
 				wp_die();
@@ -714,7 +714,7 @@ class Options {
 		}
 
 		// Ajax output to be returened.
-		$output = array( 'message' => esc_html__( 'Source URL updated successfully.', 'podcast-player' ) );
+		$output = array( 'message' => esc_html__( 'Source URL saved. Existing players can keep using this podcast entry.', 'podcast-player' ) );
 		echo wp_json_encode( $output );
 		wp_die();
 	}
@@ -732,7 +732,7 @@ class Options {
 
 		if ( ! $podcast_id ) {
 			$output = array(
-				'error' => esc_html__( 'Valid Podcast Key Not Available.', 'podcast-player' ),
+				'error' => esc_html__( 'Choose a valid podcast before removing the source URL.', 'podcast-player' ),
 			);
 			echo wp_json_encode( $output );
 			wp_die();
@@ -750,7 +750,7 @@ class Options {
 		}
 
 		// Ajax output to be returened.
-		$output = array( 'message' => esc_html__( 'Source URL deleted successfully.', 'podcast-player' ) );
+		$output = array( 'message' => esc_html__( 'Source URL removed from this podcast.', 'podcast-player' ) );
 		echo wp_json_encode( $output );
 		wp_die();
 	}

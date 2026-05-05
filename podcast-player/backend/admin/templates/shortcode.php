@@ -22,11 +22,14 @@ $shortcodegen = new ShortCodeGen();
     </div>
     <?php endif; ?>
     <div class="pp-shortcode-header">
-        <h3><?php printf( 'Shortcode Generator', 'display-post-types' ); ?></h3>
+        <div>
+            <h3><?php esc_html_e( 'Shortcode Generator', 'podcast-player' ); ?></h3>
+            <p class="pp-notes"><?php esc_html_e( 'Create reusable podcast player shortcodes once, then place them on any page, post, widget, or builder area without rebuilding the same setup.', 'podcast-player' ); ?></p>
+        </div>
         <div class="pp-shortcode-action">
-            <button id="pp-shortcode-generator-btn" class="button button-primary">Create New Shortcode</button>
+            <button id="pp-shortcode-generator-btn" class="button button-primary"><?php esc_html_e( 'Create New Shortcode', 'podcast-player' ); ?></button>
             <?php if ( ! empty( $shortcodegen->shortcode_settings ) ) : ?>
-                <span class="pp-separator">or</span>
+                <span class="pp-separator"><?php esc_html_e( 'or', 'podcast-player' ); ?></span>
                 <?php echo $shortcodegen->dropdown(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
             <?php endif; ?>
         </div>
@@ -38,11 +41,7 @@ $shortcodegen = new ShortCodeGen();
             <div class="pp-shortcode-preview-wrapper">
                 <div id="pp-shortcode-preview" class="pp-shortcode-preview">
                     <div style="padding: 20px; font-size: 20px; color: #aaa;">
-                        <span>Create a </span>
-                        <span style="color: #333;">New Shortcode</span>
-                        <span> or </span>
-                        <span style="color: #333;">Edit an Existing</span>
-                        <span> Shortcode using the menu above.</span>
+                        <span><?php esc_html_e( 'Create a new shortcode or choose an existing one to edit. Your player preview will appear here.', 'podcast-player' ); ?></span>
                     </div>
                 </div>
                 <div class="pp-shortcode-preview-overlap"></div>

@@ -27,11 +27,433 @@ use Podcast_Player\Helper\Store\ItemData;
 class Utility {
 
 	/**
+	 * Active import attempt for the current request.
+	 *
+	 * Used by the shutdown handler to mark scoped import failures.
+	 *
+	 * @since 7.9.16
+	 * @access private
+	 * @var array
+	 */
+	private static $current_import_attempt = array();
+
+	/**
+	 * Prevent registering multiple shutdown handlers in the same request.
+	 *
+	 * @since 7.9.16
+	 * @access private
+	 * @var bool
+	 */
+	private static $import_shutdown_registered = false;
+
+	/**
+	 * Request ID shared by all episode import attempts in this request.
+	 *
+	 * @since 7.9.16
+	 * @access private
+	 * @var string
+	 */
+	private static $import_request_id = '';
+
+	/**
 	 * Constructor method.
 	 *
 	 * @since  3.3.0
 	 */
 	public function __construct() {}
+
+	/**
+	 * Register a scoped shutdown handler for fatal import failures.
+	 *
+	 * @since 7.9.16
+	 */
+	private static function register_import_shutdown_handler() {
+		if ( self::$import_shutdown_registered ) {
+			return;
+		}
+
+		self::$import_shutdown_registered = true;
+		register_shutdown_function( array( __CLASS__, 'handle_import_shutdown' ) );
+	}
+
+	/**
+	 * Handle fatal errors only when an episode import operation is active.
+	 *
+	 * @since 7.9.16
+	 */
+	public static function handle_import_shutdown() {
+		if ( empty( self::$current_import_attempt ) ) {
+			return;
+		}
+
+		$error = error_get_last();
+		if ( empty( $error['type'] ) || ! in_array( $error['type'], self::fatal_error_types(), true ) ) {
+			return;
+		}
+
+		$error_file = isset( $error['file'] ) ? self::normalize_path( $error['file'] ) : '';
+		$plugin_dir = defined( 'PODCAST_PLAYER_DIR' ) ? self::normalize_path( PODCAST_PLAYER_DIR ) : '';
+		$phase      = isset( self::$current_import_attempt['phase'] ) ? self::$current_import_attempt['phase'] : '';
+
+		$direct_plugin_error = $plugin_dir && $error_file && 0 === strpos( $error_file, $plugin_dir );
+		$during_import_phase = in_array( $phase, self::risky_import_phases(), true );
+		if ( ! $direct_plugin_error && ! $during_import_phase ) {
+			return;
+		}
+
+		self::mark_current_import_attempt_failed(
+			array(
+				'reason'  => $direct_plugin_error ? 'plugin_fatal' : 'fatal_during_import',
+				'message' => isset( $error['message'] ) ? sanitize_text_field( $error['message'] ) : '',
+				'file'    => $error_file,
+				'line'    => isset( $error['line'] ) ? absint( $error['line'] ) : 0,
+				'phase'   => sanitize_text_field( $phase ),
+			)
+		);
+	}
+
+	/**
+	 * Fatal error types that can leave an import half-finished.
+	 *
+	 * @since 7.9.16
+	 */
+	private static function fatal_error_types() {
+		return array( E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR, E_RECOVERABLE_ERROR );
+	}
+
+	/**
+	 * Import phases where a third-party fatal still affects the import result.
+	 *
+	 * @since 7.9.16
+	 */
+	private static function risky_import_phases() {
+		return array(
+			'fetching_feed_data',
+			'resolving_existing_post',
+			'creating_post',
+			'saving_import_mapping',
+			'saving_post_meta',
+			'saving_featured_image',
+			'saving_terms',
+			'saving_modified_feed_data',
+		);
+	}
+
+	/**
+	 * Normalize a file path without assuming all WP helpers are loaded.
+	 *
+	 * @since 7.9.16
+	 *
+	 * @param string $path File path.
+	 */
+	private static function normalize_path( $path ) {
+		if ( function_exists( 'wp_normalize_path' ) ) {
+			return wp_normalize_path( $path );
+		}
+		return str_replace( '\\', '/', (string) $path );
+	}
+
+	/**
+	 * Get a stable request ID for import attempts.
+	 *
+	 * @since 7.9.16
+	 */
+	private static function get_import_request_id() {
+		if ( ! self::$import_request_id ) {
+			self::$import_request_id = uniqid( 'pp-import-', true );
+		}
+		return self::$import_request_id;
+	}
+
+	/**
+	 * Get the storage post ID for a feed.
+	 *
+	 * @since 7.9.16
+	 *
+	 * @param string $feed_key Podcast feed key.
+	 */
+	private static function get_feed_storage_post_id( $feed_key ) {
+		$store_manager = StoreManager::get_instance();
+		$index         = $store_manager->get_object_index( $feed_key );
+		if ( ! $index || ! is_object( $index ) || ! method_exists( $index, 'get' ) ) {
+			return 0;
+		}
+		return absint( $index->get( 'object_id' ) );
+	}
+
+	/**
+	 * Build the per-episode import state meta key.
+	 *
+	 * @since 7.9.16
+	 *
+	 * @param string $episode_key Feed episode key.
+	 */
+	private static function get_episode_import_state_key( $episode_key ) {
+		return 'pp_import_episode_' . md5( (string) $episode_key );
+	}
+
+	/**
+	 * Read per-episode import state.
+	 *
+	 * @since 7.9.16
+	 *
+	 * @param string $feed_key    Podcast feed key.
+	 * @param string $episode_key Feed episode key.
+	 */
+	private static function get_episode_import_state( $feed_key, $episode_key ) {
+		$object_id = self::get_feed_storage_post_id( $feed_key );
+		if ( ! $object_id ) {
+			return array();
+		}
+
+		$state = get_post_meta( $object_id, self::get_episode_import_state_key( $episode_key ), true );
+		return is_array( $state ) ? $state : array();
+	}
+
+	/**
+	 * Persist per-episode import state.
+	 *
+	 * This intentionally stores only small scalar identifiers, never episode descriptions.
+	 *
+	 * @since 7.9.16
+	 *
+	 * @param string $feed_key    Podcast feed key.
+	 * @param string $episode_key Feed episode key.
+	 * @param array  $state       State data.
+	 */
+	private static function update_episode_import_state( $feed_key, $episode_key, $state ) {
+		$object_id = self::get_feed_storage_post_id( $feed_key );
+		if ( ! $object_id ) {
+			return false;
+		}
+
+		return update_post_meta( $object_id, self::get_episode_import_state_key( $episode_key ), $state );
+	}
+
+	/**
+	 * Start or refresh an import attempt for an episode.
+	 *
+	 * @since 7.9.16
+	 *
+	 * @param string $feed_key    Podcast feed key.
+	 * @param string $episode_key Feed episode key.
+	 * @param array  $item        Optional feed item data.
+	 * @param string $phase       Current import phase.
+	 */
+	private static function start_episode_import_attempt( $feed_key, $episode_key, $item = array(), $phase = 'starting' ) {
+		$existing   = self::get_episode_import_state( $feed_key, $episode_key );
+		$request_id = self::get_import_request_id();
+		$attempts   = isset( $existing['attempts'] ) ? absint( $existing['attempts'] ) : 0;
+		if ( empty( $existing['request_id'] ) || $request_id !== $existing['request_id'] ) {
+			++$attempts;
+		}
+
+		$state = array(
+			'feed_key'    => sanitize_text_field( $feed_key ),
+			'episode_key' => sanitize_text_field( $episode_key ),
+			'episode_id'  => isset( $item['episode_id'] ) ? sanitize_text_field( $item['episode_id'] ) : ( isset( $existing['episode_id'] ) ? sanitize_text_field( $existing['episode_id'] ) : '' ),
+			'src_hash'    => isset( $item['src'] ) ? md5( esc_url_raw( $item['src'] ) ) : ( isset( $existing['src_hash'] ) ? sanitize_text_field( $existing['src_hash'] ) : '' ),
+			'post_id'     => isset( $existing['post_id'] ) ? absint( $existing['post_id'] ) : 0,
+			'status'      => 'processing',
+			'phase'       => sanitize_text_field( $phase ),
+			'attempts'    => $attempts,
+			'request_id'  => $request_id,
+			'started_at'  => isset( $existing['started_at'] ) && $request_id === ( isset( $existing['request_id'] ) ? $existing['request_id'] : '' ) ? absint( $existing['started_at'] ) : time(),
+			'updated_at'  => time(),
+			'last_error'  => array(),
+		);
+
+		self::update_episode_import_state( $feed_key, $episode_key, $state );
+		self::set_current_import_attempt( $feed_key, array( $episode_key ), $phase );
+		return $state;
+	}
+
+	/**
+	 * Mark multiple episodes as processing for work that happens before item data is available.
+	 *
+	 * @since 7.9.16
+	 *
+	 * @param string $feed_key Podcast feed key.
+	 * @param array  $elist    Feed episode keys.
+	 * @param string $phase    Current import phase.
+	 */
+	private static function start_batch_import_attempts( $feed_key, $elist, $phase ) {
+		foreach ( (array) $elist as $episode_key ) {
+			self::start_episode_import_attempt( $feed_key, $episode_key, array(), $phase );
+		}
+		self::set_current_import_attempt( $feed_key, $elist, $phase );
+	}
+
+	/**
+	 * Set the active import attempt context for fatal error handling.
+	 *
+	 * @since 7.9.16
+	 *
+	 * @param string $feed_key Podcast feed key.
+	 * @param array  $elist    Feed episode keys.
+	 * @param string $phase    Current import phase.
+	 */
+	private static function set_current_import_attempt( $feed_key, $elist, $phase ) {
+		self::$current_import_attempt = array(
+			'feed_key'     => sanitize_text_field( $feed_key ),
+			'episode_keys' => array_values( array_map( 'sanitize_text_field', (array) $elist ) ),
+			'phase'        => sanitize_text_field( $phase ),
+		);
+	}
+
+	/**
+	 * Update the current import phase.
+	 *
+	 * @since 7.9.16
+	 *
+	 * @param string $feed_key    Podcast feed key.
+	 * @param string $episode_key Feed episode key.
+	 * @param string $phase       Current import phase.
+	 */
+	private static function set_episode_import_phase( $feed_key, $episode_key, $phase ) {
+		$state = self::get_episode_import_state( $feed_key, $episode_key );
+		if ( $state ) {
+			$state['phase']      = sanitize_text_field( $phase );
+			$state['updated_at'] = time();
+			self::update_episode_import_state( $feed_key, $episode_key, $state );
+		}
+		self::set_current_import_attempt( $feed_key, array( $episode_key ), $phase );
+	}
+
+	/**
+	 * Clear the active import attempt context.
+	 *
+	 * @since 7.9.16
+	 */
+	private static function clear_current_import_attempt() {
+		self::$current_import_attempt = array();
+	}
+
+	/**
+	 * Mark the active import attempt as failed.
+	 *
+	 * @since 7.9.16
+	 *
+	 * @param array $error Error details.
+	 */
+	private static function mark_current_import_attempt_failed( $error ) {
+		$current = self::$current_import_attempt;
+		if ( empty( $current['feed_key'] ) || empty( $current['episode_keys'] ) ) {
+			return;
+		}
+
+		foreach ( $current['episode_keys'] as $episode_key ) {
+			self::mark_episode_import_failed( $current['feed_key'], $episode_key, $error );
+		}
+	}
+
+	/**
+	 * Mark an episode import as failed.
+	 *
+	 * @since 7.9.16
+	 *
+	 * @param string $feed_key    Podcast feed key.
+	 * @param string $episode_key Feed episode key.
+	 * @param array  $error       Error details.
+	 */
+	private static function mark_episode_import_failed( $feed_key, $episode_key, $error ) {
+		$state = self::get_episode_import_state( $feed_key, $episode_key );
+		if ( empty( $state ) ) {
+			$state = array(
+				'feed_key'    => sanitize_text_field( $feed_key ),
+				'episode_key' => sanitize_text_field( $episode_key ),
+				'attempts'    => 1,
+			);
+		}
+
+		$state['status']     = 'failed';
+		$state['phase']      = isset( $error['phase'] ) ? sanitize_text_field( $error['phase'] ) : ( isset( $state['phase'] ) ? sanitize_text_field( $state['phase'] ) : '' );
+		$state['updated_at'] = time();
+		$state['last_error'] = array(
+			'reason'  => isset( $error['reason'] ) ? sanitize_text_field( $error['reason'] ) : 'import_failed',
+			'message' => isset( $error['message'] ) ? sanitize_text_field( $error['message'] ) : '',
+			'file'    => isset( $error['file'] ) ? sanitize_text_field( $error['file'] ) : '',
+			'line'    => isset( $error['line'] ) ? absint( $error['line'] ) : 0,
+		);
+
+		self::update_episode_import_state( $feed_key, $episode_key, $state );
+	}
+
+	/**
+	 * Mark an episode import as successfully mapped to a post.
+	 *
+	 * @since 7.9.16
+	 *
+	 * @param string $feed_key    Podcast feed key.
+	 * @param string $episode_key Feed episode key.
+	 * @param int    $post_id     Imported post ID.
+	 * @param array  $item        Feed item data.
+	 */
+	private static function mark_episode_imported( $feed_key, $episode_key, $post_id, $item = array() ) {
+		$state = self::get_episode_import_state( $feed_key, $episode_key );
+		if ( empty( $state ) ) {
+			$state = array(
+				'feed_key'    => sanitize_text_field( $feed_key ),
+				'episode_key' => sanitize_text_field( $episode_key ),
+				'attempts'    => 1,
+			);
+		}
+
+		$state['episode_id'] = isset( $item['episode_id'] ) ? sanitize_text_field( $item['episode_id'] ) : ( isset( $state['episode_id'] ) ? sanitize_text_field( $state['episode_id'] ) : '' );
+		$state['src_hash']   = isset( $item['src'] ) ? md5( esc_url_raw( $item['src'] ) ) : ( isset( $state['src_hash'] ) ? sanitize_text_field( $state['src_hash'] ) : '' );
+		$state['post_id']    = absint( $post_id );
+		$state['status']     = 'imported';
+		$state['phase']      = 'complete';
+		$state['updated_at'] = time();
+		$state['last_error'] = array();
+
+		self::update_episode_import_state( $feed_key, $episode_key, $state );
+	}
+
+	/**
+	 * Get a valid imported post ID from the minimal import state.
+	 *
+	 * @since 7.9.16
+	 *
+	 * @param string $feed_key    Podcast feed key.
+	 * @param string $episode_key Feed episode key.
+	 */
+	private static function get_imported_post_id_from_state( $feed_key, $episode_key ) {
+		$state   = self::get_episode_import_state( $feed_key, $episode_key );
+		$post_id = ! empty( $state['post_id'] ) ? absint( $state['post_id'] ) : 0;
+		if ( $post_id && false !== get_post_status( $post_id ) ) {
+			return $post_id;
+		}
+		return 0;
+	}
+
+	/**
+	 * Skip repeated failed auto-imports while still allowing manual retries.
+	 *
+	 * @since 7.9.16
+	 *
+	 * @param string $feed_key        Podcast feed key.
+	 * @param string $episode_key     Feed episode key.
+	 * @param array  $import_settings Import settings.
+	 */
+	private static function should_skip_auto_import_retry( $feed_key, $episode_key, $import_settings ) {
+		$source = isset( $import_settings['import_source'] ) ? sanitize_text_field( $import_settings['import_source'] ) : '';
+		if ( 'background' !== $source ) {
+			return false;
+		}
+
+		$state = self::get_episode_import_state( $feed_key, $episode_key );
+		if ( ! empty( $state['post_id'] ) && false !== get_post_status( absint( $state['post_id'] ) ) ) {
+			return false;
+		}
+		$attempts = ! empty( $state['attempts'] ) ? absint( $state['attempts'] ) : 0;
+		if ( ! empty( $state['status'] ) && 'failed' === $state['status'] && 3 <= $attempts ) {
+			return true;
+		}
+
+		$updated_at = ! empty( $state['updated_at'] ) ? absint( $state['updated_at'] ) : 0;
+		return ! empty( $state['status'] ) && 'processing' === $state['status'] && 3 <= $attempts && $updated_at && $updated_at < ( time() - 15 * MINUTE_IN_SECONDS );
+	}
 
 	/**
 	 * Require a capability for admin-ajax actions.
@@ -299,6 +721,8 @@ class Utility {
         $taxonomy    = isset( $import_settings['taxonomy'] ) ? sanitize_text_field( $import_settings['taxonomy'] ) : '';
 		$ep_taxonomy = isset( $import_settings['ep_taxonomy'] ) ? sanitize_text_field( $import_settings['ep_taxonomy'] ) : '';
 		$ep_terms    = isset( $import_settings['ep_terms'] ) ? $import_settings['ep_terms'] : array();
+		$elist       = array_values( array_filter( (array) $elist ) );
+		self::register_import_shutdown_handler();
 
         // Get items data to be imported as WP posts.
         $req_fields = apply_filters( 'podcast_player_import_episode_fields', array(
@@ -316,122 +740,179 @@ class Utility {
 		), $feed_key );
 
         // Get required episodes data from the feed.
+		self::start_batch_import_attempts( $feed_key, $elist, 'fetching_feed_data' );
 		$fdata        = Get_Fn::get_feed_data( $feed_key, array( 'elist' => $elist ), $req_fields );
         $custom_data  = Get_Fn::get_modified_feed_data( $feed_key );
         $custom_items = $custom_data->get( 'items' );
 
         // Return error message if feed data is not proper.
 		if ( is_wp_error( $fdata ) ) {
+			self::mark_current_import_attempt_failed(
+				array(
+					'reason'  => 'feed_fetch_error',
+					'message' => $fdata->get_error_message(),
+					'phase'   => 'fetching_feed_data',
+				)
+			);
+			self::clear_current_import_attempt();
 			return $fdata;
 		}
+		self::clear_current_import_attempt();
 
 		$furl  = isset( $fdata['furl'] ) ? $fdata['furl'] : $feed_key;
         $items = $fdata['items'];
+		$completed_items = array();
         foreach ( $items as $key => $item ) {
-            $post_id = isset( $item['post_id'] ) ? absint( $item['post_id'] ) : false;
-            $date    = isset( $item['timestamp'] ) ? date( 'Y-m-d H:i:s', $item['timestamp'] ) : date( 'Y-m-d H:i:s', strtotime( $item['date'] ) );
-			$post_id = self::check_if_post_exists( $post_id, $item['title'], $date, $post_type );
-            if ( $post_id ) {
-				if ( ! isset( $custom_items[ $key ] ) || ! $custom_items[ $key ] instanceof ItemData ) {
-					$custom_items[ $key ] = new ItemData();
-				}
-				$custom_items[ $key ]->set( 'post_id', $post_id );
-            } else {
-				$post_id = 0; // Default for new posts.
-			}
-
-			if ( isset( $import_settings['location'] ) && 'manual' === $import_settings['location'] ) {
-				$hide_download = isset( $import_settings['hide_download'] ) && $import_settings['hide_download'] ? 'true' : 'false';
-				$hide_social = isset( $import_settings['hide_social'] ) && $import_settings['hide_social'] ? 'true' : 'false';
-				$editor_block = sprintf(
-					'<!-- wp:podcast-player/podcast-player {"feedURL":"%1$s", "elist":["%2$s"], "podcastMenu":"%3$s", "accentColor": "%4$s", "displayStyle": "%5$s", "hideDownload": %6$s, "hideSocial": %7$s, "hideTitle": true, "hideContent": true, "bgColor": "%8$s", "from": "import", "audioSrc": "%9$s" } /-->',
-					sanitize_text_field( $feed_key ),
-					sanitize_text_field( $key ),
-					isset( $import_settings['menu'] ) ? (int) $import_settings['menu'] : '',
-					isset( $import_settings['accent'] ) ? sanitize_hex_color( $import_settings['accent'] ) : '',
-					isset( $import_settings['style'] ) ? sanitize_text_field( $import_settings['style'] ) : '',
-					$hide_download,
-					$hide_social,
-					isset( $import_settings['bgcolor'] ) ? sanitize_hex_color( $import_settings['bgcolor'] ) : '',
-					isset( $item['src'] ) ? esc_url_raw( $item['src'] ) : ''
-				);
-
-				$post_content = $editor_block . wp_kses_post( $item['description'] );
-			} else {
-				$post_content = wp_kses_post( $item['description'] );
-			}
-
-            // Importing the post.
-            $new_post_id = wp_insert_post(
-				apply_filters(
-					'pp_import_post_data',
-					array(
-						'ID'           => $post_id,
-						'post_author'  => $post_author,
-						'post_content' => $post_content,
-						'post_date'    => $date,
-						'post_status'  => $post_status,
-						'post_title'   => sanitize_text_field( $item['title'] ),
-						'post_type'    => $post_type,
-					),
-					$furl,
-					$item
-				)
-			);
-
-            // Return error message if the import generate errors.
-			if ( is_wp_error( $new_post_id ) ) {
-				// return array( $new_post_id, $elist );
+			if ( self::should_skip_auto_import_retry( $feed_key, $key, $import_settings ) ) {
+				$completed_items[ $key ] = array( 'skipped' => true );
 				continue;
 			}
 
-            // Add post specific information.
-			add_post_meta(
-				$new_post_id,
-				'pp_import_data',
-				array(
-					'podkey'    => sanitize_text_field( $feed_key ),
-					'episode'   => sanitize_text_field( $key ),
-					'src'       => esc_url_raw( $item['src'] ),
-					'type'      => sanitize_text_field( $item['mediatype'] ),
-					'is_manual' => 'manual' === $import_settings['location']
-				)
-			);
+			self::start_episode_import_attempt( $feed_key, $key, $item, 'resolving_existing_post' );
+			try {
+				$post_id        = isset( $item['post_id'] ) ? absint( $item['post_id'] ) : false;
+				$state_post_id  = self::get_imported_post_id_from_state( $feed_key, $key );
+				$post_id        = $post_id ? $post_id : $state_post_id;
+				$date           = isset( $item['timestamp'] ) ? date( 'Y-m-d H:i:s', $item['timestamp'] ) : date( 'Y-m-d H:i:s', strtotime( $item['date'] ) );
+				$post_id        = self::check_if_post_exists( $post_id, $item['title'], $date, $post_type );
+				if ( $post_id ) {
+					if ( ! isset( $custom_items[ $key ] ) || ! $custom_items[ $key ] instanceof ItemData ) {
+						$custom_items[ $key ] = new ItemData();
+					}
+					$custom_items[ $key ]->set( 'post_id', $post_id );
+				} else {
+					$post_id = 0; // Default for new posts.
+				}
 
-			// Add episode specific information.
-			add_post_meta( $new_post_id, 'pp_episode_id', $item['episode_id'], true );
+				if ( isset( $import_settings['location'] ) && 'manual' === $import_settings['location'] ) {
+					$hide_download = isset( $import_settings['hide_download'] ) && $import_settings['hide_download'] ? 'true' : 'false';
+					$hide_social = isset( $import_settings['hide_social'] ) && $import_settings['hide_social'] ? 'true' : 'false';
+					$editor_block = sprintf(
+						'<!-- wp:podcast-player/podcast-player {"feedURL":"%1$s", "elist":["%2$s"], "podcastMenu":"%3$s", "accentColor": "%4$s", "displayStyle": "%5$s", "hideDownload": %6$s, "hideSocial": %7$s, "hideTitle": true, "hideContent": true, "bgColor": "%8$s", "from": "import", "audioSrc": "%9$s" } /-->',
+						sanitize_text_field( $feed_key ),
+						sanitize_text_field( $key ),
+						isset( $import_settings['menu'] ) ? (int) $import_settings['menu'] : '',
+						isset( $import_settings['accent'] ) ? sanitize_hex_color( $import_settings['accent'] ) : '',
+						isset( $import_settings['style'] ) ? sanitize_text_field( $import_settings['style'] ) : '',
+						$hide_download,
+						$hide_social,
+						isset( $import_settings['bgcolor'] ) ? sanitize_hex_color( $import_settings['bgcolor'] ) : '',
+						isset( $item['src'] ) ? esc_url_raw( $item['src'] ) : ''
+					);
 
-            // Conditionally import and set post featured image.
-            if ( $is_get_img ) {
-                $img_id = ! empty( $item['featured_id'] ) ? absint( $item['featured_id'] ) : self::upload_image( $item['featured'], $item['title'] );
-                if ( $img_id ) {
-                    set_post_thumbnail( $new_post_id, $img_id );
-                }
-            }
+					$post_content = $editor_block . wp_kses_post( $item['description'] );
+				} else {
+					$post_content = wp_kses_post( $item['description'] );
+				}
 
-			// Assign terms to the post or post type.
-			if ( $taxonomy && ! empty( $item['categories'] ) && is_array( $item['categories'] ) ) {
-                wp_set_object_terms( $new_post_id, array_map('sanitize_text_field', $item['categories']), $taxonomy );
-            }
+				// Importing the post.
+				self::set_episode_import_phase( $feed_key, $key, 'creating_post' );
+				$existing_status = $post_id ? get_post_status( $post_id ) : false;
+				$new_post_id = wp_insert_post(
+					apply_filters(
+						'pp_import_post_data',
+						array(
+							'ID'           => $post_id,
+							'post_author'  => $post_author,
+							'post_content' => $post_content,
+							'post_date'    => $date,
+							'post_status'  => $existing_status ? $existing_status : $post_status,
+							'post_title'   => sanitize_text_field( $item['title'] ),
+							'post_type'    => $post_type,
+						),
+						$furl,
+						$item
+					)
+				);
 
-			if ( ! empty( $ep_taxonomy ) && ! empty( $ep_terms ) ) {
-				wp_set_object_terms( $new_post_id, $ep_terms, $ep_taxonomy );
+				// Return error message if the import generate errors.
+				if ( is_wp_error( $new_post_id ) ) {
+					self::mark_episode_import_failed(
+						$feed_key,
+						$key,
+						array(
+							'reason'  => 'post_insert_error',
+							'message' => $new_post_id->get_error_message(),
+							'phase'   => 'creating_post',
+						)
+					);
+					self::clear_current_import_attempt();
+					continue;
+				}
+
+				self::set_episode_import_phase( $feed_key, $key, 'saving_import_mapping' );
+				self::mark_episode_imported( $feed_key, $key, $new_post_id, $item );
+				$completed_items[ $key ] = array( 'post_id' => $new_post_id );
+
+				// Add post specific information.
+				self::set_episode_import_phase( $feed_key, $key, 'saving_post_meta' );
+				add_post_meta(
+					$new_post_id,
+					'pp_import_data',
+					array(
+						'podkey'    => sanitize_text_field( $feed_key ),
+						'episode'   => sanitize_text_field( $key ),
+						'src'       => esc_url_raw( $item['src'] ),
+						'type'      => sanitize_text_field( $item['mediatype'] ),
+						'is_manual' => isset( $import_settings['location'] ) && 'manual' === $import_settings['location']
+					)
+				);
+
+				// Add episode specific information.
+				add_post_meta( $new_post_id, 'pp_episode_id', $item['episode_id'], true );
+
+				// Conditionally import and set post featured image.
+				if ( $is_get_img ) {
+					self::set_episode_import_phase( $feed_key, $key, 'saving_featured_image' );
+					$img_id = ! empty( $item['featured_id'] ) ? absint( $item['featured_id'] ) : self::upload_image( $item['featured'], $item['title'] );
+					if ( $img_id ) {
+						set_post_thumbnail( $new_post_id, $img_id );
+					}
+				}
+
+				// Assign terms to the post or post type.
+				if ( $taxonomy && ! empty( $item['categories'] ) && is_array( $item['categories'] ) ) {
+					self::set_episode_import_phase( $feed_key, $key, 'saving_terms' );
+					wp_set_object_terms( $new_post_id, array_map('sanitize_text_field', $item['categories']), $taxonomy );
+				}
+
+				if ( ! empty( $ep_taxonomy ) && ! empty( $ep_terms ) ) {
+					self::set_episode_import_phase( $feed_key, $key, 'saving_terms' );
+					wp_set_object_terms( $new_post_id, $ep_terms, $ep_taxonomy );
+				}
+
+				// Store post id in custom feed data.
+				if ( ! isset( $custom_items[ $key ] ) || ! $custom_items[ $key ] instanceof ItemData ) {
+					$custom_items[ $key ] = new ItemData();
+				}
+				$custom_items[ $key ]->set( 'post_id', $new_post_id );
+				self::mark_episode_imported( $feed_key, $key, $new_post_id, $item );
+				self::clear_current_import_attempt();
+			} catch ( \Exception $e ) {
+				self::mark_episode_import_failed(
+					$feed_key,
+					$key,
+					array(
+						'reason'  => 'import_exception',
+						'message' => $e->getMessage(),
+						'file'    => $e->getFile(),
+						'line'    => $e->getLine(),
+					)
+				);
+				self::clear_current_import_attempt();
+				continue;
 			}
-
-            // Store post id in custom feed data.
-            if ( ! isset( $custom_items[ $key ] ) || ! $custom_items[ $key ] instanceof ItemData ) {
-                $custom_items[ $key ] = new ItemData();
-            }
-            $custom_items[ $key ]->set( 'post_id', $new_post_id );
         }
 
         // Update custom feed data.
+		self::set_current_import_attempt( $feed_key, array_keys( $items ), 'saving_modified_feed_data' );
         $custom_data->set( 'items', $custom_items );
         $store_manager = StoreManager::get_instance();
         $store_manager->update_data( $custom_data, $feed_key, 'modified_feed_data' );
+		self::clear_current_import_attempt();
 
 		// Return all imported episodes.
-		return array_filter( array_map(
+		return $completed_items + array_filter( array_map(
 			function ( $item ) {
 				if ( ! empty( $item->get( 'post_id' ) ) ) {
 					return array( 'post_id' => $item->get( 'post_id' ) );

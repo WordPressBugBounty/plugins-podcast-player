@@ -35,6 +35,7 @@ class Shortcode extends Singleton {
 	public function render( $atts, $pp_content = null ) {
 
 		$defaults = $this->get_defaults();
+		$provided = $this->get_provided_display_args( $atts );
 		$atts     = shortcode_atts( $defaults, $atts, 'podcastplayer' );
 		$img_url  = '';
 		$image_id = '';
@@ -110,6 +111,7 @@ class Shortcode extends Singleton {
 				'bullhorn-sub'      => $atts['bullhorn_sub'],
 				'podbean-sub'       => $atts['podbean_sub'],
 				'playerfm-sub'      => $atts['playerfm_sub'],
+				'_provided'         => $provided,
 			),
 			$atts
 		);
@@ -134,6 +136,112 @@ class Shortcode extends Singleton {
 
 		$shortcodegen = new ShortCodeGen();
 		return $shortcodegen->render( $instance, false );
+	}
+
+	/**
+	 * Map explicitly provided shortcode attributes to display argument keys.
+	 *
+	 * @since 8.0.0
+	 *
+	 * @param array $atts Raw shortcode attributes.
+	 * @return array
+	 */
+	private function get_provided_display_args( $atts ) {
+		if ( ! is_array( $atts ) || empty( $atts ) ) {
+			return array();
+		}
+
+		$map = array(
+			'feed_url'          => 'url',
+			'sortby'            => 'sortby',
+			'filterby'          => 'filterby',
+			'autoplay'          => 'autoplay',
+			'number'            => 'number',
+			'no_scroll'         => 'no-scroll',
+			'podcast_menu'      => 'menu',
+			'main_menu_items'   => 'main_menu_items',
+			'cover_image_url'   => 'img_url',
+			'header_default'    => 'header-default',
+			'list_default'      => 'list-default',
+			'hide_header'       => 'hide-header',
+			'hide_title'        => 'hide-title',
+			'hide_cover'        => 'hide-cover-img',
+			'hide_description'  => 'hide-description',
+			'hide_subscribe'    => 'hide-subscribe',
+			'hide_search'       => 'hide-search',
+			'hide_author'       => 'hide-author',
+			'hide_content'      => 'hide-content',
+			'hide_loadmore'     => 'hide-loadmore',
+			'hide_download'     => 'hide-download',
+			'hide_social'       => 'hide-social',
+			'hide_featured'     => 'hide-featured',
+			'accent_color'      => 'accent-color',
+			'display_style'     => 'display-style',
+			'teaser_text'       => 'teaser-text',
+			'offset'            => 'offset',
+			'excerpt_length'    => 'excerpt-length',
+			'excerpt_unit'      => 'excerpt-unit',
+			'apple_sub'         => 'apple-sub',
+			'google_sub'        => 'google-sub',
+			'spotify_sub'       => 'spotify-sub',
+			'breaker_sub'       => 'breaker-sub',
+			'castbox_sub'       => 'castbox-sub',
+			'castro_sub'        => 'castro-sub',
+			'iheart_sub'        => 'iheart-sub',
+			'amazon_sub'        => 'amazon-sub',
+			'overcast_sub'      => 'overcast-sub',
+			'pocketcasts_sub'   => 'pocketcasts-sub',
+			'podcastaddict_sub' => 'podcastaddict-sub',
+			'podchaser_sub'     => 'podchaser-sub',
+			'radiopublic_sub'   => 'radiopublic-sub',
+			'soundcloud_sub'    => 'soundcloud-sub',
+			'stitcher_sub'      => 'stitcher-sub',
+			'tunein_sub'        => 'tunein-sub',
+			'youtube_sub'       => 'youtube-sub',
+			'bullhorn_sub'      => 'bullhorn-sub',
+			'podbean_sub'       => 'podbean-sub',
+			'playerfm_sub'      => 'playerfm-sub',
+			'aspect_ratio'      => 'aspect-ratio',
+			'crop_method'       => 'crop-method',
+			'grid_columns'      => 'grid-columns',
+			'fetch_method'      => 'fetch-method',
+			'post_type'         => 'post-type',
+			'taxonomy'          => 'taxonomy',
+			'terms'             => 'terms',
+			'podtitle'          => 'podtitle',
+			'mediasrc'          => 'audiosrc',
+			'episodetitle'      => 'audiotitle',
+			'episodelink'       => 'audiolink',
+			'audio_msg'         => 'audio-msg',
+			'play_freq'         => 'play-freq',
+			'msg_start'         => 'msg-start',
+			'msg_time'          => 'msg-time',
+			'msg_text'          => 'msg-text',
+			'bgcolor'           => 'bgcolor',
+			'txtcolor'          => 'txtcolor',
+			'font_family'       => 'font-family',
+			'episodes'          => 'episodes',
+			'seasons'           => 'seasons',
+			'categories'        => 'catlist',
+			'elist'             => 'elist',
+			'feedback'          => 'feedback',
+			'show_form_time'    => 'show-form-time',
+			'feedback_text'     => 'feedback-text',
+			'positive_text'     => 'positive-text',
+			'positive_url'      => 'positive-url',
+			'negative_text'     => 'negative-text',
+			'negative_form'     => 'negative-form',
+		);
+
+		$provided = array();
+		foreach ( array_keys( $atts ) as $key ) {
+			$key = strtolower( (string) $key );
+			if ( isset( $map[ $key ] ) ) {
+				$provided[] = $map[ $key ];
+			}
+		}
+
+		return array_values( array_unique( $provided ) );
 	}
 
 	/**
