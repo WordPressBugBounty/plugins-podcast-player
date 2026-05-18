@@ -34,7 +34,7 @@ $item = $this->items[0];
 	</div>
 	<?php if ( isset( $item['description'] ) && $item['description'] ) : ?>
 		<div class="episode-single__description">
-			<?php echo $item['description']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+			<?php echo wp_kses_post( $item['description'] ); ?>
 		</div>
 	<?php endif; ?>
 </div>

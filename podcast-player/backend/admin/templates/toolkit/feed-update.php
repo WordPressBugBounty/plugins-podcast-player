@@ -60,7 +60,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			</div>
 		<?php else : ?>
 			<div style="font-size: 20px !important; font-weight: bold; margin-bottom: 15px;"><?php esc_html_e( 'No podcasts are ready to update.', 'podcast-player' ); ?></div>
-			<div style="font-size: 15px;"><?php esc_html_e( 'Add a podcast player first, then return here to refresh its stored feed data whenever the feed changes.', 'podcast-player' ); ?> <a href="https://easypodcastpro.com/docs7/" target="_blank"><?php esc_html_e( 'Open the setup docs', 'podcast-player' ); ?></a>.</div>
+			<div style="font-size: 15px;"><?php esc_html_e( 'Add a podcast player first, then return here to refresh its stored feed data whenever the feed changes.', 'podcast-player' ); ?> <a href="https://easypodcastpro.com/docs7/" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Open the setup docs', 'podcast-player' ); ?></a>.</div>
 		<?php endif; ?>
 	</div>
 </div>

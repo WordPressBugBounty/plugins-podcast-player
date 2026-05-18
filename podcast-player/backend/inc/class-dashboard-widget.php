@@ -101,7 +101,7 @@ class Dashboard_Widget extends Singleton {
 				foreach ( $random_items as $item ) {
 					?>
 					<li class="pp-dash-list-item">
-						<a target="_blank" class="pp-dash-item-link" href="<?php echo esc_url( $item->get_permalink() ); ?>">
+						<a target="_blank" rel="noopener noreferrer" class="pp-dash-item-link" href="<?php echo esc_url( $item->get_permalink() ); ?>">
 							<?php echo esc_html( $item->get_title() ); ?>
 						</a>
 						<p class="pp-dash-item-desc">

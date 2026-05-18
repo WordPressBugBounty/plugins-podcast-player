@@ -86,6 +86,8 @@ class Register {
 
 		// General functionalities.
 		$general = General::get_instance();
+		self::register_podcast_defaults( $general );
+		self::register_dynamic_display_args( $general );
 		self::remove_frontend_data( $general );
 		self::create_subscribe_menu( $general );
 
@@ -96,6 +98,28 @@ class Register {
 		// Load icon definitions.
 		$icons = Icon_Loader::get_instance();
 		self::add_icons_definitions( $icons );
+	}
+
+	/**
+	 * Register podcast-specific display defaults.
+	 *
+	 * @since 8.1.1
+	 *
+	 * @param object $instance PP front-end general instance.
+	 */
+	public static function register_podcast_defaults( $instance ) {
+		add_filter( 'podcast_player_display_args_defaults', array( $instance, 'podcast_defaults' ), 4, 2 );
+	}
+
+	/**
+	 * Register dynamic display argument tokens.
+	 *
+	 * @since 8.1.1
+	 *
+	 * @param object $instance PP front-end general instance.
+	 */
+	public static function register_dynamic_display_args( $instance ) {
+		add_filter( 'podcast_player_display_args', array( $instance, 'resolve_dynamic_display_args' ), 5 );
 	}
 
 	/**

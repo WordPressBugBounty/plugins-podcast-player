@@ -11,15 +11,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use Podcast_Player\Helper\Functions\Markup as Markup_Fn;
+use Podcast_Player\Backend\Admin\Marketing_Context;
 
 $is_pro_installed  = defined( 'PP_PRO_VERSION' );
 $is_license_markup = function_exists( 'pp_pro_license_options' );
 $is_freemius_pro   = $is_pro_installed && function_exists( 'pp_fs' ) && ! $is_license_markup;
 $license_status    = get_option( 'pp_pro_license_status' );
 $license_key       = trim( (string) get_option( 'pp_pro_license_key' ) );
+$has_podcasts        = Marketing_Context::has_podcasts();
+$site_recommendation = Marketing_Context::get_site_recommendation();
 
 $pro_badge_text  = esc_html__( 'Podcast Player Pro', 'podcast-player' );
 $pro_badge_class = 'border-none bg-green-600 text-white font-semibold';
+$show_pro_badge   = true;
 $show_pro_popover = true;
 
 if ( $is_freemius_pro ) {
@@ -40,6 +44,11 @@ if ( $is_freemius_pro ) {
 		$pro_badge_text  = esc_html__( 'Pending Pro Activation', 'podcast-player' );
 		$pro_badge_class = 'border-indigo-300 bg-indigo-50 text-indigo-800 hover:border-indigo-400 hover:text-indigo-900';
 	}
+}
+
+if ( ! $is_pro_installed && ! $has_podcasts ) {
+	$show_pro_badge   = false;
+	$show_pro_popover = false;
 }
 
 ?>
@@ -74,20 +83,22 @@ if ( $is_freemius_pro ) {
 					}
 					?>
 					</ul>
-					<div class="pp-options-links relative shrink-0 self-start">
-						<?php if ( $show_pro_popover ) : ?>
-						<button type="button" id="pp-header-popover-toggle" class="pp-options-link inline-flex items-center rounded-full border px-4 py-2 text-sm font-medium no-underline transition-colors cursor-pointer <?php echo esc_attr( $pro_badge_class ); ?>" aria-expanded="false" aria-controls="pp-header-popover-panel">
-							<?php echo esc_html( $pro_badge_text ); ?>
-						</button>
-						<div id="pp-header-popover-panel" class="absolute right-0 top-full z-40 mt-2 hidden w-80 max-w-[calc(100vw-2rem)] sm:w-[340px] rounded-2xl border border-slate-200 bg-white p-4 shadow-xl">
-							<?php require PODCAST_PLAYER_DIR . '/backend/admin/templates/sidebar.php'; ?>
+					<?php if ( $show_pro_badge ) : ?>
+						<div class="pp-options-links relative shrink-0 self-start">
+							<?php if ( $show_pro_popover ) : ?>
+								<button type="button" id="pp-header-popover-toggle" class="pp-options-link inline-flex items-center rounded-full border px-4 py-2 text-sm font-medium no-underline transition-colors cursor-pointer <?php echo esc_attr( $pro_badge_class ); ?>" aria-expanded="false" aria-controls="pp-header-popover-panel">
+									<?php echo esc_html( $pro_badge_text ); ?>
+								</button>
+								<div id="pp-header-popover-panel" class="absolute right-0 top-full z-40 mt-2 hidden w-80 max-w-[calc(100vw-2rem)] sm:w-[340px] rounded-2xl border border-slate-200 bg-white p-4 shadow-xl">
+									<?php require PODCAST_PLAYER_DIR . '/backend/admin/templates/sidebar.php'; ?>
+								</div>
+							<?php else : ?>
+								<span class="pp-options-link inline-flex items-center rounded-full border px-4 py-2 text-sm font-medium <?php echo esc_attr( $pro_badge_class ); ?>">
+									<?php echo esc_html( $pro_badge_text ); ?>
+								</span>
+							<?php endif; ?>
 						</div>
-						<?php else : ?>
-						<span class="pp-options-link inline-flex items-center rounded-full border px-4 py-2 text-sm font-medium <?php echo esc_attr( $pro_badge_class ); ?>">
-							<?php echo esc_html( $pro_badge_text ); ?>
-						</span>
-						<?php endif; ?>
-					</div>
+					<?php endif; ?>
 				</div>
 			</div>
 		</div>
@@ -112,11 +123,22 @@ if ( $is_freemius_pro ) {
 				</div>
 			</div>
 		</div>
-		<?php
-		if ( 'home' === $current_page && ! defined( 'PP_PRO_VERSION' ) ) {
-			require PODCAST_PLAYER_DIR . '/backend/admin/templates/home-pro-upgrade.php';
-		}
-		?>
+		<?php if ( $site_recommendation ) : ?>
+			<div class="pp-site-recommendation rounded-sm border border-solid border-slate-200 bg-white p-4" data-recommendation-id="<?php echo esc_attr( $site_recommendation['id'] ); ?>">
+				<div class="flex items-start justify-between gap-3">
+					<div class="min-w-0">
+						<p class="m-0 text-xs font-semibold uppercase tracking-wide text-slate-500"><?php esc_html_e( 'Site Suggestion', 'podcast-player' ); ?></p>
+						<div class="mt-1 text-sm leading-relaxed text-slate-700">
+							<a class="font-semibold text-sky-700 no-underline hover:underline" href="<?php echo esc_url( $site_recommendation['url'] ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( $site_recommendation['link_label'] ); ?></a>
+							<span> <?php echo esc_html( $site_recommendation['description'] ); ?></span>
+						</div>
+					</div>
+					<button type="button" class="pp-site-recommendation-dismiss inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-slate-200 bg-white p-0 text-slate-500 hover:border-slate-300 hover:text-slate-800" aria-label="<?php esc_attr_e( 'Dismiss site suggestion', 'podcast-player' ); ?>">
+						<span class="dashicons dashicons-no-alt" aria-hidden="true"></span>
+					</button>
+				</div>
+			</div>
+		<?php endif; ?>
 	</div>
 	<div class="pp-action-feedback fixed left-1/2 top-5 z-50 -translate-x-1/2 rounded-lg border border-slate-300 bg-white/95 px-3 py-2 shadow-md" id="pp-action-feedback">
 		<span class="dashicons dashicons-update"></span>
@@ -127,35 +149,111 @@ if ( $is_freemius_pro ) {
 	</div>
 </div>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-	const toggle = document.getElementById('pp-header-popover-toggle');
-	const panel = document.getElementById('pp-header-popover-panel');
-	if (!toggle || !panel) {
-		return;
-	}
+	document.addEventListener('DOMContentLoaded', function() {
+		const toggle = document.getElementById('pp-header-popover-toggle');
+		const panel = document.getElementById('pp-header-popover-panel');
+		const moreStylesValue = <?php echo wp_json_encode( Marketing_Context::MORE_STYLES ); ?>;
+		const moreStylesUrl = <?php echo wp_json_encode( Marketing_Context::PRO_URL ); ?>;
+		const siteSuggestion = document.querySelector('.pp-site-recommendation[data-recommendation-id]');
+		const dismissedSiteSuggestionsKey = 'ppDismissedSiteSuggestions';
 
-	const closePopover = function() {
-		panel.classList.add('hidden');
-		toggle.setAttribute('aria-expanded', 'false');
-	};
+		document.querySelectorAll('select.podcast-player-pp-display-style').forEach(function(select) {
+			if (select.value !== moreStylesValue) {
+				select.setAttribute('data-pp-previous-style', select.value);
+			}
+		});
 
-	toggle.addEventListener('click', function(e) {
-		e.preventDefault();
-		e.stopPropagation();
-		panel.classList.toggle('hidden');
-		toggle.setAttribute('aria-expanded', panel.classList.contains('hidden') ? 'false' : 'true');
-	});
+		if (siteSuggestion) {
+			const recommendationId = siteSuggestion.getAttribute('data-recommendation-id');
+			let dismissedSiteSuggestions = [];
+			try {
+				dismissedSiteSuggestions = JSON.parse(window.localStorage.getItem(dismissedSiteSuggestionsKey) || '[]');
+			} catch (e) {
+				dismissedSiteSuggestions = [];
+			}
+			if (!Array.isArray(dismissedSiteSuggestions)) {
+				dismissedSiteSuggestions = [];
+			}
+			if (dismissedSiteSuggestions.indexOf(recommendationId) !== -1) {
+				siteSuggestion.remove();
+			} else {
+				const dismissButton = siteSuggestion.querySelector('.pp-site-recommendation-dismiss');
+				if (dismissButton) {
+					dismissButton.addEventListener('click', function() {
+						dismissedSiteSuggestions.push(recommendationId);
+						try {
+							window.localStorage.setItem(dismissedSiteSuggestionsKey, JSON.stringify(Array.from(new Set(dismissedSiteSuggestions))));
+						} catch (e) {}
+						siteSuggestion.remove();
+					});
+				}
+			}
+		}
 
-	document.addEventListener('click', function(e) {
-		if (!panel.contains(e.target) && !toggle.contains(e.target)) {
-			closePopover();
+		document.addEventListener('focusin', function(e) {
+			const select = e.target && e.target.closest ? e.target.closest('select.podcast-player-pp-display-style') : null;
+			if (select && select.value !== moreStylesValue) {
+				select.setAttribute('data-pp-previous-style', select.value);
+			}
+		}, true);
+
+		document.addEventListener('change', function(e) {
+			const select = e.target && e.target.closest ? e.target.closest('select.podcast-player-pp-display-style') : null;
+			if (!select) {
+				return;
+			}
+			if (select.value === moreStylesValue) {
+				e.preventDefault();
+				e.stopImmediatePropagation();
+				select.value = select.getAttribute('data-pp-previous-style') || '';
+				window.open(moreStylesUrl, '_blank', 'noopener');
+				return;
+			}
+			select.setAttribute('data-pp-previous-style', select.value);
+		}, true);
+
+		document.addEventListener('click', function(e) {
+			const proTipToggle = e.target && e.target.closest ? e.target.closest('.pp-podcast-pro-tip-toggle') : null;
+			if (!proTipToggle) {
+				return;
+			}
+
+			e.preventDefault();
+			const wrapper = proTipToggle.closest('.pp-podcast-pro-tip');
+			const proTipPanel = wrapper ? wrapper.querySelector('.pp-podcast-pro-tip-panel') : null;
+			if (!proTipPanel) {
+				return;
+			}
+
+			const isExpanded = proTipToggle.getAttribute('aria-expanded') === 'true';
+			proTipPanel.classList.toggle('hidden', isExpanded);
+			proTipToggle.setAttribute('aria-expanded', isExpanded ? 'false' : 'true');
+		});
+
+		if (toggle && panel) {
+			const closePopover = function() {
+				panel.classList.add('hidden');
+				toggle.setAttribute('aria-expanded', 'false');
+			};
+
+			toggle.addEventListener('click', function(e) {
+				e.preventDefault();
+				e.stopPropagation();
+				panel.classList.toggle('hidden');
+				toggle.setAttribute('aria-expanded', panel.classList.contains('hidden') ? 'false' : 'true');
+			});
+
+			document.addEventListener('click', function(e) {
+				if (!panel.contains(e.target) && !toggle.contains(e.target)) {
+					closePopover();
+				}
+			});
+
+			document.addEventListener('keydown', function(e) {
+				if ('Escape' === e.key) {
+					closePopover();
+				}
+			});
 		}
 	});
-
-	document.addEventListener('keydown', function(e) {
-		if ('Escape' === e.key) {
-			closePopover();
-		}
-	});
-});
 </script>

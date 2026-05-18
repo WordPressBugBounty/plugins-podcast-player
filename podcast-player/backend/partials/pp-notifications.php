@@ -23,17 +23,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</div>
 		<div>
 			<span style="font-weight: bold">Go to WordPress Dashboard > Podcast Player > Shortcode.</span> 
-			<a href="https://easypodcastpro.com/docs/shortcode-generator/" target="_blank">Learn More</a>
+			<a href="https://easypodcastpro.com/docs/shortcode-generator/" target="_blank" rel="noopener noreferrer">Learn More</a>
 		</div>
 	</div> -->
 	<div class="common-links">
 		<p class="pp-link">
-			<a href="https://wordpress.org/support/plugin/podcast-player/" target="_blank">
+			<a href="https://wordpress.org/support/plugin/podcast-player/" target="_blank" rel="noopener noreferrer">
 				<?php esc_html_e( 'Raise a support request', 'podcast-player' ); ?>
 			</a>
 		</p>
 		<p class="pp-link">
-			<a href="https://wordpress.org/support/plugin/podcast-player/reviews/" target="_blank">
+			<a href="https://wordpress.org/support/plugin/podcast-player/reviews/" target="_blank" rel="noopener noreferrer">
 				<?php esc_html_e( 'Give us 5 stars rating', 'podcast-player' ); ?>
 			</a>
 		</p>

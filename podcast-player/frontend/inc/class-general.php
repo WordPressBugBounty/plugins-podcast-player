@@ -22,6 +22,212 @@ use Podcast_Player\Helper\Core\Singleton;
  */
 class General extends Singleton {
 	/**
+	 * Resolve opt-in dynamic tokens in display arguments.
+	 *
+	 * @since 8.1.1
+	 *
+	 * @param array $args Podcast display args.
+	 * @return array
+	 */
+	public function resolve_dynamic_display_args( $args ) {
+		if ( ! is_array( $args ) || empty( $args ) ) {
+			return $args;
+		}
+
+		foreach ( $args as $key => $value ) {
+			$args[ $key ] = $this->resolve_dynamic_display_arg_value( $value );
+		}
+
+		return $args;
+	}
+
+	/**
+	 * Resolve a dynamic token in a display arg value.
+	 *
+	 * @since 8.1.1
+	 *
+	 * @param mixed $value Display arg value.
+	 * @return mixed
+	 */
+	private function resolve_dynamic_display_arg_value( $value ) {
+		if ( is_array( $value ) ) {
+			foreach ( $value as $key => $item ) {
+				$value[ $key ] = $this->resolve_dynamic_display_arg_value( $item );
+			}
+			return $value;
+		}
+
+		if ( ! is_string( $value ) ) {
+			return $value;
+		}
+
+		switch ( trim( $value ) ) {
+			case 'current_post_id':
+			case '{current_post_id}':
+				return $this->get_current_post_id();
+
+			case 'current_post_audiosrc':
+			case '{current_post_audiosrc}':
+				return $this->get_current_post_audiosrc();
+		}
+
+		return $value;
+	}
+
+	/**
+	 * Get the current post ID.
+	 *
+	 * @since 8.1.1
+	 *
+	 * @return int|false
+	 */
+	private function get_current_post_id() {
+		$post_id = get_the_ID();
+
+		if ( ! $post_id ) {
+			$post_id = get_queried_object_id();
+		}
+
+		return $post_id ? absint( $post_id ) : false;
+	}
+
+	/**
+	 * Get the current imported episode audio URL.
+	 *
+	 * @since 8.1.1
+	 *
+	 * @return string|false
+	 */
+	private function get_current_post_audiosrc() {
+		$post_id = $this->get_current_post_id();
+		if ( ! $post_id ) {
+			return false;
+		}
+
+		$import = get_post_meta( $post_id, 'pp_import_data', true );
+		if ( ! is_array( $import ) || empty( $import['src'] ) ) {
+			return false;
+		}
+
+		return esc_url_raw( $import['src'] );
+	}
+
+	/**
+	 * Apply podcast-specific player defaults.
+	 *
+	 * External integrations can provide lower-priority defaults. Saved Podcast
+	 * Player defaults are merged above them so site-owner choices always win.
+	 *
+	 * @since 8.1.1
+	 *
+	 * @param array $args          Podcast display args.
+	 * @param array $base_defaults Plugin display defaults.
+	 * @return array
+	 */
+	public function podcast_defaults( $args, $base_defaults ) {
+		if ( empty( $args['url'] ) || ( isset( $args['fetch-method'] ) && 'feed' !== $args['fetch-method'] ) ) {
+			return $args;
+		}
+
+		$external_defaults = apply_filters( 'podcast_player_external_defaults', array(), $args['url'], $args );
+		$external_defaults = is_array( $external_defaults ) ? $external_defaults : array();
+		$defaults          = array_merge( $external_defaults, Get_Fn::get_podcast_defaults( $args['url'] ) );
+		if ( empty( $defaults ) ) {
+			return $args;
+		}
+
+		foreach ( $defaults as $key => $value ) {
+			if ( $this->should_apply_podcast_default( $key, $value, $args, $base_defaults ) ) {
+				$args[ $key ] = $value;
+			}
+		}
+
+		return $args;
+	}
+
+	/**
+	 * Check if a podcast-specific default should fill the current value.
+	 *
+	 * @since 8.1.1
+	 *
+	 * @param string $key           Display arg key.
+	 * @param mixed  $default_value Saved podcast default value.
+	 * @param array  $args          Current display args.
+	 * @param array  $base_defaults Plugin display defaults.
+	 */
+	private function should_apply_podcast_default( $key, $default_value, $args, $base_defaults ) {
+		if ( '' === $default_value || null === $default_value || false === $default_value ) {
+			return false;
+		}
+
+		if ( ! empty( $args['_provided'] ) && is_array( $args['_provided'] ) && in_array( $key, $args['_provided'], true ) ) {
+			return false;
+		}
+
+		if ( ! array_key_exists( $key, $args ) ) {
+			return true;
+		}
+
+		$current = $args[ $key ];
+		if ( $this->is_empty_default_value( $current ) ) {
+			return true;
+		}
+
+		if ( array_key_exists( $key, $base_defaults ) && $this->default_values_match( $current, $base_defaults[ $key ] ) ) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Check if a value is effectively empty for default inheritance.
+	 *
+	 * @since 8.1.1
+	 *
+	 * @param mixed $value Value to inspect.
+	 * @return bool
+	 */
+	private function is_empty_default_value( $value ) {
+		if ( '' === $value || null === $value || false === $value ) {
+			return true;
+		}
+
+		if ( is_array( $value ) ) {
+			$filtered = array_filter(
+				$value,
+				function ( $item ) {
+					return '' !== $item && null !== $item && false !== $item;
+				}
+			);
+			return empty( $filtered );
+		}
+
+		return false;
+	}
+
+	/**
+	 * Compare a current value against the plugin base default.
+	 *
+	 * @since 8.1.1
+	 *
+	 * @param mixed $current Current value.
+	 * @param mixed $default Base default.
+	 * @return bool
+	 */
+	private function default_values_match( $current, $default ) {
+		if ( is_bool( $current ) || is_bool( $default ) ) {
+			return (bool) $current === (bool) $default;
+		}
+
+		if ( is_numeric( $current ) && is_numeric( $default ) ) {
+			return (string) $current === (string) $default;
+		}
+
+		return $current === $default;
+	}
+
+	/**
 	 * Prevent exposing podcast feed data.
 	 *
 	 * @param array $data Podcast episodes data.

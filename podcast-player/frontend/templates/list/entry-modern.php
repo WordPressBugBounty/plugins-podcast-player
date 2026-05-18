@@ -39,7 +39,7 @@ $pp_combined = implode( ' ', array_merge( $pp_cats, $pp_tags, $pp_season ) );
 				<a href="<?php echo esc_url( $item['link'] ); ?>"><?php echo esc_html( $item['title'] ); ?></a>
 			</div>
 			<?php if ( 'post' === $this->args['fetch-method'] ) : ?>
-			<a class="pod-entry__mscript pp-entry__mpost" href="<?php echo esc_url( $item['link'] ); ?>" target="_blank">
+			<a class="pod-entry__mscript pp-entry__mpost" href="<?php echo esc_url( $item['link'] ); ?>" target="_blank" rel="noopener noreferrer">
 				<span class="ppjs__offscreen"><?php esc_html_e( 'Episode Description', 'podcast-player' ); ?></span>
 				<?php Markup_Fn::the_icon( array( 'icon' => 'pp-tab' ) ); ?>
 			</a>	

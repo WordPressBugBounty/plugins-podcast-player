@@ -506,6 +506,10 @@ class Feed extends Singleton {
 		if ( false === $val ) {
 			wp_die( -1, 403 );
 		}
+		if ( null === $val ) {
+			echo wp_json_encode( array( 'error' => esc_html__( 'Invalid request payload.', 'podcast-player' ) ) );
+			wp_die();
+		}
 
 		list(
 			$loaded, $displayed, $max_items, $instance, $sortby, $filterby, $fixed, $args, $lotsize, $term, $offset
@@ -562,6 +566,10 @@ class Feed extends Singleton {
 		$val = $this->get_ajax_variables();
 		if ( false === $val ) {
 			wp_die( -1, 403 );
+		}
+		if ( null === $val ) {
+			echo wp_json_encode( array( 'error' => esc_html__( 'Invalid request payload.', 'podcast-player' ) ) );
+			wp_die();
 		}
 
 		list(
@@ -668,6 +676,28 @@ class Feed extends Singleton {
 		$term      = isset( $_POST['search'] ) ? wp_unslash( $_POST['search'] ) : false;
 		$lotsize   = isset( $_POST['step'] ) ? wp_unslash( $_POST['step'] ) : '';
 		$offset    = isset( $_POST['offset'] ) ? wp_unslash( $_POST['offset'] ) : 0;
+
+		if ( ! is_array( $args ) ) {
+			return null;
+		}
+
+		$args = wp_parse_args(
+			$args,
+			array(
+				'imgurl'  => '',
+				'imgset'  => '',
+				'display' => '',
+				'hddesc'  => false,
+				'hdfeat'  => false,
+				'oricov'  => '',
+				'elength' => 0,
+				'filters' => array(),
+			)
+		);
+
+		if ( ! is_array( $args['filters'] ) ) {
+			$args['filters'] = array();
+		}
 
 		// Prepare and sanitize/validate feed args array.
 		// Feed URL has been encrypted using md5. Therefore, using esc_html.

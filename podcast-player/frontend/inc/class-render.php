@@ -707,7 +707,7 @@ class Render {
 		// Allow HTML.
 		$desc = wpautop( wptexturize( str_replace( '&quot;', '&#8221;', $this->info['description'] ) ) );
 
-		return sprintf( '<div class="%s">%s</div>', esc_attr( $classname ), $desc );
+		return sprintf( '<div class="%s">%s</div>', esc_attr( $classname ), wp_kses_post( $desc ) );
 	}
 
 	/**
@@ -998,7 +998,7 @@ class Render {
 			$text = apply_filters( 'pp_listen_podcast', esc_html__( 'Listen More Episodes', 'podcast-player' ) );
 
 			return sprintf(
-				'<div class="%1$s"><a href="%2$s" target="_blank">%3$s</a></div>',
+				'<div class="%1$s"><a href="%2$s" target="_blank" rel="noopener noreferrer">%3$s</a></div>',
 				esc_attr( $classname ),
 				esc_url( $current_url ),
 				$text

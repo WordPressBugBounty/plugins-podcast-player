@@ -277,6 +277,18 @@ img.custom-widget-thumbnail {
   border-bottom: 1px solid #e6e6e6;
 }
 
+.pp-product-reason {
+  display: inline-block;
+  padding: 4px 8px;
+  margin: 0 0 10px;
+  border: 1px solid #bfdbfe;
+  border-radius: 4px;
+  background: #eff6ff;
+  color: #1e40af;
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .pp-product-title {
   margin-bottom: 10px;
 }

@@ -58,7 +58,7 @@ foreach ( $pp_sub_links as $pp_link ) {
 	}
 
 	$pp_sub_markup .= sprintf(
-		'<a href="%1$s" class="subscribe-item pp-badge %2$s-sub" target="_blank">%3$s</a>',
+		'<a href="%1$s" class="subscribe-item pp-badge %2$s-sub" target="_blank" rel="noopener noreferrer">%3$s</a>',
 		esc_attr( esc_url( $pp_link ) ),
 		esc_attr( $service ),
 		Markup_Fn::get_template_markup( 'subscribe', $service )

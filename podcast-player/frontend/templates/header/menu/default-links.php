@@ -29,10 +29,10 @@ use Podcast_Player\Helper\Functions\Validation as Validation_Fn;
 	</h2>
 	<ul class="pod-menu">
 		<?php if ( Validation_Fn::is_valid_url( $this->info['link'] ) ) : ?>
-			<li class="menu-item"><a href="<?php echo esc_url( $this->info['link'] ); ?>" target="_blank"><?php esc_html_e( 'Visit Website', 'podcast-player' ); ?></a></li>
+			<li class="menu-item"><a href="<?php echo esc_url( $this->info['link'] ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Visit Website', 'podcast-player' ); ?></a></li>
 		<?php endif; ?>
 		<?php if ( Validation_Fn::is_valid_url( $this->args['url'] ) ) : ?>
-			<li class="menu-item"><a href="<?php echo esc_url( $this->args['url'] ); ?>" target="_blank"><?php esc_html_e( 'RSS Feed', 'podcast-player' ); ?></a></li>
+			<li class="menu-item"><a href="<?php echo esc_url( $this->args['url'] ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'RSS Feed', 'podcast-player' ); ?></a></li>
 		<?php endif; ?>
 	</ul>
 </nav>

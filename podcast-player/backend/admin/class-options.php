@@ -77,6 +77,13 @@ class Options {
 	public function __construct() {}
 
 	/**
+	 * Determine whether the premium feature set is active.
+	 */
+	private static function is_pro_enabled() {
+		return defined( 'PP_PRO_VERSION' ) || apply_filters( 'podcast_player_is_premium', false );
+	}
+
+	/**
 	 * Register hooked functions.
 	 *
 	 * @since 1.0.0
@@ -150,9 +157,7 @@ class Options {
 	 * @since    1.0.0
 	 */
 	public function get_setting_fields() {
-		return apply_filters(
-			'podcast_player_setting_fields',
-			array(
+		$fields = array(
 				'refresh_interval' => array(
 					'name'        => esc_html__( 'Podcast update interval', 'podcast-player' ),
 					'id'          => 'refresh_interval',
@@ -250,8 +255,23 @@ class Options {
 					'default'     => '',
 					'section'     => 'advanced',
 				),
-			)
-		);
+			);
+
+		if ( ! self::is_pro_enabled() ) {
+			$fields = array_slice( $fields, 0, 1, true ) + array(
+				'show_pro_tips' => array(
+					'name'        => esc_html__( 'Show helpful Pro Tips', 'podcast-player' ),
+					'id'          => 'show_pro_tips',
+					'description' => esc_html__( 'Keep this on to see occasional podcast-specific tips for layouts, search, filters, and episode importing. Turn it off if you prefer a quieter dashboard.', 'podcast-player' ),
+					'link'        => '',
+					'type'        => 'checkbox',
+					'default'     => 'yes',
+					'section'     => 'general',
+				),
+			) + array_slice( $fields, 1, null, true );
+		}
+
+		return apply_filters( 'podcast_player_setting_fields', $fields );
 	}
 
 	/**
@@ -314,7 +334,7 @@ class Options {
 
 			foreach ( $fields as $field ) {
 				if ( $field['section'] === $key ) {
-					$link  = $field['link'] ? sprintf( '<a href="%s" target="_blank">(?)</a>', esc_url( $field['link'] ) ) : '';
+					$link  = $field['link'] ? sprintf( '<a href="%s" target="_blank" rel="noopener noreferrer">(?)</a>', esc_url( $field['link'] ) ) : '';
 					$title = sprintf( '<span class="pp-opt-title">%1$s</span><span class="pp-opt-desc">%2$s %3$s</span>', $field['name'], $field['description'], $link );
 					add_settings_field(
 						$field['id'],

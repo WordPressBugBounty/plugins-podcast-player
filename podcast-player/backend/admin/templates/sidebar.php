@@ -9,28 +9,49 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
+
+use Podcast_Player\Backend\Admin\Marketing_Context;
 ?>
 
-<div class="pp-sidebar-section rounded-xl border border-slate-200 bg-white p-4">
+<div class="pp-sidebar-section">
 	<?php
 	if ( function_exists( 'pp_pro_license_options' ) ) {
 		pp_pro_license_options();
 	} else {
 		?>
-		<div class="rounded-xl border border-amber-200 bg-amber-50 p-5">
-			<p class="mb-2 inline-flex rounded-full border border-amber-300 bg-white px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-amber-800"><?php esc_html_e( 'Upgrade Available', 'podcast-player' ); ?></p>
-			<h3 class="pp-pro-title m-0 text-xl font-semibold leading-tight text-slate-900"><?php esc_html_e( 'Unlock Podcast Player Pro', 'podcast-player' ); ?></h3>
-			<p class="mb-0 mt-2 text-sm leading-relaxed text-slate-700"><?php esc_html_e( 'Create a more powerful podcast experience with advanced tools designed for growth and engagement.', 'podcast-player' ); ?></p>
-			<ul class="pp-pro-features mt-4 space-y-2 text-sm text-slate-700">
-				<li class="mb-0 flex items-start gap-2"><span class="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-500"></span><span>Sleek and Professional Templates</span></li>
-				<li class="mb-0 flex items-start gap-2"><span class="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-500"></span><span>Import Episodes as Posts</span></li>
-				<li class="mb-0 flex items-start gap-2"><span class="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-500"></span><span>Episode Play Statistics</span></li>
-				<li class="mb-0 flex items-start gap-2"><span class="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-500"></span><span>Deep Episode Search & Smart Filters</span></li>
-				<li class="mb-0 flex items-start gap-2"><span class="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-500"></span><span>Sticky Player & Bulk Audio Tools</span></li>
-				<li class="mb-0 flex items-start gap-2"><span class="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-500"></span><span>Priority Support</span></li>
+		<div class="rounded-lg border border-sky-200 bg-white p-4 shadow-sm">
+			<div class="border-b border-slate-200 pb-3">
+				<p class="mb-2 inline-flex rounded-full border border-sky-200 bg-sky-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-sky-800"><?php esc_html_e( 'Podcast Player Pro', 'podcast-player' ); ?></p>
+				<h3 class="pp-pro-title m-0 text-lg font-semibold leading-tight text-slate-950"><?php esc_html_e( 'Build a stronger podcast page', 'podcast-player' ); ?></h3>
+				<p class="mb-0 mt-1.5 text-sm leading-relaxed text-slate-600"><?php esc_html_e( 'Upgrade when you are ready to turn episodes into better pages, layouts, and search tools.', 'podcast-player' ); ?></p>
+			</div>
+			<ul class="m-0 mt-3 list-none space-y-2 p-0 text-sm text-slate-800">
+				<li class="flex items-start gap-2">
+					<span class="dashicons dashicons-yes-alt mt-0.5 h-4 w-4 shrink-0 text-sky-700" aria-hidden="true"></span>
+					<span><?php esc_html_e( 'SEO-friendly pages for every episode', 'podcast-player' ); ?></span>
+				</li>
+				<li class="flex items-start gap-2">
+					<span class="dashicons dashicons-yes-alt mt-0.5 h-4 w-4 shrink-0 text-sky-700" aria-hidden="true"></span>
+					<span><?php esc_html_e( 'More player layouts and display templates', 'podcast-player' ); ?></span>
+				</li>
+				<li class="flex items-start gap-2">
+					<span class="dashicons dashicons-yes-alt mt-0.5 h-4 w-4 shrink-0 text-sky-700" aria-hidden="true"></span>
+					<span><?php esc_html_e( 'Search inside long episode notes', 'podcast-player' ); ?></span>
+				</li>
+				<li class="flex items-start gap-2">
+					<span class="dashicons dashicons-yes-alt mt-0.5 h-4 w-4 shrink-0 text-sky-700" aria-hidden="true"></span>
+					<span><?php esc_html_e( 'Filters by season, category, or topic', 'podcast-player' ); ?></span>
+				</li>
+				<li class="flex items-start gap-2">
+					<span class="dashicons dashicons-yes-alt mt-0.5 h-4 w-4 shrink-0 text-sky-700" aria-hidden="true"></span>
+					<span><?php esc_html_e( 'Import feed episodes as WordPress posts', 'podcast-player' ); ?></span>
+				</li>
+				<li class="flex items-start gap-2">
+					<span class="dashicons dashicons-yes-alt mt-0.5 h-4 w-4 shrink-0 text-sky-700" aria-hidden="true"></span>
+					<span><?php esc_html_e( 'Saved defaults, bulk tools, and listener stats', 'podcast-player' ); ?></span>
+				</li>
 			</ul>
-			<p class="mb-0 mt-4 text-xs font-medium text-slate-500"><?php esc_html_e( 'Upgrade now to unlock the complete toolkit and premium support.', 'podcast-player' ); ?></p>
-			<?php $this->mlink( 'https://easypodcastpro.com/podcast-player/', 'Upgrade to Pro', 'pp-pro-more m-0 mt-4 inline-flex items-center justify-center rounded-lg border border-slate-900 bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white no-underline transition-colors hover:border-slate-700 hover:bg-slate-700' ); ?>
+			<?php $this->mlink( Marketing_Context::PRO_URL, 'Get Now', 'pp-pro-more mt-4 flex w-full items-center justify-center rounded-md border border-sky-700 bg-sky-700 px-4 py-2.5 text-sm font-semibold text-white no-underline transition-colors hover:border-sky-800 hover:bg-sky-800 hover:text-white' ); ?>
 		</div>
 		<?php
 	}

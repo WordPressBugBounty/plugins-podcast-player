@@ -139,13 +139,33 @@ class Getters {
 	 * @param string $key Feed unique key.
 	 */
 	public static function get_feed_url_from_index( $key ) {
+		$key = apply_filters( 'podcast_player_resolve_feed_key', $key );
 		$feed_index = self::get_feed_index();
 		if ( $feed_index && isset( $feed_index[ $key ] ) ) {
 			$info = $feed_index[ $key ];
-			if ( isset( $info['url'] ) && $info['url'] ) {
+			if ( isset( $info['url'] ) && $info['url'] && Validation_Fn::is_valid_url( $info['url'] ) ) {
 				return wp_strip_all_tags( $info['url'] );
 			}
 		}
+
+		$store_manager = StoreManager::get_instance();
+		$index         = $store_manager->get_object_index( $key );
+		if ( is_object( $index ) && method_exists( $index, 'get' ) ) {
+			$url = $index->get( 'source_url', 'none' );
+			if ( $url && Validation_Fn::is_valid_url( $url ) ) {
+				return wp_strip_all_tags( $url );
+			}
+
+			$urls = $index->get( 'feed_url', 'none' );
+			if ( ! empty( $urls ) && is_array( $urls ) ) {
+				foreach ( $urls as $url ) {
+					if ( Validation_Fn::is_valid_url( $url ) ) {
+						return wp_strip_all_tags( $url );
+					}
+				}
+			}
+		}
+
 		return false;
 	}
 
@@ -282,16 +302,280 @@ class Getters {
 		array_walk(
 			$all_feeds,
 			function ( &$value, $key ) {
-				$urls   = $value->get( 'feed_url' );
-				$source = $value->get( 'source_url' );
+				$urls   = $value->get( 'feed_url', 'none' );
+				$source = $value->get( 'source_url', 'none' );
+				$url    = $source && Validation_Fn::is_valid_url( $source ) ? $source : '';
+				if ( ! $url && ! empty( $urls ) && is_array( $urls ) ) {
+					foreach ( $urls as $candidate ) {
+						if ( Validation_Fn::is_valid_url( $candidate ) ) {
+							$url = $candidate;
+							break;
+						}
+					}
+				}
 				$value  = array(
-					'url'        => ! empty( $urls ) ? $urls[0] : '',
+					'url'        => $url,
 					'title'      => $value->get( 'title' ),
 					'source_url' => $source,
 				);
 			}
 		);
-		return $all_feeds;
+		return apply_filters( 'podcast_player_feed_index', $all_feeds );
+	}
+
+	/**
+	 * Get fields available for podcast-specific player defaults.
+	 *
+	 * This storage is intentionally available in the core plugin so companion
+	 * integrations can keep one managed player profile even when Pro is not active.
+	 *
+	 * @since 8.1.1
+	 *
+	 * @return array
+	 */
+	public static function get_podcast_default_fields() {
+		$menus = wp_get_nav_menus();
+		$menus = wp_list_pluck( $menus, 'name', 'term_id' );
+		$menus = array( '' => esc_html__( 'None', 'podcast-player' ) ) + $menus;
+
+		$fields = array(
+			'number'           => array( 'type' => 'number' ),
+			'offset'           => array( 'type' => 'number' ),
+			'sortby'           => array(
+				'type'    => 'select',
+				'choices' => array(
+					'sort_title_desc' => esc_html__( 'Title Descending', 'podcast-player' ),
+					'sort_title_asc'  => esc_html__( 'Title Ascending', 'podcast-player' ),
+					'sort_date_desc'  => esc_html__( 'Date Descending', 'podcast-player' ),
+					'sort_date_asc'   => esc_html__( 'Date Ascending', 'podcast-player' ),
+					'no_sort'         => esc_html__( 'Do Not Sort', 'podcast-player' ),
+					'reverse_sort'    => esc_html__( 'Reverse Sort', 'podcast-player' ),
+				),
+			),
+			'filterby'         => array( 'type' => 'text' ),
+			'display-style'    => array(
+				'type'    => 'select',
+				'choices' => self::get_styles(),
+			),
+			'menu'             => array(
+				'type'    => 'select',
+				'choices' => $menus,
+			),
+			'main_menu_items'  => array( 'type' => 'number' ),
+			'image'            => array( 'type' => 'image' ),
+			'img_url'          => array( 'type' => 'url' ),
+			'description'      => array( 'type' => 'textarea' ),
+			'teaser-text'      => array(
+				'type'    => 'select',
+				'choices' => array(
+					''     => esc_html__( 'Show Excerpt', 'podcast-player' ),
+					'full' => esc_html__( 'Show Full Content', 'podcast-player' ),
+					'none' => esc_html__( 'Hide Teaser Text', 'podcast-player' ),
+				),
+			),
+			'excerpt-length'   => array( 'type' => 'number' ),
+			'excerpt-unit'     => array(
+				'type'    => 'select',
+				'choices' => array(
+					''     => esc_html__( 'Number of words', 'podcast-player' ),
+					'char' => esc_html__( 'Number of characters', 'podcast-player' ),
+				),
+			),
+			'header-default'   => array( 'type' => 'checkbox' ),
+			'list-default'     => array( 'type' => 'checkbox' ),
+			'no-scroll'        => array( 'type' => 'checkbox' ),
+			'hide-header'      => array( 'type' => 'checkbox' ),
+			'hide-title'       => array( 'type' => 'checkbox' ),
+			'hide-cover-img'   => array( 'type' => 'checkbox' ),
+			'hide-description' => array( 'type' => 'checkbox' ),
+			'hide-subscribe'   => array( 'type' => 'checkbox' ),
+			'hide-search'      => array( 'type' => 'checkbox' ),
+			'hide-author'      => array( 'type' => 'checkbox' ),
+			'hide-content'     => array( 'type' => 'checkbox' ),
+			'hide-loadmore'    => array( 'type' => 'checkbox' ),
+			'hide-download'    => array( 'type' => 'checkbox' ),
+			'hide-social'      => array( 'type' => 'checkbox' ),
+			'hide-featured'    => array( 'type' => 'checkbox' ),
+			'accent-color'     => array( 'type' => 'color' ),
+			'bgcolor'          => array( 'type' => 'color' ),
+			'txtcolor'         => array(
+				'type'    => 'select',
+				'choices' => array(
+					''      => esc_html__( 'Dark Text', 'podcast-player' ),
+					'ltext' => esc_html__( 'Light Text', 'podcast-player' ),
+				),
+			),
+			'font-family'      => array( 'type' => 'text' ),
+			'aspect-ratio'     => array(
+				'type'    => 'select',
+				'choices' => array(
+					''       => esc_html__( 'No Cropping', 'podcast-player' ),
+					'land1'  => esc_html__( 'Landscape (4:3)', 'podcast-player' ),
+					'land2'  => esc_html__( 'Landscape (3:2)', 'podcast-player' ),
+					'port1'  => esc_html__( 'Portrait (3:4)', 'podcast-player' ),
+					'port2'  => esc_html__( 'Portrait (2:3)', 'podcast-player' ),
+					'wdscrn' => esc_html__( 'Widescreen (16:9)', 'podcast-player' ),
+					'squr'   => esc_html__( 'Square (1:1)', 'podcast-player' ),
+				),
+			),
+			'crop-method'      => array(
+				'type'    => 'select',
+				'choices' => array(
+					'topleftcrop'      => esc_html__( 'Top Left Cropping', 'podcast-player' ),
+					'topcentercrop'    => esc_html__( 'Top Center Cropping', 'podcast-player' ),
+					'centercrop'       => esc_html__( 'Center Cropping', 'podcast-player' ),
+					'bottomleftcrop'   => esc_html__( 'Bottom Left Cropping', 'podcast-player' ),
+					'bottomcentercrop' => esc_html__( 'Bottom Center Cropping', 'podcast-player' ),
+				),
+			),
+			'grid-columns'     => array( 'type' => 'number' ),
+			'feedback'         => array( 'type' => 'checkbox' ),
+			'show-form-time'   => array( 'type' => 'number' ),
+			'feedback-text'    => array( 'type' => 'text' ),
+			'positive-text'    => array( 'type' => 'text' ),
+			'positive-url'     => array( 'type' => 'url' ),
+			'negative-text'    => array( 'type' => 'text' ),
+			'negative-form'    => array( 'type' => 'checkbox' ),
+		);
+
+		foreach ( self::get_services_list() as $key => $label ) {
+			$fields[ $key . '-sub' ] = array(
+				'label' => $label,
+				'type'  => 'url',
+			);
+		}
+
+		return apply_filters( 'podcast_player_default_fields', $fields );
+	}
+
+	/**
+	 * Get saved defaults for a podcast.
+	 *
+	 * @since 8.1.1
+	 *
+	 * @param string $podcast Podcast feed URL or key.
+	 * @return array
+	 */
+	public static function get_podcast_defaults( $podcast ) {
+		if ( ! $podcast ) {
+			return array();
+		}
+
+		$store_manager = StoreManager::get_instance();
+		$defaults      = $store_manager->get_data( $podcast, 'podcast_defaults' );
+
+		return is_array( $defaults ) ? self::sanitize_podcast_defaults( $defaults ) : array();
+	}
+
+	/**
+	 * Save defaults for a podcast.
+	 *
+	 * @since 8.1.1
+	 *
+	 * @param string $podcast  Podcast feed URL or key.
+	 * @param array  $defaults Raw defaults.
+	 * @return array
+	 */
+	public static function save_podcast_defaults( $podcast, $defaults ) {
+		if ( ! $podcast ) {
+			return array();
+		}
+
+		$defaults      = self::sanitize_podcast_defaults( $defaults );
+		$store_manager = StoreManager::get_instance();
+
+		if ( empty( $defaults ) ) {
+			$store_manager->delete_data( $podcast, 'podcast_defaults' );
+			return array();
+		}
+
+		$store_manager->update_data( $defaults, $podcast, 'podcast_defaults' );
+		return $defaults;
+	}
+
+	/**
+	 * Delete defaults for a podcast.
+	 *
+	 * @since 8.1.1
+	 *
+	 * @param string $podcast Podcast feed URL or key.
+	 * @return bool
+	 */
+	public static function delete_podcast_defaults( $podcast ) {
+		if ( ! $podcast ) {
+			return false;
+		}
+
+		$store_manager = StoreManager::get_instance();
+		return $store_manager->delete_data( $podcast, 'podcast_defaults' );
+	}
+
+	/**
+	 * Sanitize podcast-specific defaults.
+	 *
+	 * @since 8.1.1
+	 *
+	 * @param array $defaults Raw defaults.
+	 * @return array
+	 */
+	public static function sanitize_podcast_defaults( $defaults ) {
+		if ( ! is_array( $defaults ) ) {
+			return array();
+		}
+
+		$fields    = self::get_podcast_default_fields();
+		$sanitized = array();
+
+		foreach ( $fields as $key => $field ) {
+			if ( ! array_key_exists( $key, $defaults ) ) {
+				continue;
+			}
+
+			$type  = isset( $field['type'] ) ? $field['type'] : 'text';
+			$value = $defaults[ $key ];
+
+			switch ( $type ) {
+				case 'checkbox':
+					$value = ( true === $value || 'true' === $value || '1' === (string) $value || 'yes' === $value ) ? 'yes' : '';
+					break;
+				case 'number':
+					$value = '' === $value || null === $value ? '' : absint( $value );
+					break;
+				case 'image':
+					$value = absint( $value );
+					if ( $value && false === wp_get_attachment_image_src( $value, 'large' ) ) {
+						$value = '';
+					}
+					break;
+				case 'url':
+					$value = esc_url_raw( $value );
+					break;
+				case 'color':
+					$value = sanitize_hex_color( $value );
+					break;
+				case 'select':
+					$value   = sanitize_text_field( $value );
+					$choices = isset( $field['choices'] ) && is_array( $field['choices'] ) ? $field['choices'] : array();
+					if ( ! array_key_exists( $value, $choices ) ) {
+						$value = '';
+					}
+					break;
+				case 'textarea':
+					$value = sanitize_textarea_field( $value );
+					break;
+				default:
+					$value = sanitize_text_field( $value );
+					break;
+			}
+
+			if ( '' === $value || null === $value || false === $value ) {
+				continue;
+			}
+
+			$sanitized[ $key ] = $value;
+		}
+
+		return $sanitized;
 	}
 
 	/**

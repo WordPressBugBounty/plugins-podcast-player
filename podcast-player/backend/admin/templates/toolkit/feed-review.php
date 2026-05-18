@@ -42,7 +42,7 @@ $country_codes = Country_Codes::get_cc();
 				</select>
 			<?php else : ?>
 				<div style="font-size: 20px !important; font-weight: bold; margin-bottom: 15px;"><?php esc_html_e( 'No saved podcasts found.', 'podcast-player' ); ?></div>
-				<div style="font-size: 15px;"><?php esc_html_e( 'Add a podcast first, then return here to fetch Apple Podcast reviews for it.', 'podcast-player' ); ?> <a href="https://easypodcastpro.com/docs7/" target="_blank"><?php esc_html_e( 'Open the setup docs', 'podcast-player' ); ?></a>.</div>
+				<div style="font-size: 15px;"><?php esc_html_e( 'Add a podcast first, then return here to fetch Apple Podcast reviews for it.', 'podcast-player' ); ?> <a href="https://easypodcastpro.com/docs7/" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Open the setup docs', 'podcast-player' ); ?></a>.</div>
 			<?php endif; ?>
 		</div>
 		<div class="pp-toolkit-feedback" style=" margin-bottom: 15px; margin-top: 0">

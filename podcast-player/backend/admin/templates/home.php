@@ -11,6 +11,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use Podcast_Player\Helper\Functions\Getters as Get_Fn;
+use Podcast_Player\Backend\Admin\Marketing_Context;
+
 $feed_index = Get_Fn::get_feed_index();
 ?>
 
@@ -36,9 +38,29 @@ $feed_index = Get_Fn::get_feed_index();
 							<div class="pp-podcast-info min-w-0 flex-1">
 								<span class="pp-podcast-title block text-lg text-slate-800"><?php echo is_array( $args ) && isset( $args['title'] ) ? esc_html( $args['title'] ) : ''; ?></span>
 								<div class="pp-podcast-source flex flex-wrap items-center gap-2">
-									<span class="pp-podcast-url min-w-0"><a class="inline-block max-w-full truncate text-sm text-sky-700 no-underline hover:text-sky-900 hover:underline" href="<?php echo is_array( $args ) && isset( $args['url'] ) ? esc_html( $args['url'] ) : ''; ?>" target="_blank"><?php echo is_array( $args ) && isset( $args['url'] ) ? esc_html( $args['url'] ) : ''; ?></a></span>
+									<span class="pp-podcast-url min-w-0"><a class="inline-block max-w-full truncate text-sm text-sky-700 no-underline hover:text-sky-900 hover:underline" href="<?php echo is_array( $args ) && isset( $args['url'] ) ? esc_url( $args['url'] ) : ''; ?>" target="_blank" rel="noopener noreferrer"><?php echo is_array( $args ) && isset( $args['url'] ) ? esc_html( $args['url'] ) : ''; ?></a></span>
 									<button type="button" class="pp-podcast-source-btn inline-flex h-7 w-7 items-center justify-center rounded-md border border-slate-300 bg-white text-slate-600 hover:border-slate-400 hover:text-slate-900"><span class="dashicons dashicons-edit"></span></button>
 								</div>
+								<?php $next_action = Marketing_Context::get_next_action_for_feed( $key ); ?>
+								<?php if ( $next_action ) : ?>
+									<?php $pro_tip_panel_id = 'pp-pro-tip-' . md5( (string) $key . ':' . $next_action['id'] ); ?>
+									<div class="pp-podcast-pro-tip">
+										<span class="pp-podcast-pro-tip-icon dashicons dashicons-lightbulb" aria-hidden="true"></span>
+										<div class="pp-podcast-pro-tip-content">
+											<span class="pp-podcast-pro-tip-label"><?php esc_html_e( 'Pro Tip:', 'podcast-player' ); ?></span>
+											<button type="button" class="pp-podcast-pro-tip-toggle" aria-expanded="false" aria-controls="<?php echo esc_attr( $pro_tip_panel_id ); ?>">
+												<?php echo esc_html( $next_action['label'] ); ?>
+											</button>
+											<div id="<?php echo esc_attr( $pro_tip_panel_id ); ?>" class="pp-podcast-pro-tip-panel hidden">
+												<p><?php echo esc_html( $next_action['description'] ); ?></p>
+												<a href="<?php echo esc_url( $next_action['url'] ); ?>" target="_blank" rel="noopener noreferrer">
+													<span><?php esc_html_e( 'Learn More', 'podcast-player' ); ?></span>
+													<span class="dashicons dashicons-external" aria-hidden="true"></span>
+												</a>
+											</div>
+										</div>
+									</div>
+								<?php endif; ?>
 								<div class="pp-podcast-source-container mt-3 rounded-lg border border-slate-300 bg-white p-3">
 									<?php
 									$source_url = isset( $args['source_url'] ) ? $args['source_url'] : '';
@@ -81,7 +103,7 @@ $feed_index = Get_Fn::get_feed_index();
 				<div class="mt-4 space-y-3 text-base leading-relaxed text-slate-700">
 					<p class="m-0">Want to play your existing podcast on this website? Add the podcast feed URL once and Podcast Player will pull in the podcast details and episodes automatically.</p>
 					<p class="m-0">You can place the player with a widget, editor block, shortcode, shortcode generator, or Elementor. Start with <a href="<?php echo esc_attr( esc_url( admin_url( 'admin.php?page=pp-help' ) ) ); ?>" class="pp-bold underline">Help &amp; Support</a> if you need the first setup steps.</p>
-					<p class="m-0">Need help with a feed or display issue? <a class="font-medium text-sky-700 no-underline hover:underline" href="https://wordpress.org/support/plugin/podcast-player/" target="_blank">Open a support ticket</a> or <a class="font-medium text-sky-700 no-underline hover:underline" href="https://easypodcastpro.com/contact-us-2/" target="_blank">contact us</a>.</p>
+					<p class="m-0">Need help with a feed or display issue? <a class="font-medium text-sky-700 no-underline hover:underline" href="https://wordpress.org/support/plugin/podcast-player/" target="_blank" rel="noopener noreferrer">Open a support ticket</a> or <a class="font-medium text-sky-700 no-underline hover:underline" href="https://easypodcastpro.com/contact-us-2/" target="_blank" rel="noopener noreferrer">contact us</a>.</p>
 				</div>
 			</div>
 		<?php endif; ?>

@@ -14,6 +14,7 @@ use Podcast_Player\Frontend\Inc\Display;
 use Podcast_Player\Helper\Functions\Getters as Get_Fn;
 use Podcast_Player\Helper\Functions\Validation as Validation_Fn;
 use Podcast_Player\Helper\Functions\Utility as Utility_Fn;
+use Podcast_Player\Backend\Admin\Marketing_Context;
 
 /**
  * Podcast Player Shortcode Generator.
@@ -248,6 +249,9 @@ class ShortCodeGen {
 		$menu_arr      = wp_list_pluck( $menus, 'name', 'term_id' );
 		$menu_arr      = array( '' => esc_html__( 'None', 'podcast-player' ) ) + $menu_arr;
 		$display_style = Get_Fn::get_styles();
+		if ( ! Marketing_Context::is_premium() ) {
+			$display_style[ Marketing_Context::MORE_STYLES ] = esc_html__( 'Get More Styles', 'podcast-player' );
+		}
 		$sub_items     = Get_Fn::get_services_list();
 		$sub_array     = array();
 
@@ -1212,6 +1216,9 @@ class ShortCodeGen {
 		foreach ( $sanitize_text as $setting ) {
 			$instance[ $setting ] = sanitize_text_field( $new_instance[ $setting ] );
 		}
+		if ( Marketing_Context::MORE_STYLES === $instance['pp_display_style'] ) {
+			$instance['pp_display_style'] = '';
+		}
 
 		$sanitize_url = array(
 			'pp_apple_sub',
@@ -1331,6 +1338,9 @@ class ShortCodeGen {
 		);
 		foreach ( $sanitize_text as $setting ) {
 			$instance[ $setting ] = esc_html( $new_instance[ $setting ] );
+		}
+		if ( Marketing_Context::MORE_STYLES === $instance['pp_display_style'] ) {
+			$instance['pp_display_style'] = '';
 		}
 
 		$sanitize_url = array(

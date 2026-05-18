@@ -162,6 +162,8 @@ class StorageRegister extends StoreBase {
 			return $this;
 		} elseif ( $this->query( 'feed_url', $needle ) ) {
 			return $this;
+		} elseif ( $this->query( 'source_url', $needle ) ) {
+			return $this;
 		} elseif ( $this->query( 'object_id', $needle ) ) {
 			return $this;
 		} elseif ( $this->query( 'unique_id', $needle ) ) {

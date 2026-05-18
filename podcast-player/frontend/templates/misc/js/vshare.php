@@ -33,7 +33,7 @@ use Podcast_Player\Helper\Functions\Markup as Markup_Fn;
 	</button>
 	<ul class="ppshare__social ppsocial">
 		<li class="ppshare-item social">
-			<a class="ppsocial__link ppsocial__facebook" href="" target="_blank" title="<?php esc_html_e( 'Share on Facebook', 'podcast-player' ); ?>">
+			<a class="ppsocial__link ppsocial__facebook" href="" target="_blank" rel="noopener noreferrer" title="<?php esc_html_e( 'Share on Facebook', 'podcast-player' ); ?>">
 				<?php Markup_Fn::the_icon( array( 'icon' => 'pp-facebook' ) ); ?>
 				<span class="ppjs__offscreen">
 					<?php esc_html_e( 'Facebook', 'podcast-player' ); ?>
@@ -41,7 +41,7 @@ use Podcast_Player\Helper\Functions\Markup as Markup_Fn;
 			</a>
 		</li>
 		<li class="ppshare-item social">
-			<a class="ppsocial__link ppsocial__twitter" href="" target="_blank" title="<?php esc_html_e( 'Share on Twitter', 'podcast-player' ); ?>">
+			<a class="ppsocial__link ppsocial__twitter" href="" target="_blank" rel="noopener noreferrer" title="<?php esc_html_e( 'Share on Twitter', 'podcast-player' ); ?>">
 				<?php Markup_Fn::the_icon( array( 'icon' => 'pp-twitter' ) ); ?>
 				<span class="ppjs__offscreen">
 					<?php esc_html_e( 'Twitter', 'podcast-player' ); ?>
@@ -49,7 +49,7 @@ use Podcast_Player\Helper\Functions\Markup as Markup_Fn;
 			</a>
 		</li>
 		<li class="ppshare-item social">
-			<a class="ppsocial__link ppsocial__linkedin" href="" target="_blank" title="<?php esc_html_e( 'Share on Linkedin', 'podcast-player' ); ?>">
+			<a class="ppsocial__link ppsocial__linkedin" href="" target="_blank" rel="noopener noreferrer" title="<?php esc_html_e( 'Share on Linkedin', 'podcast-player' ); ?>">
 				<?php Markup_Fn::the_icon( array( 'icon' => 'pp-linkedin' ) ); ?>
 				<span class="ppjs__offscreen">
 					<?php esc_html_e( 'Linkedin', 'podcast-player' ); ?>
