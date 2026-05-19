@@ -195,45 +195,10 @@ class Loader extends Singleton {
 			return;
 		}
 
-		// Podcast Player Admin Notice.
-		if ( PODCAST_PLAYER_VERSION !== get_option( 'podcast-player-admin-notice' ) ) {
-			include_once PODCAST_PLAYER_DIR . '/backend/partials/pp-notifications.php';
-
-			?>
-			<style type="text/css" media="screen">
-
-				.pp-welcome-notice p {
-					margin: 0.25em !important;
-				}
-
-				.common-links {
-					padding: 5px 0;
-				}
-
-				.pp-link {
-					display: inline-block;
-					line-height: 1;
-				}
-
-				.pp-link a {
-					padding: 0;
-				}
-
-				.pp-link + .pp-link {
-					margin-left: 10px;
-					padding: 0 0 0 10px !important;
-					border-left: 2px solid #999;
-				}
-
-			</style>
-
-			<?php
-		}
-
-		if ( defined( 'PP_PRO_VERSION' ) && version_compare( PP_PRO_VERSION, '5.9.0', '<' ) ) {
+		if ( defined( 'PP_PRO_VERSION' ) && version_compare( PP_PRO_VERSION, '5.9.1', '<' ) ) {
 			?>
 			<div class="notice-warning notice is-dismissible pp-welcome-notice">
-				<p><?php esc_html_e( 'There is an update available to Podcast Player Pro. Please update to Podcast Player Pro v5.9.0. If you have not received an automated update notice, please login to our website and download latest version.', 'podcast-player' ); ?></p>
+				<p><?php esc_html_e( 'There is an update available to Podcast Player Pro. Please update to Podcast Player Pro v5.9.1. If you have not received an automated update notice, please login to our website and download latest version.', 'podcast-player' ); ?></p>
 			</div>
 			<?php
 		}

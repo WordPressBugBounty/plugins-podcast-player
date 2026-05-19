@@ -1,6 +1,7 @@
 const ppHooks = window.PP_Hooks || {
 	hooks: {},
 	actions: {},
+	actionHistory: {},
 
 	addFilter(hookName, callback, priority = 10) {
 		const hooks = this.hooks[hookName] = this.hooks[hookName] || [];
@@ -16,13 +17,26 @@ const ppHooks = window.PP_Hooks || {
 		return hooks.reduce((currentValue, { callback }) => callback(currentValue, ...args), value);
 	},
 
-	addAction(hookName, callback, priority = 10) {
+	addAction(hookName, callback, priority = 10, options = {}) {
 		const hooks = this.actions[hookName] = this.actions[hookName] || [];
 		hooks.push({ callback, priority });
 		hooks.sort((a, b) => a.priority - b.priority);
+
+		if (options.replay && this.actionHistory[hookName]) {
+			this.actionHistory[hookName].forEach(args => callback(...args));
+		}
 	},
 
 	doAction(hookName, ...args) {
+		if ('podcast_player_transcripts_setup' === hookName) {
+			const history = this.actionHistory[hookName] = this.actionHistory[hookName] || [];
+			const instance = args[0];
+			const isStored = instance ? history.some(storedArgs => storedArgs[0] === instance) : false;
+			if (!isStored) {
+				history.push(args);
+			}
+		}
+
 		const hooks = this.actions[hookName];
 		if (!hooks) {
 			return;
