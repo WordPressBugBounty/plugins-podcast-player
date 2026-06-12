@@ -1,5 +1,6 @@
 == Resources ==
 * Chart.js v4.4.1 https://www.chartjs.org, (c) 2023 Chart.js Contributors, [MIT]
+* hls.js v1.6.16 https://github.com/video-dev/hls.js, (c) hls.js contributors, [Apache-2.0]
 * Font Awesome SVG icons http://fontawesome.io/, (C) Dave Gandy, [CC BY 4.0](https://fontawesome.com/license/free)
 * Icomoon SVG icons https://icomoon.io, (C) Roonas, [GPL / CC BY 4.0](https://icomoon.io/icons-icomoon.html)
 * Entypo+ SVG Icons http://www.entypo.com/, (C) Daniel Bruce, [CC BY-SA 4.0]

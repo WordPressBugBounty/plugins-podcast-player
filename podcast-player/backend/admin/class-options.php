@@ -208,6 +208,15 @@ class Options {
 					'default'     => 'yes',
 					'section'     => 'advanced',
 				),
+				'prefer_hls_streams' => array(
+					'name'        => esc_html__( 'Prefer HLS streams when available', 'podcast-player' ),
+					'id'          => 'prefer_hls_streams',
+					'description' => esc_html__( 'Use Podcasting 2.0 HLS alternate enclosures when feeds provide them. If disabled, the primary enclosure remains the default.', 'podcast-player' ),
+					'link'        => '',
+					'type'        => 'checkbox',
+					'default'     => '',
+					'section'     => 'advanced',
+				),
 				'is_ajax'          => array(
 					'name'        => esc_html__( 'Enable AJAX page compatibility', 'podcast-player' ),
 					'id'          => 'is_ajax',

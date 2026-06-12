@@ -11,10 +11,6 @@ import MediaElem from './mediaelem';
 	const spodcast = $( '.pp-social-shared' ).first();
 	const settings = window.ppmejsSettings || {};
 	const modal = settings.isPremium ? new Modal() : '';
-	const isMejs = settings.isMeJs;
-	let timeOut = false;
-
-	setTimeout(() => {timeOut = true}, 3000);
 
 	podcasts.each( function() {
 		const podcast = $(this);
@@ -42,13 +38,8 @@ import MediaElem from './mediaelem';
 
 		podcast.find('.pp-podcast').remove();
 
-		if (isMejs && 'undefined' === typeof MediaElementPlayer) {
-			if (!timeOut) setTimeout(() => createPodcast(podcast), 200);
-			return;
-		}
-
 		const idPlayer = id + '-player';
-		const mediaObj = isMejs ? new MediaElementPlayer(idPlayer, settings) : new MediaElem(idPlayer);
+		const mediaObj = new MediaElem(idPlayer);
 		if (!mediaObj) return;
 
 		const list = podcast.find('.pod-content__list');
@@ -59,7 +50,7 @@ import MediaElem from './mediaelem';
 		const player = podcast.find('.pp-podcast__player');
 		const amsg = podcast.find('.pp-player__amsg');
 		const fetched = false;
-		const msgMediaObj = amsg.length ? (isMejs ? new MediaElementPlayer(id + '-amsg-player', settings) : new MediaElem(id + '-amsg-player')) : false;
+		const msgMediaObj = amsg.length ? new MediaElem(id + '-amsg-player') : false;
 
 		if ('undefined' === typeof props.podcastPlayerData[id]) {
 			const pdata = podcast.data("ppsdata");

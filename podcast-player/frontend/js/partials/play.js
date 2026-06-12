@@ -635,7 +635,16 @@ class PlayEpisode {
 			}
 		}
 
-		this.mediaObj.setSrc( src );
+		if (this.mediaObj.isVideo && 'function' === typeof this.mediaObj.setPoster) {
+			this.mediaObj.setPoster(details.featured || '');
+		}
+		this.mediaObj.setSrc(
+			src,
+			{
+				isHls: !!details.is_hls,
+				mimeType: details.source_mime || ''
+			}
+		);
 		this.audioFirstPlay = true;
 		this.mediaObj.load();
 		this.mediaObj.media.playbackRate = pbr;
@@ -728,11 +737,22 @@ class PlayEpisode {
 		}
 
 		if (this.mediaObj.media.paused) {
-			this.mediaObj.media.play();
+			this.playMedia();
 			if (this.listItem) this.listItem.addClass('activeEpisode media-playing');
 		} else {
 			this.mediaObj.media.pause();
 			if (this.listItem) this.listItem.removeClass('activeEpisode media-playing');
+		}
+	}
+
+	/**
+	 * Play active media after any pending source setup.
+	 */
+	playMedia() {
+		if ('function' === typeof this.mediaObj.play) {
+			this.mediaObj.play();
+		} else {
+			this.mediaObj.media.play();
 		}
 	}
 
@@ -778,7 +798,7 @@ class PlayEpisode {
 		this.singleWrap.addClass('activePodcast');
 
 		// Auto play the media.
-		if (!this.playingAmsg) this.mediaObj.media.play();
+		if (!this.playingAmsg) this.playMedia();
 
 		// Scroll window to top only on mobile devices.
 		if (isAnimate && !props.isLrgScrn) {
@@ -828,7 +848,7 @@ class PlayEpisode {
 					this.modalObj.modal.addClass('media-paused');
 					this.listItem.removeClass('media-playing');
 				} else {
-					this.mediaObj.media.play();
+					this.playMedia();
 					this.modalObj.modal.removeClass('media-paused');
 					this.listItem.addClass('media-playing');
 				}
@@ -865,7 +885,7 @@ class PlayEpisode {
 
 		// Auto play the media.
 		if (! isModalView) {
-			if (!this.playingAmsg) this.mediaObj.media.play();
+			if (!this.playingAmsg) this.playMedia();
 			this.modalObj.modal.removeClass('media-paused');
 		} else {
 			this.listItem.removeClass('media-playing');
@@ -995,7 +1015,7 @@ class PlayEpisode {
 		if (true === this.playingAmsg) {
 			this.player.removeClass('msg-playing');
 			this.playingAmsg = false;
-			this.mediaObj.media.play();
+			this.playMedia();
 		} else if (true === this.playAmsg) {
 			if (this.listItem && !this.listItem.hasClass('episode-list__search-entry')) {
 				const pid = `pp-podcast-${this.instance}`;

@@ -176,16 +176,25 @@ class Getters {
 	 *
 	 * @param string $media Media url to be checked.
 	 */
-	public static function get_media_type( $media ) {
+	public static function get_media_type( $media, $mime_type = '' ) {
 		$audio_ext  = wp_get_audio_extensions();
 		$video_ext  = wp_get_video_extensions();
 		$mime_types = wp_get_mime_types();
 		$media_type = false;
+		$mime_type  = strtolower( (string) $mime_type );
+
+		if ( $mime_type ) {
+			if ( false !== strpos( $mime_type, 'audio/' ) ) {
+				$media_type = 'audio';
+			} elseif ( false !== strpos( $mime_type, 'video/' ) ) {
+				$media_type = 'video';
+			}
+		}
 
 		// Adding support for aac file extension.
 		$audio_ext[] = 'aac';
 		$media_url   = $media ? preg_replace( '/\?.*/', '', $media ) : false;
-		if ( $media_url ) {
+		if ( ! $media_type && $media_url ) {
 			$type = wp_check_filetype( $media_url, $mime_types );
 			if ( in_array( strtolower( $type['ext'] ), $audio_ext, true ) ) {
 				$media_type = 'audio';
@@ -193,7 +202,40 @@ class Getters {
 				$media_type = 'video';
 			}
 		}
-		return apply_filters( 'podcast_player_media_type', $media_type, $media );
+
+		if ( ! $media_type && self::is_hls_source( $media, $mime_type ) ) {
+			$media_type = 'video';
+		}
+
+		return apply_filters( 'podcast_player_media_type', $media_type, $media, $mime_type );
+	}
+
+	/**
+	 * Check whether a media URL or MIME type is an HLS stream.
+	 *
+	 * @since 8.2.0
+	 *
+	 * @param string $media     Media URL.
+	 * @param string $mime_type Media MIME type.
+	 * @return bool
+	 */
+	public static function is_hls_source( $media = '', $mime_type = '' ) {
+		$mime_type = strtolower( (string) $mime_type );
+		$hls_mimes = array(
+			'application/x-mpegurl',
+			'application/vnd.apple.mpegurl',
+			'audio/x-mpegurl',
+			'audio/mpegurl',
+			'video/x-mpegurl',
+			'video/mpegurl',
+		);
+
+		if ( $mime_type && in_array( $mime_type, $hls_mimes, true ) ) {
+			return true;
+		}
+
+		$media_url = $media ? strtolower( preg_replace( '/\?.*/', '', (string) $media ) ) : '';
+		return $media_url && '.m3u8' === substr( $media_url, -5 );
 	}
 
 	/**

@@ -9,7 +9,6 @@ import MediaElem from './mediaelem';
 
 	const settings = window.ppmejsSettings || {};
 	const modal = settings.isPremium ? new Modal() : '';
-	const isMejs = settings.isMeJs;
 	document.addEventListener( 'animationstart', playerAdded, false ); // Standard + firefox
 	document.addEventListener( 'webkitAnimationStart', playerAdded, false ); // Chrome + Safari
 
@@ -32,12 +31,7 @@ import MediaElem from './mediaelem';
 		podcast.find('.pp-podcast').remove();
 
 		const id = podcast.attr('id');
-		let mediaObj = false;
-		if (isMejs) {
-			mediaObj = new MediaElementPlayer( id + '-player', settings );
-		} else {
-			mediaObj = new MediaElem( id + '-player' );
-		}
+		const mediaObj = new MediaElem( id + '-player' );
 		const list = podcast.find('.pod-content__list');
 		const episode = podcast.find('.pod-content__episode');
 		const episodes = list.find('.episode-list__wrapper');

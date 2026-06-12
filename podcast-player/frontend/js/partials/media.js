@@ -367,7 +367,11 @@ class MediaElements {
 
 			// Add featured image as video poster.
 			if (featured) {
-				this.layers.find('.ppjs__poster').empty().append('<img src="'+ featured + '"/>').show();
+				if ('function' === typeof this.mediaObj.setPoster) {
+					this.mediaObj.setPoster(featured);
+				} else {
+					this.layers.find('.ppjs__poster').empty().append('<img src="'+ featured + '"/>').show();
+				}
 			}
 		} else {
 			

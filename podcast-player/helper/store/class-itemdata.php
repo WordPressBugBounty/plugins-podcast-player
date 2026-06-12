@@ -102,6 +102,15 @@ class ItemData extends StoreBase {
 	protected $mediatype;
 
 	/**
+	 * Holds available media sources for the item.
+	 *
+	 * @since  8.2.0
+	 * @access protected
+	 * @var    array
+	 */
+	protected $media_sources = array();
+
+	/**
 	 * Holds item iTunes episode number.
 	 *
 	 * @since  1.0.0
@@ -207,17 +216,18 @@ class ItemData extends StoreBase {
 			'src'         => 'url',
 			'featured'    => 'url',
 			'featured_id' => 'int',
-			'mediatype'   => 'string',
-			'episode'     => 'string',
-			'season'      => 'int',
-			'categories'  => 'arrString',
-			'episode_id'  => 'episodeid',
-			'duration'    => 'dur',
-			'episodetype' => 'string',
-			'post_id'     => 'int',
-			'transcript'  => 'transcript',
-			'captions'    => 'captions',
-			'chapters'    => 'arrUrlStr',
+			'mediatype'     => 'string',
+			'media_sources' => 'mediaSources',
+			'episode'       => 'string',
+			'season'        => 'int',
+			'categories'    => 'arrString',
+			'episode_id'    => 'episodeid',
+			'duration'      => 'dur',
+			'episodetype'   => 'string',
+			'post_id'       => 'int',
+			'transcript'    => 'transcript',
+			'captions'      => 'captions',
+			'chapters'      => 'arrUrlStr',
 		);
 	}
 

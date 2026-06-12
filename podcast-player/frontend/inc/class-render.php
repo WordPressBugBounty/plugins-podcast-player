@@ -811,8 +811,10 @@ class Render {
 		$first_item = isset( $this->items[0] ) ? $this->items[0] : '';
 		$player     = '';
 		if ( $first_item ) {
-			$src    = isset( $first_item['src'] ) ? $first_item['src'] : '';
-			$player = Markup_Fn::get_player_markup( $src, $this->instance );
+			$src         = isset( $first_item['src'] ) ? $first_item['src'] : '';
+			$mediatype   = isset( $first_item['mediatype'] ) ? $first_item['mediatype'] : '';
+			$source_mime = isset( $first_item['source_mime'] ) ? $first_item['source_mime'] : '';
+			$player      = Markup_Fn::get_player_markup( $src, $this->instance, $mediatype, $source_mime );
 		}
 		if ( $player ) {
 			return sprintf(

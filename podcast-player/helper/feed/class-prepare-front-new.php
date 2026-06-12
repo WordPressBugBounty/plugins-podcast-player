@@ -35,6 +35,7 @@ class Prepare_Front_New extends Singleton {
 		array_walk(
 			$items,
 			function ( &$item, $key ) {
+				$item = $this->resolve_media_source( $item );
 				if ( isset( $item['date'] ) ) {
 					$item['timestamp'] = $this->timestamp( $item['date'] );
 					$item['date']      = $this->date( $item['date'] );
@@ -43,6 +44,119 @@ class Prepare_Front_New extends Singleton {
 		);
 		$data['items'] = $items;
 		return $data;
+	}
+
+	/**
+	 * Resolve the active media source for frontend playback.
+	 *
+	 * @since 8.2.0
+	 *
+	 * @param array $item Feed item data.
+	 * @return array
+	 */
+	private function resolve_media_source( $item ) {
+		if ( empty( $item['media_sources'] ) || ! is_array( $item['media_sources'] ) ) {
+			$item['is_hls']      = Get_Fn::is_hls_source( isset( $item['src'] ) ? $item['src'] : '' ) ? 1 : 0;
+			$item['source_mime'] = '';
+			return $item;
+		}
+
+		$primary = $this->get_primary_source( $item );
+		$source  = $primary;
+
+		if ( ! empty( $primary ) && 'hls' === $primary['format'] ) {
+			$source = $primary;
+		} elseif ( 'yes' === Get_Fn::get_plugin_option( 'prefer_hls_streams' ) ) {
+			$hls = $this->get_preferred_hls_source( $item['media_sources'] );
+			if ( ! empty( $hls ) ) {
+				$source = $hls;
+			}
+		}
+
+		if ( empty( $source['url'] ) ) {
+			unset( $item['media_sources'] );
+			return $item;
+		}
+
+		$item['src']           = $source['url'];
+		$item['mediatype']     = ! empty( $source['media_type'] ) ? $source['media_type'] : Get_Fn::get_media_type( $source['url'], isset( $source['type'] ) ? $source['type'] : '' );
+		$item['source_mime']   = isset( $source['type'] ) ? $source['type'] : '';
+		$item['source_format'] = isset( $source['format'] ) ? $source['format'] : '';
+		$item['is_hls']        = isset( $source['format'] ) && 'hls' === $source['format'] ? 1 : 0;
+		unset( $item['media_sources'] );
+
+		return $item;
+	}
+
+	/**
+	 * Get primary enclosure source from item sources.
+	 *
+	 * @since 8.2.0
+	 *
+	 * @param array $item Feed item data.
+	 * @return array
+	 */
+	private function get_primary_source( $item ) {
+		foreach ( $item['media_sources'] as $source ) {
+			if ( isset( $source['rel'] ) && 'enclosure' === $source['rel'] ) {
+				return $source;
+			}
+		}
+
+		foreach ( $item['media_sources'] as $source ) {
+			if ( ! empty( $source['url'] ) && isset( $item['src'] ) && $source['url'] === $item['src'] ) {
+				return $source;
+			}
+		}
+
+		return reset( $item['media_sources'] );
+	}
+
+	/**
+	 * Get preferred HLS source from available media sources.
+	 *
+	 * @since 8.2.0
+	 *
+	 * @param array $sources Available media sources.
+	 * @return array
+	 */
+	private function get_preferred_hls_source( $sources ) {
+		$hls_sources = array_values(
+			array_filter(
+				$sources,
+				function ( $source ) {
+					return isset( $source['format'] ) && 'hls' === $source['format'];
+				}
+			)
+		);
+
+		if ( empty( $hls_sources ) ) {
+			return array();
+		}
+
+		$locale = function_exists( 'get_locale' ) ? strtolower( str_replace( '_', '-', get_locale() ) ) : '';
+		usort(
+			$hls_sources,
+			function ( $a, $b ) use ( $locale ) {
+				$a_default = ! empty( $a['default'] ) ? 1 : 0;
+				$b_default = ! empty( $b['default'] ) ? 1 : 0;
+				if ( $a_default !== $b_default ) {
+					return $b_default - $a_default;
+				}
+
+				$a_lang = ! empty( $a['lang'] ) && $locale && 0 === strpos( $locale, strtolower( $a['lang'] ) ) ? 1 : 0;
+				$b_lang = ! empty( $b['lang'] ) && $locale && 0 === strpos( $locale, strtolower( $b['lang'] ) ) ? 1 : 0;
+				if ( $a_lang !== $b_lang ) {
+					return $b_lang - $a_lang;
+				}
+
+				$a_quality = max( absint( isset( $a['height'] ) ? $a['height'] : 0 ), absint( isset( $a['bitrate'] ) ? $a['bitrate'] : 0 ) );
+				$b_quality = max( absint( isset( $b['height'] ) ? $b['height'] : 0 ), absint( isset( $b['bitrate'] ) ? $b['bitrate'] : 0 ) );
+				return $b_quality - $a_quality;
+			}
+		);
+
+		return reset( $hls_sources );
 	}
 
 	/**

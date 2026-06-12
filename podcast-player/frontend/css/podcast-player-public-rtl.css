@@ -979,8 +979,25 @@ button.episode-list__load-more:hover, button.episode-list__load-more:focus {
   height: auto !important;
 }
 
+.ppjs__container.ppjs__video {
+  aspect-ratio: 16/9;
+  background: #000;
+  overflow: visible;
+  width: 100% !important;
+}
+
+.ppjs__video .ppjs__inner {
+  height: 100%;
+  position: relative;
+  width: 100%;
+}
+
 .ppjs__video video {
+  background: #000;
+  height: 100% !important;
   margin-bottom: 0 !important;
+  object-fit: contain;
+  width: 100% !important;
 }
 
 .ppjs__button > button, .ppjs__button > a.button {
@@ -1025,6 +1042,7 @@ button.episode-list__load-more:hover, button.episode-list__load-more:focus {
 
 .ppjs__mediaelement {
   height: 100%;
+  overflow: hidden;
   position: absolute;
   top: 0;
   width: 100%;
@@ -1039,12 +1057,31 @@ button.episode-list__load-more:hover, button.episode-list__load-more:focus {
   right: 0;
 }
 
+.ppjs__layers {
+  height: 100%;
+  overflow: hidden;
+  position: absolute;
+  top: 0;
+  width: 100%;
+  z-index: 1;
+}
+
+[dir="ltr"] .ppjs__layers {
+  left: 0;
+}
+
+[dir="rtl"] .ppjs__layers {
+  right: 0;
+}
+
 .ppjs__poster {
   background-position: 50% 50%;
   background-repeat: no-repeat;
   background-size: cover;
+  height: 100%;
   position: absolute;
   top: 0;
+  width: 100%;
   z-index: 1;
 }
 
@@ -1071,6 +1108,8 @@ button.episode-list__load-more:hover, button.episode-list__load-more:focus {
   justify-content: center;
   position: absolute;
   top: 0;
+  height: 100%;
+  width: 100%;
   background-color: rgba(0, 0, 0, 0.2);
 }
 
@@ -1118,7 +1157,7 @@ button.episode-list__load-more:hover, button.episode-list__load-more:focus {
   padding: 0 10px;
   position: absolute;
   width: 100%;
-  z-index: 1;
+  z-index: 2;
 }
 
 [dir="ltr"] .ppjs__controls {
@@ -1463,23 +1502,32 @@ button.episode-list__load-more:hover, button.episode-list__load-more:focus {
   display: inline-block;
 }
 
-.ppjs__video .ppjs__button {
-  width: 40px;
-  flex-basis: 40px;
+.ppjs__video .ppjs__controls {
+  align-items: center;
 }
 
-.ppjs__video .ppjs__button button {
-  font-size: 16px;
+.ppjs__video .ppjs__button {
+  flex-basis: 40px;
+  flex-shrink: 0;
+  height: 40px;
   position: relative;
+  width: 40px;
+}
+
+.ppjs__video .ppjs__button > button, .ppjs__video .ppjs__button > a.button {
+  font-size: 16px;
+  height: 40px;
+  position: relative;
+  width: 40px;
   top: 50%;
 }
 
-[dir="ltr"] .ppjs__video .ppjs__button button {
+[dir="ltr"] .ppjs__video .ppjs__button > button, [dir="ltr"] .ppjs__video .ppjs__button > a.button {
   left: 50%;
   transform: translate(-50%, -50%);
 }
 
-[dir="rtl"] .ppjs__video .ppjs__button button {
+[dir="rtl"] .ppjs__video .ppjs__button > button, [dir="rtl"] .ppjs__video .ppjs__button > a.button {
   right: 50%;
   transform: translate(50%, -50%);
 }
@@ -1507,8 +1555,11 @@ button.episode-list__load-more:hover, button.episode-list__load-more:focus {
 }
 
 .ppjs__video .ppjs__video-timer {
-  flex: 1;
+  align-items: center;
   display: flex;
+  flex: 1;
+  height: 40px;
+  min-width: 0;
 }
 
 .ppjs__video .ppjs__currenttime,
@@ -1690,8 +1741,11 @@ button.episode-list__load-more:hover, button.episode-list__load-more:focus {
 }
 
 .ppjs__video .ppjs__time-rail {
+  align-items: center;
+  display: flex;
   height: 40px;
   margin: 0 10px;
+  min-width: 0;
 }
 
 .ppjs__time-total, .ppjs__time-buffering, .ppjs__time-loaded, .ppjs__time-current, .ppjs__time-float, .ppjs__time-hovered, .ppjs__time-float-current, .ppjs__time-float-corner, .ppjs__time-marker {
@@ -2271,6 +2325,7 @@ a.ppjs__episode-excerpt .ppjs__more {
 
 .pp-podcast .wp-video {
   max-width: 100%;
+  width: 100% !important;
 }
 
 .pp-podcast .mejs__offscreen,
@@ -2594,6 +2649,29 @@ a.ppjs__episode-excerpt .ppjs__more {
 .hide-social .ppjs__video .ppjs__share-button,
 .hide-download .ppjs__video .ppjs__share-button .ppshare-item.download {
   display: none !important;
+}
+
+.ppjs__video .ppjs__share-button ul.ppshare__social {
+  bottom: auto;
+  top: 100%;
+}
+
+[dir="ltr"] .ppjs__video .ppjs__share-button ul.ppshare__social {
+  right: 0;
+}
+
+[dir="rtl"] .ppjs__video .ppjs__share-button ul.ppshare__social {
+  left: 0;
+}
+
+[dir="ltr"] .rtl .ppjs__video .ppjs__share-button ul.ppshare__social {
+  left: 0;
+  right: auto;
+}
+
+[dir="rtl"] .rtl .ppjs__video .ppjs__share-button ul.ppshare__social {
+  right: 0;
+  left: auto;
 }
 
 .ppjs__video .ppjs__download-alt-button,

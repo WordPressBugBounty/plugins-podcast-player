@@ -353,7 +353,7 @@ class Fetch_Feed {
 	 * @since  6.4.3
 	 */
 	public function get_item_data() {
-		list( $media, $media_type ) = $this->get_item_media();
+		list( $media, $media_type, $media_sources ) = $this->get_item_media();
 		if ( ! $media || ! $media_type ) {
 			return false;
 		}
@@ -368,6 +368,7 @@ class Fetch_Feed {
 		$item->set( 'src', $media );
 		$item->set( 'featured', $this->get_item_featured() );
 		$item->set( 'mediatype', $media_type );
+		$item->set( 'media_sources', $media_sources );
 		$item->set( 'episode', $this->get_itunes_episode() );
 		$item->set( 'season', $this->get_itunes_season() );
 		$item->set( 'categories', $this->get_item_cats() );
@@ -385,10 +386,20 @@ class Fetch_Feed {
 	 * @since  6.4.3
 	 */
 	public function get_item_media() {
-		$enclosure  = $this->get_media_enclosure();
-		$media      = false !== $enclosure ? (string) $enclosure->attributes()->url : '';
-		$media_type = $media ? Get_Fn::get_media_type( $media ) : '';
-		return array( esc_url_raw( $media ), sanitize_text_field( $media_type ) );
+		$enclosure     = $this->get_media_enclosure();
+		$primary       = false !== $enclosure ? $this->get_primary_media_source( $enclosure ) : array();
+		$alternates    = $this->get_alternate_media_sources();
+		$media_sources = array_filter( array_merge( $primary ? array( $primary ) : array(), $alternates ) );
+
+		if ( empty( $primary ) && ! empty( $media_sources ) ) {
+			$primary = reset( $media_sources );
+		}
+
+		$media      = isset( $primary['url'] ) ? $primary['url'] : '';
+		$mime_type  = isset( $primary['type'] ) ? $primary['type'] : '';
+		$media_type = $media ? Get_Fn::get_media_type( $media, $mime_type ) : '';
+
+		return array( esc_url_raw( $media ), sanitize_text_field( $media_type ), $media_sources );
 	}
 
 	/**
@@ -407,7 +418,8 @@ class Fetch_Feed {
 					foreach ( $contents as $enclosure ) {
 						if ( method_exists( $enclosure, 'attributes' ) ) {
 							$type = (string) $enclosure->attributes()->type;
-							if ( false !== strpos( $type, 'audio' ) || false !== strpos( $type, 'video' ) ) {
+							$url  = (string) $enclosure->attributes()->url;
+							if ( $this->is_supported_media_type( $type, $url ) ) {
 								return $enclosure;
 							}
 						}
@@ -422,7 +434,8 @@ class Fetch_Feed {
 			foreach ( $contents as $enclosure ) {
 				if ( method_exists( $enclosure, 'attributes' ) ) {
 					$type = (string) $enclosure->attributes()->type;
-					if ( false !== strpos( $type, 'audio' ) || false !== strpos( $type, 'video' ) ) {
+					$url  = (string) $enclosure->attributes()->url;
+					if ( $this->is_supported_media_type( $type, $url ) ) {
 						return $enclosure;
 					}
 				}
@@ -437,7 +450,8 @@ class Fetch_Feed {
 		foreach ( $enc as $enclosure ) {
 			if ( method_exists( $enclosure, 'attributes' ) ) {
 				$type = (string) $enclosure->attributes()->type;
-				if ( false !== strpos( $type, 'audio' ) || false !== strpos( $type, 'video' ) ) {
+				$url = (string) $enclosure->attributes()->url;
+				if ( $this->is_supported_media_type( $type, $url ) ) {
 					return $enclosure;
 				}
 			}
@@ -453,6 +467,154 @@ class Fetch_Feed {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Get structured source data for the primary enclosure.
+	 *
+	 * @since 8.2.0
+	 *
+	 * @param object $enclosure Enclosure XML node.
+	 * @return array
+	 */
+	private function get_primary_media_source( $enclosure ) {
+		if ( ! method_exists( $enclosure, 'attributes' ) ) {
+			return array();
+		}
+
+		$attrs = $enclosure->attributes();
+		$url   = isset( $attrs->url ) ? esc_url_raw( (string) $attrs->url ) : '';
+		if ( ! $url ) {
+			return array();
+		}
+
+		$type = isset( $attrs->type ) ? sanitize_text_field( (string) $attrs->type ) : '';
+
+		return $this->prepare_media_source(
+			array(
+				'url'     => $url,
+				'type'    => $type,
+				'length'  => isset( $attrs->length ) ? (string) $attrs->length : 0,
+				'rel'     => 'enclosure',
+				'default' => true,
+			)
+		);
+	}
+
+	/**
+	 * Get Podcasting 2.0 alternate enclosure sources.
+	 *
+	 * @since 8.2.0
+	 *
+	 * @return array
+	 */
+	private function get_alternate_media_sources() {
+		$sources    = array();
+		$alternates = isset( $this->item_podcast->alternateEnclosure ) ? $this->item_podcast->alternateEnclosure : false;
+		if ( ! Validation_Fn::is_iterable( $alternates ) ) {
+			return $sources;
+		}
+
+		foreach ( $alternates as $alternate ) {
+			if ( ! method_exists( $alternate, 'attributes' ) ) {
+				continue;
+			}
+
+			$attrs       = $alternate->attributes();
+			$type        = isset( $attrs->type ) ? sanitize_text_field( (string) $attrs->type ) : '';
+			$alt_sources = $alternate->children( 'https://podcastindex.org/namespace/1.0' )->source;
+
+			if ( ! Validation_Fn::is_iterable( $alt_sources ) ) {
+				$alt_sources = isset( $alternate->source ) ? $alternate->source : false;
+			}
+
+			if ( ! Validation_Fn::is_iterable( $alt_sources ) ) {
+				continue;
+			}
+
+			foreach ( $alt_sources as $source ) {
+				if ( ! method_exists( $source, 'attributes' ) ) {
+					continue;
+				}
+
+				$source_attrs = $source->attributes();
+				$url          = isset( $source_attrs->uri ) ? esc_url_raw( (string) $source_attrs->uri ) : '';
+				if ( ! $url ) {
+					continue;
+				}
+
+				$sources[] = $this->prepare_media_source(
+					array(
+						'url'     => $url,
+						'type'    => $type,
+						'length'  => isset( $attrs->length ) ? (string) $attrs->length : 0,
+						'bitrate' => isset( $attrs->bitrate ) ? (string) $attrs->bitrate : 0,
+						'height'  => isset( $attrs->height ) ? (string) $attrs->height : 0,
+						'width'   => isset( $attrs->width ) ? (string) $attrs->width : 0,
+						'lang'    => isset( $attrs->lang ) ? (string) $attrs->lang : '',
+						'title'   => isset( $attrs->title ) ? (string) $attrs->title : '',
+						'rel'     => isset( $attrs->rel ) ? (string) $attrs->rel : 'alternate',
+						'default' => isset( $attrs->default ) && in_array( strtolower( (string) $attrs->default ), array( 'true', '1', 'yes' ), true ),
+						'codecs'  => isset( $attrs->codecs ) ? (string) $attrs->codecs : '',
+					)
+				);
+			}
+		}
+
+		return $sources;
+	}
+
+	/**
+	 * Prepare a normalized media source array.
+	 *
+	 * @since 8.2.0
+	 *
+	 * @param array $source Raw source values.
+	 * @return array
+	 */
+	private function prepare_media_source( $source ) {
+		$url        = isset( $source['url'] ) ? esc_url_raw( $source['url'] ) : '';
+		$type       = isset( $source['type'] ) ? sanitize_text_field( $source['type'] ) : '';
+		$is_hls     = Get_Fn::is_hls_source( $url, $type );
+		$media_type = Get_Fn::get_media_type( $url, $type );
+
+		if ( ! $url || ! $media_type ) {
+			return array();
+		}
+
+		$url_path = wp_parse_url( $url, PHP_URL_PATH );
+		$url_path = is_string( $url_path ) ? $url_path : '';
+
+		return array(
+			'url'        => $url,
+			'type'       => $type,
+			'format'     => $is_hls ? 'hls' : sanitize_text_field( pathinfo( $url_path, PATHINFO_EXTENSION ) ),
+			'media_type' => sanitize_text_field( $media_type ),
+			'rel'        => isset( $source['rel'] ) ? sanitize_text_field( $source['rel'] ) : '',
+			'title'      => isset( $source['title'] ) ? sanitize_text_field( $source['title'] ) : '',
+			'lang'       => isset( $source['lang'] ) ? sanitize_text_field( $source['lang'] ) : '',
+			'bitrate'    => isset( $source['bitrate'] ) ? absint( $source['bitrate'] ) : 0,
+			'height'     => isset( $source['height'] ) ? absint( $source['height'] ) : 0,
+			'width'      => isset( $source['width'] ) ? absint( $source['width'] ) : 0,
+			'length'     => isset( $source['length'] ) ? absint( $source['length'] ) : 0,
+			'default'    => ! empty( $source['default'] ) ? 1 : 0,
+			'codecs'     => isset( $source['codecs'] ) ? sanitize_text_field( $source['codecs'] ) : '',
+		);
+	}
+
+	/**
+	 * Check whether a type or URL is a supported media source.
+	 *
+	 * @since 8.2.0
+	 *
+	 * @param string $type MIME type.
+	 * @param string $url  Media URL.
+	 * @return bool
+	 */
+	private function is_supported_media_type( $type, $url ) {
+		return false !== strpos( $type, 'audio' )
+			|| false !== strpos( $type, 'video' )
+			|| Get_Fn::is_hls_source( $url, $type );
 	}
 
 	/**

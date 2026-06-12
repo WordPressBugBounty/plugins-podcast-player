@@ -124,13 +124,7 @@ class Loader extends Singleton {
 	 * @param bool $in_footer whether to load script in footer.
 	 */
 	public function enqueue_mm_error_fix( $in_footer ) {
-		wp_enqueue_script(
-			'podcast-player-mmerrorfix',
-			PODCAST_PLAYER_URL . 'frontend/js/mmerrorfix.js',
-			array( 'jquery', 'mediaelement-core' ),
-			PODCAST_PLAYER_VERSION,
-			$in_footer
-		);
+		return;
 	}
 
 	/**
@@ -314,8 +308,9 @@ class Loader extends Singleton {
 		// Scripts data.
 		$cdata         = apply_filters( 'podcast_player_script_data', array() );
 		$ppjs_settings = apply_filters( 'podcast_player_mediaelement_settings', array() );
+		$has_hls       = $this->has_hls_source( $cdata );
 
-		$this->enqueue_public_script();
+		$this->enqueue_public_script( $has_hls );
 
 		wp_localize_script( 'pppublic', 'podcastPlayerData', $cdata );
 		wp_localize_script( 'pppublic', 'ppmejsSettings', $ppjs_settings );
@@ -326,12 +321,13 @@ class Loader extends Singleton {
 	 *
 	 * @since 8.0.0
 	 */
-	private function enqueue_public_script() {
+	private function enqueue_public_script( $has_hls = false ) {
 
 		$deps = array( 'jquery' );
-		// Enqueue mediaelement player.
-		if ( $this->has_mediaelement() ) {
-			$deps[] = 'mediaelement-core';
+		if ( $has_hls ) {
+			$this->enqueue_hls_script();
+			$deps[] = 'podcast-player-hls';
+			$this->add_public_script_dependency( 'podcast-player-hls' );
 		}
 
 		/**
@@ -344,6 +340,67 @@ class Loader extends Singleton {
 			PODCAST_PLAYER_VERSION,
 			true
 		);
+	}
+
+	/**
+	 * Enqueue HLS playback support script.
+	 *
+	 * @since 8.2.0
+	 */
+	private function enqueue_hls_script() {
+		wp_enqueue_script(
+			'podcast-player-hls',
+			PODCAST_PLAYER_URL . 'frontend/js/hls.build.js',
+			array(),
+			PODCAST_PLAYER_VERSION,
+			true
+		);
+	}
+
+	/**
+	 * Add a dependency to the public script if it was registered earlier.
+	 *
+	 * @since 8.2.0
+	 *
+	 * @param string $dependency Script dependency handle.
+	 */
+	private function add_public_script_dependency( $dependency ) {
+		$scripts = wp_scripts();
+		if ( empty( $scripts->registered['pppublic'] ) ) {
+			return;
+		}
+
+		if ( ! in_array( $dependency, $scripts->registered['pppublic']->deps, true ) ) {
+			$scripts->registered['pppublic']->deps[] = $dependency;
+		}
+	}
+
+	/**
+	 * Check whether current frontend data includes an active HLS source.
+	 *
+	 * @since 8.2.0
+	 *
+	 * @param array $data Podcast player script data.
+	 * @return bool
+	 */
+	private function has_hls_source( $data ) {
+		foreach ( $data as $instance ) {
+			if ( ! is_array( $instance ) ) {
+				continue;
+			}
+
+			foreach ( $instance as $key => $episode ) {
+				if ( 0 !== strpos( (string) $key, 'ppe-' ) || ! is_array( $episode ) ) {
+					continue;
+				}
+
+				if ( ! empty( $episode['is_hls'] ) ) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -362,6 +419,7 @@ class Loader extends Singleton {
 			'isSticky'    => false,
 			'features'    => array( 'current', 'progress', 'duration', 'fullscreen' ),
 			'isMeJs'      => $this->has_mediaelement(),
+			'hlsSrc'      => esc_url( add_query_arg( 'ver', PODCAST_PLAYER_VERSION, PODCAST_PLAYER_URL . 'frontend/js/hls.build.js' ) ),
 			'i18n'        => array(
 				'message' => esc_html__( 'Your Message', 'podcast-player' ),
 				'email'   => esc_html__( 'Your Email', 'podcast-player' ),
@@ -370,7 +428,12 @@ class Loader extends Singleton {
 				'thanks'  => esc_html__( 'Thanks for your feedback', 'podcast-player' ),
 			),
 		);
-		return array_merge( $mejs, $markup, $settings );
+		$settings = array_merge( $mejs, $markup, $settings );
+
+		// The custom Podcast Player media layer now handles both audio and video.
+		$settings['isMeJs'] = false;
+
+		return $settings;
 	}
 
 	/**
@@ -477,21 +540,13 @@ class Loader extends Singleton {
 	}
 
 	/**
-	 * Check if mediaelement player is enabled or requried.
+	 * Check if mediaelement player is enabled or required.
 	 *
-	 * Check if user has opted to fallback to mediaelement player OR a video podcast is active on the page.
+	 * MediaElement is no longer used for Podcast Player audio or video playback.
 	 *
 	 * @since 6.7.0
 	 */
 	public function has_mediaelement() {
-		// TODO: Improve this logic. This could be just a one line function.
-		$pp        = Instance_Counter::get_instance();
-		$has_vcast = $pp->has_vcast();
-
-		if ( $has_vcast ) {
-			return true;
-		}
-
 		return false;
 	}
 }

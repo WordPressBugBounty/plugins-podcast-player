@@ -2,9 +2,9 @@
 Contributors: vedathemes
 Tags: podcast, podcasting, rss feed, feed to audio, podcaster
 Requires at least: 4.9
-Tested up to: 6.9
+Tested up to: 7.0
 Requires PHP: 5.6
-Stable tag: 8.2.1
+Stable tag: 8.2.2
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -81,7 +81,7 @@ Presently, Podcast player is not compatible with AMP (Accelerated mobile pages).
 You can host your podcast files anywhere. This plugin only uses rss feed link to fetch and display your podcast episodes.
 
 = Does it support video podcasts? =
-Yes, this plugin supports video podcasts (mp4 format).
+Yes, this plugin supports video podcasts, including MP4 files and HLS/m3u8 streams when provided by the podcast feed.
 
 = Can it support multiple feeds in a single player? =
 No, you cannot use multiple podcast feed urls in one player instance.
@@ -106,6 +106,12 @@ Podcast player plugin (on its own) does not create and save any cookies and does
 5. Podcast player on large size container
 
 ==Changelog ==
+= 8.2.2 =
+* New: Replaced MediaElement.js video playback with Podcast Player's custom audio/video player.
+* New: Added HLS/m3u8 playback support for podcast feeds, including Podcasting 2.0 alternate enclosures.
+* New: Added an advanced option to prefer HLS streams when available while keeping primary enclosure playback as the default.
+* Bug Fix: Improved video poster display, player sizing, video controls alignment, sharing popup positioning, and video click-to-play/pause behavior.
+
 = 8.2.1 =
 * Bug Fix: JS loading issue and Ajax timeout issues for captions.
 
@@ -672,4 +678,3 @@ Modify: Support for better episode sharing on pro version.
 
 = 1.1.0 =
 * Update required for additional features and code optimization.
-

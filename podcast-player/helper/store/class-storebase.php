@@ -329,6 +329,51 @@ class StoreBase {
 	}
 
 	/**
+	 * Escape media sources array.
+	 *
+	 * @since  8.2.0
+	 *
+	 * @param array  $val     Value to be escaped.
+	 * @param string $context 'echo' or 'sanitize'.
+	 */
+	protected function mediaSources( $val, $context ) {
+		if ( empty( $val ) || ! is_array( $val ) ) {
+			return array();
+		}
+
+		$sources = array();
+		foreach ( $val as $source ) {
+			if ( empty( $source ) || ! is_array( $source ) ) {
+				continue;
+			}
+
+			$url = isset( $source['url'] ) ? $source['url'] : '';
+			$url = 'sanitize' === $context ? esc_url_raw( $url ) : esc_url( $url );
+			if ( ! $url ) {
+				continue;
+			}
+
+			$sources[] = array(
+				'url'        => $url,
+				'type'       => isset( $source['type'] ) ? $this->string( $source['type'], $context ) : '',
+				'format'     => isset( $source['format'] ) ? $this->string( $source['format'], $context ) : '',
+				'media_type' => isset( $source['media_type'] ) ? $this->string( $source['media_type'], $context ) : '',
+				'rel'        => isset( $source['rel'] ) ? $this->string( $source['rel'], $context ) : '',
+				'title'      => isset( $source['title'] ) ? $this->string( $source['title'], $context ) : '',
+				'lang'       => isset( $source['lang'] ) ? $this->string( $source['lang'], $context ) : '',
+				'bitrate'    => isset( $source['bitrate'] ) ? absint( $source['bitrate'] ) : 0,
+				'height'     => isset( $source['height'] ) ? absint( $source['height'] ) : 0,
+				'width'      => isset( $source['width'] ) ? absint( $source['width'] ) : 0,
+				'length'     => isset( $source['length'] ) ? absint( $source['length'] ) : 0,
+				'default'    => ! empty( $source['default'] ) ? 1 : 0,
+				'codecs'     => isset( $source['codecs'] ) ? $this->string( $source['codecs'], $context ) : '',
+			);
+		}
+
+		return $sources;
+	}
+
+	/**
 	 * Escape podcast owner.
 	 *
 	 * @since  1.0.0
@@ -502,6 +547,7 @@ class StoreBase {
 				break;
 			case 'array':
 			case 'transcript':
+			case 'mediaSources':
 			case 'arrUrlStr':
 			case 'arrString':
 			case 'arrUrl':

@@ -80,7 +80,7 @@ class Markup {
 	 * @param array $src      Podcast media src.
 	 * @param int   $instance current podcast player instance.
 	 */
-	public static function get_player_markup( $src, $instance ) {
+	public static function get_player_markup( $src, $instance, $media_type = '', $mime_type = '' ) {
 		if ( ! Validation_Fn::is_valid_url( $src ) ) {
 			$option = get_option( 'pp_media_src_index' );
 			if ( $src && $option && is_array( $option ) && isset( $option[ $src ] ) ) {
@@ -94,9 +94,12 @@ class Markup {
 		$src_url = preg_replace( '/\?.*/', '', $src );
 
 		$html       = '';
-		$media_type = Get_Fn::get_media_type( $src );
-		$mime_type  = wp_check_filetype( $src_url, wp_get_mime_types() );
-		$mime_type  = $mime_type['type'];
+		$media_type = $media_type ? sanitize_text_field( $media_type ) : Get_Fn::get_media_type( $src, $mime_type );
+		if ( ! $mime_type ) {
+			$mime_type = wp_check_filetype( $src_url, wp_get_mime_types() );
+			$mime_type = $mime_type['type'];
+		}
+		$mime_type = $mime_type ? sanitize_text_field( $mime_type ) : '';
 
 		if ( 'audio' === $media_type ) {
 			$html = self::get_audio_markup( $src, $instance, $mime_type );
@@ -158,15 +161,11 @@ class Markup {
 	 * @param string $type     Media mime type.
 	 */
 	public static function get_video_markup( $src, $instance, $type ) {
-		$width  = isset( $GLOBALS['content_width'] ) ? $GLOBALS['content_width'] : 800;
-		$height = 0.5625 * $width;
-
 		$html_atts = array(
 			'id'      => 'pp-podcast-' . absint( $instance ) . '-player',
 			'preload' => 'none',
 			'class'   => 'pp-podcast-episode',
-			'width'   => $width,
-			'height'  => $height,
+			'style'   => 'width: 100%; height: auto;',
 		);
 
 		$attr_strings = array();
@@ -178,8 +177,7 @@ class Markup {
 		$html .= sprintf( '<source type="%s" src="%s" />', $type, esc_url( $src ) );
 		$html .= '</video>';
 		$html  = sprintf(
-			'<div style="width: %dpx;" class="wp-video">%s</div>',
-			$html_atts['width'],
+			'<div class="wp-video pp-video">%s</div>',
 			$html
 		);
 		return $html;

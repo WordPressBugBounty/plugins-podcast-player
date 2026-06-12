@@ -197,7 +197,7 @@ class Feed extends Singleton {
 	 * @param array $args Podcast display args.
 	 */
 	private function get_required_data_fields( $args ) {
-		$default_fields = array( 'title', 'date', 'link', 'src', 'mediatype', 'duration', 'categories', 'episodetype', 'season' );
+		$default_fields = array( 'title', 'date', 'link', 'src', 'mediatype', 'media_sources', 'duration', 'categories', 'episodetype', 'season' );
 		$conditional    = array(
 			'description' => 'hide-content',
 			'author'      => 'hide-author',
