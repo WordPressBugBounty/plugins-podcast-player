@@ -14,6 +14,7 @@ namespace Podcast_Player\Frontend\Inc;
 use Podcast_Player\Frontend\Inc\Render;
 use Podcast_Player\Frontend\Inc\Instance_Counter;
 use Podcast_Player\Helper\Functions\Getters as Get_Fn;
+use Podcast_Player\Helper\Functions\Fuzzy_Search;
 use Podcast_Player\Helper\Core\Singleton;
 use Podcast_Player\Helper\Core\Background_Jobs;
 
@@ -759,15 +760,15 @@ class Feed extends Singleton {
 		$term = strtolower( $term );
 
 		/*
-		 * Directly searching term with-in episode title.
-		 * No need to directly search into already displayed episodes
-		 * as it is already done by javascript on front-end.
+		 * Typo-tolerant search of the episode title. Already displayed episodes
+		 * are searched live by JavaScript on the front-end, so they are skipped
+		 * here once matched.
 		 */
 		$i       = 1;
 		$results = array();
 		foreach ( $items as $key => $item ) {
 			$item_title = strtolower( $item['title'] );
-			if ( ! $term || ! str_replace( ' ', '', $term ) || false !== strpos( $item_title, $term ) ) {
+			if ( ! $term || ! str_replace( ' ', '', $term ) || Fuzzy_Search::matches( $item_title, $term ) ) {
 				if ( $i > ( $offset + $displayed ) ) {
 					$results[ $key ] = $item;
 				}

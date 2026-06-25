@@ -4,7 +4,7 @@ Tags: podcast, podcasting, rss feed, feed to audio, podcaster
 Requires at least: 4.9
 Tested up to: 7.0
 Requires PHP: 5.6
-Stable tag: 8.2.2
+Stable tag: 8.2.3
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -106,6 +106,11 @@ Podcast player plugin (on its own) does not create and save any cookies and does
 5. Podcast player on large size container
 
 ==Changelog ==
+= 8.2.3 =
+* New: schema.org/PodcastEpisode JSON-LD output on imported episode posts, with a "Schema.org markup" on/off setting (Optimize settings).
+* New: Auto-suppresses our schema when a known provider is active (Yoast, Rank Math, Seriously Simple Podcasting, All in One SEO, The SEO Framework); override via the `pp_schema_conflict_detected` filter (return true to suppress, false to force-allow). Filters: `pp_podcast_episode_schema_enabled` (final on/off), `pp_podcast_episode_schema` (edit/replace the graph).
+* New: Typo-tolerant (Damerau–Levenshtein OSA) episode deep search; tunable via `pp_search_fuzzy_enabled` and `pp_search_fuzzy_thresholds`.
+
 = 8.2.2 =
 * New: Replaced MediaElement.js video playback with Podcast Player's custom audio/video player.
 * New: Added HLS/m3u8 playback support for podcast feeds, including Podcasting 2.0 alternate enclosures.

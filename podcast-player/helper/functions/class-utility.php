@@ -736,7 +736,12 @@ class Utility {
             'mediatype',
             'categories',
 			'episode_id',
-            'post_id'
+            'post_id',
+            // Immutable episode metadata snapshotted for schema.org output.
+            'duration',
+            'season',
+            'episode',
+            'episodetype'
 		), $feed_key );
 
         // Get required episodes data from the feed.
@@ -844,17 +849,33 @@ class Utility {
 				self::mark_episode_imported( $feed_key, $key, $new_post_id, $item );
 				$completed_items[ $key ] = array( 'post_id' => $new_post_id );
 
-				// Add post specific information.
+				// iTunes episode number. The feed stores it as a "season-episode"
+				// composite when a season is present (e.g. "1-1"); keep only the
+				// bare episode number for schema.org episodeNumber.
+				$ep_raw     = isset( $item['episode'] ) ? (string) $item['episode'] : '';
+				$ep_parts   = '' !== $ep_raw ? explode( '-', $ep_raw ) : array();
+				$episode_no = ! empty( $ep_parts ) ? sanitize_text_field( (string) end( $ep_parts ) ) : '';
+
+				// Add post specific information. Use update_post_meta so a
+				// re-import refreshes the single record instead of appending a
+				// duplicate row.
 				self::set_episode_import_phase( $feed_key, $key, 'saving_post_meta' );
-				add_post_meta(
+				update_post_meta(
 					$new_post_id,
 					'pp_import_data',
 					array(
-						'podkey'    => sanitize_text_field( $feed_key ),
-						'episode'   => sanitize_text_field( $key ),
-						'src'       => esc_url_raw( $item['src'] ),
-						'type'      => sanitize_text_field( $item['mediatype'] ),
-						'is_manual' => isset( $import_settings['location'] ) && 'manual' === $import_settings['location']
+						'podkey'      => sanitize_text_field( $feed_key ),
+						'episode'     => sanitize_text_field( $key ),
+						'src'         => esc_url_raw( $item['src'] ),
+						'type'        => sanitize_text_field( $item['mediatype'] ),
+						'is_manual'   => isset( $import_settings['location'] ) && 'manual' === $import_settings['location'],
+						// Immutable episode metadata snapshot for schema.org/PodcastEpisode.
+						// Stored raw; duration is normalised at read time by the resolver.
+						'duration'    => isset( $item['duration'] ) ? sanitize_text_field( (string) $item['duration'] ) : '',
+						'season'      => ( isset( $item['season'] ) && $item['season'] ) ? absint( $item['season'] ) : '',
+						'episode_no'  => $episode_no,
+						'episodetype' => isset( $item['episodetype'] ) ? sanitize_text_field( $item['episodetype'] ) : '',
+						'meta_v'      => 1,
 					)
 				);
 
