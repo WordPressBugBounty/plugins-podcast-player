@@ -29,6 +29,30 @@ use Podcast_Player\Helper\Core\Background_Jobs;
 class Get_Feed {
 
 	/**
+	 * Current persisted episode-identity format.
+	 *
+	 * @since 8.3.0
+	 * @var int
+	 */
+	private const IDENTITY_VERSION = 2;
+
+	/**
+	 * Per-feed lock lifetime for the identity migration fetch.
+	 *
+	 * @since 8.3.0
+	 * @var int
+	 */
+	private const IDENTITY_MIGRATION_LOCK_TTL = 30;
+
+	/**
+	 * Cooldown after an identity migration fetch cannot return parsed feed data.
+	 *
+	 * @since 8.3.0
+	 * @var int
+	 */
+	private const IDENTITY_MIGRATION_RETRY_TTL = 300;
+
+	/**
 	 * Holds feed url for current instance.
 	 *
 	 * @since  3.3.0
@@ -133,12 +157,15 @@ class Get_Feed {
 	 */
 	public function get_feed_data() {
 		$store_manager = StoreManager::get_instance();
-        $podcast_data  = $store_manager->get_data( $this->feed_url );
+		$podcast_data  = $store_manager->get_data( $this->feed_url );
 		$podcast_data  = $podcast_data instanceof FeedData ? $podcast_data : false;
+		if ( $this->is_identity_migration_required( $podcast_data ) ) {
+			return $this->migrate_cached_identity( $podcast_data );
+		}
 		if ( $this->is_fetch_required( $podcast_data ) ) {
 			return $this->fetch_podcast_data( $podcast_data );
 		}
-        return $podcast_data->retrieve();
+		return $this->retrieve_feed_data( $podcast_data );
 	}
 
 	/**
@@ -148,10 +175,10 @@ class Get_Feed {
 	 *
 	 * @param Object|false $old_podcast_data Old Podcast Feed Data.
      */
-    public function fetch_podcast_data( $old_podcast_data ) {
+    public function fetch_podcast_data( $old_podcast_data, $force_identity_migration = false ) {
 		$store_manager = StoreManager::get_instance();
 		$last_checked  = $store_manager->get_data( $this->feed_url, 'last_checked' );
-		if ( ! empty( $last_checked ) ) {
+		if ( ! $force_identity_migration && ! empty( $last_checked ) ) {
 			$etag          = $old_podcast_data ? $old_podcast_data->get( 'etag', 'sanitize' ) : false;
 			$last_modified = $old_podcast_data ? $old_podcast_data->get( 'lastbuild', 'sanitize' ) : false;
 		} else {
@@ -163,15 +190,28 @@ class Get_Feed {
         $obj           = new Fetch_Feed( $source_url, $etag, $last_modified );
 		$raw_data      = $obj->get_feed_data();
 		if ( is_wp_error( $raw_data ) ) {
+			if ( $force_identity_migration && $old_podcast_data instanceof FeedData ) {
+				$this->set_identity_migration_retry();
+				return $this->retrieve_feed_data( $old_podcast_data );
+			}
 			return $raw_data;
 		}
 
 		// Return old data if no update required.
 		if ( '304_use_cache' === $raw_data ) {
+			if ( $force_identity_migration && $old_podcast_data instanceof FeedData ) {
+				$this->set_identity_migration_retry();
+				return $this->retrieve_feed_data( $old_podcast_data );
+			}
 			$data         = $old_podcast_data;
 			$new_episodes = array();
 		} else {
 			list( $data, $new_episodes ) = $this->prepare_storage_data( $raw_data, $old_podcast_data );
+		}
+
+		if ( $force_identity_migration && ! $this->has_current_identity_version( $data ) ) {
+			$this->set_identity_migration_retry();
+			return $this->retrieve_feed_data( $old_podcast_data );
 		}
 
 		$url   = $data->get( 'furl' );
@@ -181,10 +221,18 @@ class Get_Feed {
 			$title = $data->get( 'title' );
 			$store_manager->maybe_add_new_object( $this->feed_url, $title );
 		}
+		$feed_stored = true;
 		if ( '304_use_cache' !== $raw_data ) {
-			$store_manager->update_data( $data, $this->feed_url, 'feed_data', $alias );
+			$feed_stored = $store_manager->update_data( $data, $this->feed_url, 'feed_data', $alias );
+		}
+		if ( $force_identity_migration && ! $feed_stored ) {
+			$this->set_identity_migration_retry();
+			return $this->retrieve_feed_data( $old_podcast_data );
 		}
 		$store_manager->update_data( time(), $this->feed_url, 'last_checked' );
+		if ( $force_identity_migration ) {
+			delete_transient( $this->get_identity_migration_retry_key() );
+		}
 
 		// Fecilitate new episode import.
 		if ( $this->is_pro && ! empty( $new_episodes ) ) {
@@ -195,8 +243,26 @@ class Get_Feed {
 			}
 		}
 
-        return $data->retrieve();
-    }
+		return $this->retrieve_feed_data( $data );
+	}
+
+	/**
+	 * Retrieve feed data for internal processing with durable legacy aliases.
+	 *
+	 * The aliases are removed by Prepare_Front_New before a player response is
+	 * emitted, but must accompany the internal array so resolver instances can
+	 * honour historical saved references.
+	 *
+	 * @since 8.3.0
+	 *
+	 * @param FeedData $feed_data Stored feed data.
+	 * @return array
+	 */
+	private function retrieve_feed_data( $feed_data ) {
+		$data = $feed_data->retrieve();
+		$data['legacy_key_by_uid'] = $feed_data->get( 'legacy_key_by_uid', 'none' );
+		return $data;
+	}
 
 	/**
 	 * Prepare data for storage.
@@ -286,7 +352,7 @@ class Get_Feed {
      *
      * @param  Object|false $podcast_data
      */
-    private function is_fetch_required( $podcast_data ) {
+	private function is_fetch_required( $podcast_data ) {
 		if ( ! $podcast_data ) {
 			return true;
 		}
@@ -302,4 +368,128 @@ class Get_Feed {
 
 		return false;
     }
+
+	/**
+	 * Whether a stored feed still requires parser-backed identity migration.
+	 *
+	 * @since 8.3.0
+	 *
+	 * @param FeedData|false $podcast_data Stored feed data.
+	 * @return bool
+	 */
+	private function is_identity_migration_required( $podcast_data ) {
+		return $podcast_data instanceof FeedData && ! $this->has_current_identity_version( $podcast_data );
+	}
+
+	/**
+	 * Check whether the feed was parsed using the current identity contract.
+	 *
+	 * @since 8.3.0
+	 *
+	 * @param FeedData|false $podcast_data Feed data.
+	 * @return bool
+	 */
+	private function has_current_identity_version( $podcast_data ) {
+		return $podcast_data instanceof FeedData
+			&& self::IDENTITY_VERSION <= absint( $podcast_data->get( 'identity_version', 'none' ) );
+	}
+
+	/**
+	 * Fetch and migrate an old cached feed without conditional request headers.
+	 *
+	 * The existing cache remains usable if the source cannot provide a parsed
+	 * response. A short cooldown prevents an old cache from triggering a remote
+	 * request on every frontend render.
+	 *
+	 * @since 8.3.0
+	 *
+	 * @param FeedData $podcast_data Stored legacy feed data.
+	 * @return array
+	 */
+	private function migrate_cached_identity( $podcast_data ) {
+		if ( get_transient( $this->get_identity_migration_retry_key() ) ) {
+			return $podcast_data->retrieve();
+		}
+
+		$lock_token = $this->acquire_identity_migration_lock();
+		if ( ! $lock_token ) {
+			return $podcast_data->retrieve();
+		}
+
+		try {
+			return $this->fetch_podcast_data( $podcast_data, true );
+		} finally {
+			$this->release_identity_migration_lock( $lock_token );
+		}
+	}
+
+	/**
+	 * Build a per-feed transient key for the migration lock or cooldown.
+	 *
+	 * @since 8.3.0
+	 *
+	 * @param string $suffix Key suffix.
+	 * @return string
+	 */
+	private function get_identity_migration_key( $suffix ) {
+		return 'pp_identity_migration_' . $suffix . '_' . md5( $this->feed_url );
+	}
+
+	/**
+	 * Get the per-feed migration retry key.
+	 *
+	 * @since 8.3.0
+	 * @return string
+	 */
+	private function get_identity_migration_retry_key() {
+		return $this->get_identity_migration_key( 'retry' );
+	}
+
+	/**
+	 * Record a short retry cooldown without changing the old cache.
+	 *
+	 * @since 8.3.0
+	 */
+	private function set_identity_migration_retry() {
+		set_transient(
+			$this->get_identity_migration_retry_key(),
+			1,
+			self::IDENTITY_MIGRATION_RETRY_TTL
+		);
+	}
+
+	/**
+	 * Acquire a short-lived, per-feed migration lock.
+	 *
+	 * @since 8.3.0
+	 * @return string|false Lock token or false when another request owns it.
+	 */
+	private function acquire_identity_migration_lock() {
+		$lock_key = $this->get_identity_migration_key( 'lock' );
+		$token    = wp_generate_uuid4();
+		if ( get_transient( $lock_key ) ) {
+			return false;
+		}
+
+		set_transient( $lock_key, $token, self::IDENTITY_MIGRATION_LOCK_TTL );
+		return get_transient( $lock_key ) === $token ? $token : false;
+	}
+
+	/**
+	 * Release a migration lock only when this request owns it.
+	 *
+	 * @since 8.3.0
+	 *
+	 * @param string|false $token Lock token.
+	 */
+	private function release_identity_migration_lock( $token ) {
+		if ( ! $token ) {
+			return;
+		}
+
+		$lock_key = $this->get_identity_migration_key( 'lock' );
+		if ( get_transient( $lock_key ) === $token ) {
+			delete_transient( $lock_key );
+		}
+	}
 }

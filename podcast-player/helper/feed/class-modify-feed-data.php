@@ -43,6 +43,9 @@ class Modify_Feed_Data extends Singleton {
 		$feed_items        = $data['items'];
 		$custom_data_items = empty( $custom_data['items'] ) ? array() : $custom_data['items'];
 		$custom_fields     = array( 'title', 'description', 'author', 'featured', 'featured_id', 'episode', 'categories', 'season', 'post_id' );
+		$resolver          = Episode_Resolver::from_feed_data( $data );
+		$mods              = $this->resolve_episode_mods( $mods, $resolver );
+		$custom_data_items = $resolver->rekey_custom_items_by_uid( $custom_data_items );
 
 		foreach ( $feed_items as $key => $item ) {
 			$custom_item = isset( $custom_data_items[ $key ] ) ? $custom_data_items[ $key ] : false;
@@ -236,6 +239,27 @@ class Modify_Feed_Data extends Singleton {
 			'sortby'   => 'none',
 			'fixed'    => false,
 		);
+	}
+
+	/**
+	 * Resolve episode-reference modification args to current episode UIDs.
+	 *
+	 * @since 8.3.0
+	 *
+	 * @param array            $mods     Modification args.
+	 * @param Episode_Resolver $resolver Episode resolver.
+	 * @return array
+	 */
+	private function resolve_episode_mods( $mods, $resolver ) {
+		if ( ! empty( $mods['elist'] ) ) {
+			$mods['elist'] = $resolver->resolve_episode_uids( $mods['elist'] );
+		}
+
+		if ( ! empty( $mods['fixed'] ) ) {
+			$mods['fixed'] = $resolver->resolve_episode_uid( $mods['fixed'] );
+		}
+
+		return $mods;
 	}
 
 	/**

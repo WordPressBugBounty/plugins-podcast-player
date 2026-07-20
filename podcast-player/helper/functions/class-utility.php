@@ -16,6 +16,8 @@ use Podcast_Player\Helper\Functions\Validation as Validation_Fn;
 use Podcast_Player\Helper\Store\StoreManager;
 use Podcast_Player\Helper\Store\FeedData;
 use Podcast_Player\Helper\Store\ItemData;
+use Podcast_Player\Helper\Feed\Episode_Identity;
+use Podcast_Player\Helper\Feed\Episode_Resolver;
 
 /**
  * Podcast player utility functions.
@@ -285,6 +287,40 @@ class Utility {
 	}
 
 	/**
+	 * Map resolved episode UIDs back to their original import references.
+	 *
+	 * Import-state records predate UID storage and are keyed by the value supplied
+	 * to the import request. Keep that value stable while the actual item work uses
+	 * the resolved UID.
+	 *
+	 * @since 8.3.0
+	 *
+	 * @param array            $references Original import references.
+	 * @param Episode_Resolver $resolver   Resolver for the fetched feed data.
+	 * @return array Resolved UID => original reference.
+	 */
+	private static function map_import_references( $references, $resolver ) {
+		$mapped = array();
+		if ( ! $resolver instanceof Episode_Resolver ) {
+			return $mapped;
+		}
+
+		foreach ( (array) $references as $reference ) {
+			$reference = sanitize_text_field( (string) $reference );
+			if ( ! $reference ) {
+				continue;
+			}
+
+			$uid = $resolver->resolve_episode_uid( $reference );
+			if ( $uid && ! isset( $mapped[ $uid ] ) ) {
+				$mapped[ $uid ] = $reference;
+			}
+		}
+
+		return $mapped;
+	}
+
+	/**
 	 * Set the active import attempt context for fatal error handling.
 	 *
 	 * @since 7.9.16
@@ -399,13 +435,15 @@ class Utility {
 			);
 		}
 
-		$state['episode_id'] = isset( $item['episode_id'] ) ? sanitize_text_field( $item['episode_id'] ) : ( isset( $state['episode_id'] ) ? sanitize_text_field( $state['episode_id'] ) : '' );
-		$state['src_hash']   = isset( $item['src'] ) ? md5( esc_url_raw( $item['src'] ) ) : ( isset( $state['src_hash'] ) ? sanitize_text_field( $state['src_hash'] ) : '' );
-		$state['post_id']    = absint( $post_id );
-		$state['status']     = 'imported';
-		$state['phase']      = 'complete';
-		$state['updated_at'] = time();
-		$state['last_error'] = array();
+		$state['episode_id']      = isset( $item['episode_id'] ) ? sanitize_text_field( $item['episode_id'] ) : ( isset( $state['episode_id'] ) ? sanitize_text_field( $state['episode_id'] ) : '' );
+		$state['episode_uid']     = isset( $item['episode_uid'] ) ? sanitize_text_field( $item['episode_uid'] ) : sanitize_text_field( $episode_key );
+		$state['identity_source'] = isset( $item['identity_source'] ) ? sanitize_text_field( $item['identity_source'] ) : ( isset( $state['identity_source'] ) ? sanitize_text_field( $state['identity_source'] ) : '' );
+		$state['src_hash']        = isset( $item['src'] ) ? md5( esc_url_raw( $item['src'] ) ) : ( isset( $state['src_hash'] ) ? sanitize_text_field( $state['src_hash'] ) : '' );
+		$state['post_id']         = absint( $post_id );
+		$state['status']          = 'imported';
+		$state['phase']           = 'complete';
+		$state['updated_at']      = time();
+		$state['last_error']      = array();
 
 		self::update_episode_import_state( $feed_key, $episode_key, $state );
 	}
@@ -736,6 +774,8 @@ class Utility {
             'mediatype',
             'categories',
 			'episode_id',
+			'episode_uid',
+			'identity_source',
             'post_id',
             // Immutable episode metadata snapshotted for schema.org output.
             'duration',
@@ -764,19 +804,25 @@ class Utility {
 		}
 		self::clear_current_import_attempt();
 
-		$furl  = isset( $fdata['furl'] ) ? $fdata['furl'] : $feed_key;
-        $items = $fdata['items'];
+		$furl            = isset( $fdata['furl'] ) ? $fdata['furl'] : $feed_key;
+        $items           = $fdata['items'];
+		$resolver        = Episode_Resolver::from_feed_data( $fdata );
+		$state_references = self::map_import_references( $elist, $resolver );
+		$custom_items    = $resolver->rekey_custom_items_by_uid( $custom_items );
 		$completed_items = array();
+		$state_keys      = array();
         foreach ( $items as $key => $item ) {
-			if ( self::should_skip_auto_import_retry( $feed_key, $key, $import_settings ) ) {
+			$state_key = isset( $state_references[ $key ] ) ? $state_references[ $key ] : $key;
+			$state_keys[] = $state_key;
+			if ( self::should_skip_auto_import_retry( $feed_key, $state_key, $import_settings ) ) {
 				$completed_items[ $key ] = array( 'skipped' => true );
 				continue;
 			}
 
-			self::start_episode_import_attempt( $feed_key, $key, $item, 'resolving_existing_post' );
+			self::start_episode_import_attempt( $feed_key, $state_key, $item, 'resolving_existing_post' );
 			try {
 				$post_id        = isset( $item['post_id'] ) ? absint( $item['post_id'] ) : false;
-				$state_post_id  = self::get_imported_post_id_from_state( $feed_key, $key );
+				$state_post_id  = self::get_imported_post_id_from_state( $feed_key, $state_key );
 				$post_id        = $post_id ? $post_id : $state_post_id;
 				$date           = isset( $item['timestamp'] ) ? date( 'Y-m-d H:i:s', $item['timestamp'] ) : date( 'Y-m-d H:i:s', strtotime( $item['date'] ) );
 				$post_id        = self::check_if_post_exists( $post_id, $item['title'], $date, $post_type );
@@ -811,7 +857,7 @@ class Utility {
 				}
 
 				// Importing the post.
-				self::set_episode_import_phase( $feed_key, $key, 'creating_post' );
+				self::set_episode_import_phase( $feed_key, $state_key, 'creating_post' );
 				$existing_status = $post_id ? get_post_status( $post_id ) : false;
 				$new_post_id = wp_insert_post(
 					apply_filters(
@@ -834,7 +880,7 @@ class Utility {
 				if ( is_wp_error( $new_post_id ) ) {
 					self::mark_episode_import_failed(
 						$feed_key,
-						$key,
+						$state_key,
 						array(
 							'reason'  => 'post_insert_error',
 							'message' => $new_post_id->get_error_message(),
@@ -845,8 +891,8 @@ class Utility {
 					continue;
 				}
 
-				self::set_episode_import_phase( $feed_key, $key, 'saving_import_mapping' );
-				self::mark_episode_imported( $feed_key, $key, $new_post_id, $item );
+				self::set_episode_import_phase( $feed_key, $state_key, 'saving_import_mapping' );
+				self::mark_episode_imported( $feed_key, $state_key, $new_post_id, $item );
 				$completed_items[ $key ] = array( 'post_id' => $new_post_id );
 
 				// iTunes episode number. The feed stores it as a "season-episode"
@@ -859,16 +905,19 @@ class Utility {
 				// Add post specific information. Use update_post_meta so a
 				// re-import refreshes the single record instead of appending a
 				// duplicate row.
-				self::set_episode_import_phase( $feed_key, $key, 'saving_post_meta' );
+				self::set_episode_import_phase( $feed_key, $state_key, 'saving_post_meta' );
+				$legacy_episode_key = ! empty( $item['src'] ) ? Episode_Identity::legacy_audio_key( $item['src'] ) : $key;
 				update_post_meta(
 					$new_post_id,
 					'pp_import_data',
 					array(
-						'podkey'      => sanitize_text_field( $feed_key ),
-						'episode'     => sanitize_text_field( $key ),
-						'src'         => esc_url_raw( $item['src'] ),
-						'type'        => sanitize_text_field( $item['mediatype'] ),
-						'is_manual'   => isset( $import_settings['location'] ) && 'manual' === $import_settings['location'],
+						'podkey'          => sanitize_text_field( $feed_key ),
+						'episode'         => sanitize_text_field( $legacy_episode_key ),
+						'episode_uid'     => sanitize_text_field( isset( $item['episode_uid'] ) && $item['episode_uid'] ? $item['episode_uid'] : $key ),
+						'identity_source' => isset( $item['identity_source'] ) ? sanitize_text_field( $item['identity_source'] ) : '',
+						'src'             => esc_url_raw( $item['src'] ),
+						'type'            => sanitize_text_field( $item['mediatype'] ),
+						'is_manual'       => isset( $import_settings['location'] ) && 'manual' === $import_settings['location'],
 						// Immutable episode metadata snapshot for schema.org/PodcastEpisode.
 						// Stored raw; duration is normalised at read time by the resolver.
 						'duration'    => isset( $item['duration'] ) ? sanitize_text_field( (string) $item['duration'] ) : '',
@@ -884,7 +933,7 @@ class Utility {
 
 				// Conditionally import and set post featured image.
 				if ( $is_get_img ) {
-					self::set_episode_import_phase( $feed_key, $key, 'saving_featured_image' );
+					self::set_episode_import_phase( $feed_key, $state_key, 'saving_featured_image' );
 					$img_id = ! empty( $item['featured_id'] ) ? absint( $item['featured_id'] ) : self::upload_image( $item['featured'], $item['title'] );
 					if ( $img_id ) {
 						set_post_thumbnail( $new_post_id, $img_id );
@@ -893,12 +942,12 @@ class Utility {
 
 				// Assign terms to the post or post type.
 				if ( $taxonomy && ! empty( $item['categories'] ) && is_array( $item['categories'] ) ) {
-					self::set_episode_import_phase( $feed_key, $key, 'saving_terms' );
+					self::set_episode_import_phase( $feed_key, $state_key, 'saving_terms' );
 					wp_set_object_terms( $new_post_id, array_map('sanitize_text_field', $item['categories']), $taxonomy );
 				}
 
 				if ( ! empty( $ep_taxonomy ) && ! empty( $ep_terms ) ) {
-					self::set_episode_import_phase( $feed_key, $key, 'saving_terms' );
+					self::set_episode_import_phase( $feed_key, $state_key, 'saving_terms' );
 					wp_set_object_terms( $new_post_id, $ep_terms, $ep_taxonomy );
 				}
 
@@ -907,12 +956,12 @@ class Utility {
 					$custom_items[ $key ] = new ItemData();
 				}
 				$custom_items[ $key ]->set( 'post_id', $new_post_id );
-				self::mark_episode_imported( $feed_key, $key, $new_post_id, $item );
+				self::mark_episode_imported( $feed_key, $state_key, $new_post_id, $item );
 				self::clear_current_import_attempt();
 			} catch ( \Exception $e ) {
 				self::mark_episode_import_failed(
 					$feed_key,
-					$key,
+					$state_key,
 					array(
 						'reason'  => 'import_exception',
 						'message' => $e->getMessage(),
@@ -926,7 +975,7 @@ class Utility {
         }
 
         // Update custom feed data.
-		self::set_current_import_attempt( $feed_key, array_keys( $items ), 'saving_modified_feed_data' );
+		self::set_current_import_attempt( $feed_key, array_values( array_unique( $state_keys ) ), 'saving_modified_feed_data' );
         $custom_data->set( 'items', $custom_items );
         $store_manager = StoreManager::get_instance();
         $store_manager->update_data( $custom_data, $feed_key, 'modified_feed_data' );

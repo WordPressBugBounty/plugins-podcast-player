@@ -43,6 +43,7 @@ class Prepare_Front_New extends Singleton {
 			}
 		);
 		$data['items'] = $items;
+		unset( $data['legacy_key_by_uid'] );
 		return $data;
 	}
 

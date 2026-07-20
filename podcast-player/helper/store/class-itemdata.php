@@ -147,6 +147,33 @@ class ItemData extends StoreBase {
 	protected $episode_id;
 
 	/**
+	 * Holds item storage identity UID.
+	 *
+	 * @since  8.3.0
+	 * @access protected
+	 * @var    string
+	 */
+	protected $episode_uid;
+
+	/**
+	 * Holds item storage identity source.
+	 *
+	 * @since  8.3.0
+	 * @access protected
+	 * @var    string
+	 */
+	protected $identity_source;
+
+	/**
+	 * Holds the reliability of the item storage identity.
+	 *
+	 * @since  8.3.0
+	 * @access protected
+	 * @var    string
+	 */
+	protected $identity_reliability;
+
+	/**
 	 * Holds item play duration.
 	 *
 	 * @since  1.0.0
@@ -208,26 +235,29 @@ class ItemData extends StoreBase {
 	protected function typeDeclaration() {
 		// Data type declaration for safe and proper data output.
 		return array(
-			'title'       => 'title',
-			'description' => 'desc',
-			'author'      => 'string',
-			'date'        => 'date',
-			'link'        => 'url',
-			'src'         => 'url',
-			'featured'    => 'url',
-			'featured_id' => 'int',
-			'mediatype'     => 'string',
-			'media_sources' => 'mediaSources',
-			'episode'       => 'string',
-			'season'        => 'int',
-			'categories'    => 'arrString',
-			'episode_id'    => 'episodeid',
-			'duration'      => 'dur',
-			'episodetype'   => 'string',
-			'post_id'       => 'int',
-			'transcript'    => 'transcript',
-			'captions'      => 'captions',
-			'chapters'      => 'arrUrlStr',
+			'title'           => 'title',
+			'description'     => 'desc',
+			'author'          => 'string',
+			'date'            => 'date',
+			'link'            => 'url',
+			'src'             => 'url',
+			'featured'        => 'url',
+			'featured_id'     => 'int',
+			'mediatype'       => 'string',
+			'media_sources'   => 'mediaSources',
+			'episode'         => 'string',
+			'season'          => 'int',
+			'categories'      => 'arrString',
+			'episode_id'      => 'episodeid',
+			'episode_uid'     => 'episodeid',
+			'identity_source' => 'string',
+			'identity_reliability' => 'string',
+			'duration'        => 'dur',
+			'episodetype'     => 'string',
+			'post_id'         => 'int',
+			'transcript'      => 'transcript',
+			'captions'        => 'captions',
+			'chapters'        => 'arrUrlStr',
 		);
 	}
 

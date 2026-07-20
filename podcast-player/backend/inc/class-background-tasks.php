@@ -16,6 +16,7 @@ use Podcast_Player\Helper\Store\StoreManager;
 use Podcast_Player\Helper\Store\FeedData;
 use Podcast_Player\Helper\Store\ItemData;
 use Podcast_Player\Helper\Feed\Get_Feed;
+use Podcast_Player\Helper\Feed\Episode_Resolver;
 
 /**
  * Perform background tasks.
@@ -277,8 +278,10 @@ class Background_Tasks extends Singleton {
         }
 
         if ( ! empty( $episodes ) ) {
-            $items = $custom_data->get( 'items' );
+            $resolver = Episode_Resolver::from_feed_data( $store_manager->get_data( $feed_url, 'feed_data' ) );
+            $items    = $resolver->rekey_custom_items_by_uid( $custom_data->get( 'items' ) );
             foreach ( $episodes as $key => $episode ) {
+                $key         = $resolver->resolve_episode_uid( $key );
                 $featured_id = $episode['post_id'];
                 if ( ! $featured_id ) {
                     continue;
@@ -329,8 +332,42 @@ class Background_Tasks extends Singleton {
             return array( $imported_episodes, false );
         }
 
-        $completed = array_intersect( array_keys( $imported_episodes ), $elist );
+        $completed = $this->get_completed_import_references( $feed_url, $elist, $imported_episodes );
         return array( true, $completed );
+    }
+
+    /**
+     * Return completed import values using the queue's original references.
+     *
+     * Background tasks created before UID storage contain legacy audio keys.
+     * The import operation returns current UIDs, so completion must be mapped
+     * back before the queue removes task values.
+     *
+     * @since 8.3.0
+     *
+     * @param string $feed_url           Feed key or URL.
+     * @param array  $queued_references  Original values from the task queue.
+     * @param array  $imported_episodes  Results keyed by current episode UID.
+     * @return array Completed original queue values.
+     */
+    private function get_completed_import_references( $feed_url, $queued_references, $imported_episodes ) {
+        $completed_uids = array_keys( (array) $imported_episodes );
+        if ( empty( $completed_uids ) ) {
+            return array();
+        }
+
+        $feed     = StoreManager::get_instance()->get_data( $feed_url, 'feed_data' );
+        $resolver = Episode_Resolver::from_feed_data( $feed );
+        $completed = array();
+
+        foreach ( (array) $queued_references as $reference ) {
+            $uid = $resolver->resolve_episode_uid( $reference );
+            if ( in_array( $uid, $completed_uids, true ) ) {
+                $completed[] = $reference;
+            }
+        }
+
+        return $completed;
     }
 
 

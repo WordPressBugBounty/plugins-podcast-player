@@ -12,6 +12,7 @@ use Podcast_Player\Helper\Functions\Getters as Get_Fn;
 use Podcast_Player\Helper\Store\FeedData;
 use Podcast_Player\Helper\Store\ItemData;
 use Podcast_Player\Helper\Store\StoreManager;
+use Podcast_Player\Helper\Feed\Episode_Resolver;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -434,6 +435,7 @@ class Marketing_Context {
 
 		$modified_data  = Get_Fn::get_modified_feed_data( $feed_key );
 		$modified_items = $modified_data instanceof FeedData ? (array) $modified_data->get( 'items', 'none' ) : array();
+		$modified_items = Episode_Resolver::from_feed_data( $feed_data )->rekey_custom_items_by_uid( $modified_items );
 
 		$description_chars = 0;
 		$description_items = 0;

@@ -58,6 +58,31 @@ class StoreBase {
 	}
 
 	/**
+	 * Escape identity map.
+	 *
+	 * @since 8.3.0
+	 *
+	 * @param array  $val     Value to be escaped.
+	 * @param string $context 'echo' or 'sanitize'.
+	 */
+	protected function identityMap( $val, $context ) {
+		if ( ! is_array( $val ) ) {
+			return array();
+		}
+
+		$map = array();
+		foreach ( $val as $key => $value ) {
+			$key   = sanitize_text_field( $key );
+			$value = sanitize_text_field( $value );
+			if ( $key && $value ) {
+				$map[ $key ] = $value;
+			}
+		}
+
+		return $map;
+	}
+
+	/**
 	 * Escape Attributes
 	 *
 	 * @since 1.0.0
@@ -465,6 +490,21 @@ class StoreBase {
 	}
 
 	/**
+	 * Escape and sanitize types used by the get and set methods.
+	 *
+	 * Defaults to typeDeclaration(). A child class overrides this when a
+	 * property must be escaped correctly but must stay out of retrieve(),
+	 * which builds its payload from the typeDeclaration() keys.
+	 *
+	 * @since 8.3.0
+	 *
+	 * @return array
+	 */
+	protected function escapeDeclaration() {
+		return $this->typeDeclaration();
+	}
+
+	/**
 	 * Actual set method to update object properties.
 	 *
 	 * @since 1.0.0
@@ -480,7 +520,7 @@ class StoreBase {
 					$this->$name = $value;
 					return true;
 				}
-				$sanitize_arr = $this->typeDeclaration();
+				$sanitize_arr = $this->escapeDeclaration();
 				$sanitize     = isset( $sanitize_arr[ $name ] ) ? $sanitize_arr[ $name ] : 'string';
 				if ( method_exists( $this, $sanitize ) ) {
 					$this->$name = $this->$sanitize( $value, $context );
@@ -506,7 +546,7 @@ class StoreBase {
 	 */
 	public function get( $name, $context = 'echo' ) {
 		if ( ! is_array( $name ) ) {
-			$esc_arr = $this->typeDeclaration();
+			$esc_arr = $this->escapeDeclaration();
 			if ( property_exists( $this, $name ) && ! empty( $this->$name ) ) {
 				if ( 'none' === $context ) {
 					// If data is only required for internal comparison purpose.
@@ -551,6 +591,7 @@ class StoreBase {
 			case 'arrUrlStr':
 			case 'arrString':
 			case 'arrUrl':
+			case 'identityMap':
 				$default = array();
 				break;
 			case 'date':

@@ -156,6 +156,50 @@ class FeedData extends StoreBase {
 	protected $items;
 
 	/**
+	 * Holds legacy episode key to episode UID map.
+	 *
+	 * @since  8.3.0
+	 * @access protected
+	 * @var    array
+	 */
+	protected $identity_map = array();
+
+	/**
+	 * Holds the durable legacy audio key for every stored episode UID.
+	 *
+	 * Unlike identity_map, this map is retained after an item leaves the active
+	 * cache so plugin-owned UID references can be converted safely if a future
+	 * rollback is prepared.
+	 *
+	 * @since 8.3.0
+	 * @access protected
+	 * @var array
+	 */
+	protected $legacy_key_by_uid = array();
+
+	/**
+	 * Whether stored episode identity has been upgraded.
+	 *
+	 * @since  8.3.0
+	 * @access protected
+	 * @var    bool
+	 */
+	protected $identity_upgraded = false;
+
+	/**
+	 * Version of the persisted episode-identity format.
+	 *
+	 * A version is recorded only after a feed has been parsed with the current
+	 * identity rules. This deliberately differs from the older
+	 * identity_upgraded flag, which did not prove how an item's UID was made.
+	 *
+	 * @since 8.3.0
+	 * @access protected
+	 * @var int
+	 */
+	protected $identity_version = 0;
+
+	/**
 	 * Holds array of all podcast seasons.
 	 *
 	 * @since  1.0.0
@@ -248,9 +292,12 @@ class FeedData extends StoreBase {
 			'podcats'        => 'podcats',
 			'lastbuild'      => 'string',
 			'etag'           => 'string',
-			'owner'          => 'owner',
-			'items'          => 'none',
-			'seasons'        => 'arrString',
+				'owner'          => 'owner',
+				'items'             => 'none',
+				'identity_map'      => 'identityMap',
+				'identity_upgraded' => 'bool',
+				'identity_version'  => 'int',
+				'seasons'           => 'arrString',
 			'categories'     => 'arrString',
 			'total'          => 'int',
 			'funding'        => 'arrUrlStr',
@@ -259,6 +306,24 @@ class FeedData extends StoreBase {
 			'release_cycle'  => 'int',
 			'last_released'  => 'int',
 		);
+	}
+
+	/**
+	 * Escape types for properties handled outside the retrieve() payload.
+	 *
+	 * legacy_key_by_uid is deliberately absent from typeDeclaration() so it
+	 * never ships with retrieve(); Get_Feed attaches it explicitly for internal
+	 * resolver use. Declaring it here keeps a get() or set() call that omits the
+	 * 'none' context from falling through to the string escaper.
+	 *
+	 * @since 8.3.0
+	 *
+	 * @return array
+	 */
+	protected function escapeDeclaration() {
+		$types                      = $this->typeDeclaration();
+		$types['legacy_key_by_uid'] = 'identityMap';
+		return $types;
 	}
 
 	/**

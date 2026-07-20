@@ -4,7 +4,7 @@ Tags: podcast, podcasting, rss feed, feed to audio, podcaster
 Requires at least: 4.9
 Tested up to: 7.0
 Requires PHP: 5.6
-Stable tag: 8.2.3
+Stable tag: 8.3.0
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -106,6 +106,13 @@ Podcast player plugin (on its own) does not create and save any cookies and does
 5. Podcast player on large size container
 
 ==Changelog ==
+= 8.3.0 =
+* New: Use stable episode identity from RSS GUID/Atom ID/fallback fingerprints so episode filters can survive podcast host changes more reliably.
+* New: One-time legacy episode key mapping keeps existing filtered players and imported episodes compatible with older audio URL based episode keys.
+* Modify: Source Feed setup now preserves existing stored podcast data during source changes so episode identity can be reconciled on the next refresh.
+* Modify: Import and episode filter handling can resolve both new episode identity values and older saved episode keys.
+* Bug Fix: Feed refresh can upgrade cached podcast data to the new episode identity format even when the remote feed returns not-modified cache responses.
+
 = 8.2.3 =
 * New: schema.org/PodcastEpisode JSON-LD output on imported episode posts, with a "Schema.org markup" on/off setting (Optimize settings).
 * New: Auto-suppresses our schema when a known provider is active (Yoast, Rank Math, Seriously Simple Podcasting, All in One SEO, The SEO Framework); override via the `pp_schema_conflict_detected` filter (return true to suppress, false to force-allow). Filters: `pp_podcast_episode_schema_enabled` (final on/off), `pp_podcast_episode_schema` (edit/replace the graph).

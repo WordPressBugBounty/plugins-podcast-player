@@ -49,9 +49,9 @@ class PodcastPlayer extends Component {
 		this.onSubmitURL = this.onSubmitURL.bind( this );
 	}
 
-	apiDataFetch(data, path) {
+	apiDataFetch(data, path, callback = false) {
 		if (this.fetching) {
-			setTimeout( this.apiDataFetch.bind(this, data, path), 200 );
+			setTimeout( this.apiDataFetch.bind(this, data, path, callback), 200 );
 			return;
 		}
 		this.fetching = true;
@@ -59,6 +59,9 @@ class PodcastPlayer extends Component {
 			path: '/podcastplayer/v1/' + path,
 		} )
 		.then( ( items ) => {
+			if (callback) {
+				items = callback(items);
+			}
 			let itemsList = Object.keys(items);
 			itemsList = itemsList.map(item => {
 				return {
@@ -132,18 +135,22 @@ class PodcastPlayer extends Component {
 
 	updateElist() {
 		const { attributes } = this.props;
-		const { fetchMethod, feedURL, postType, taxonomy, terms, sortBy, filterBy, slist, catlist } = attributes;
+		const { fetchMethod, feedURL, postType, taxonomy, terms, sortBy, filterBy, slist, catlist, elist } = attributes;
 		if ('feed' === fetchMethod && '' !== feedURL) {
 			let   str = '';
 			const seasons = slist ? slist.filter(Boolean) : false;
 			const cats = catlist ? catlist.filter(Boolean) : false;
+			const selected = elist ? elist.filter(Boolean) : false;
 			if (seasons && seasons.length) {
 				str += '&seasons=' + seasons.join();
 			}
 			if (cats && cats.length) {
 				str += '&categories=' + cats.join();
 			}
-			this.apiDataFetch('episodeList', 'fElist?feedURL=' + encodeURIComponent(feedURL) + str);
+			if (selected && selected.length) {
+				str += '&selected=' + selected.join();
+			}
+			this.apiDataFetch('episodeList', 'fElist?feedURL=' + encodeURIComponent(feedURL) + str, this.resolveEpisodeListResponse.bind(this));
 		} else if ('post' === fetchMethod) {
 			let str = '';
 			if (taxonomy && terms && terms.length) {
@@ -155,6 +162,23 @@ class PodcastPlayer extends Component {
 		} else {
 			this.setState( { episodeList: [] } );
 		}
+	}
+
+	resolveEpisodeListResponse(items) {
+		if (!items || !items.items) {
+			return items;
+		}
+
+		if (items.selected && Array.isArray(items.selected)) {
+			const { elist } = this.props.attributes;
+			const current = elist ? elist.filter(Boolean) : [];
+			const selected = items.selected.filter(Boolean);
+			if (current.join(',') !== selected.join(',')) {
+				this.props.setAttributes({ elist: selected });
+			}
+		}
+
+		return items.items;
 	}
 
 	updateSlist() {

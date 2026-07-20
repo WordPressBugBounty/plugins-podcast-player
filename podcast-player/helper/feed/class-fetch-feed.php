@@ -340,11 +340,40 @@ class Fetch_Feed {
 				$this->item_podcast = $item->children( 'https://podcastindex.org/namespace/1.0' );
 				$data               = $this->get_item_data();
 				if ( $data ) {
-					$nitems[ $this->id ] = $data;
+					$item_key            = $this->get_item_storage_key( $nitems, $data );
+					$nitems[ $item_key ] = $data;
 				}
 			}
 		}
 		return $nitems;
+	}
+
+	/**
+	 * Get item storage key.
+	 *
+	 * @since 8.3.0
+	 *
+	 * @param array    $items Existing feed items.
+	 * @param ItemData $item  Current item.
+	 * @return string
+	 */
+	private function get_item_storage_key( $items, $item ) {
+		$key = $item->get( 'episode_uid', 'none' );
+		$key = $key ? $key : $this->id;
+
+		if ( ! isset( $items[ $key ] ) ) {
+			return $key;
+		}
+
+		$source = $item->get( 'src', 'none' );
+		$index  = 1;
+		do {
+			$candidate = Episode_Identity::disambiguate( $key, $source, $index );
+			$index++;
+		} while ( isset( $items[ $candidate ] ) );
+
+		$item->set( 'episode_uid', $candidate );
+		return $candidate;
 	}
 
 	/**
@@ -359,11 +388,25 @@ class Fetch_Feed {
 		}
 
 		$this->id = $this->get_item_id( $media );
-		$item     = new ItemData();
-		$item->set( 'title', $this->get_item_title() );
+		$title    = $this->get_item_title();
+		$date     = $this->get_item_date();
+		$duration = $this->get_item_duration();
+		$identity = Episode_Identity::generate(
+			array(
+				'rss_guid'  => $this->get_rss_guid(),
+				'atom_id'   => $this->get_atom_id(),
+				'title'     => $title,
+				'date'      => $date,
+				'duration'  => $duration,
+				'media_url' => $media,
+			)
+		);
+
+		$item = new ItemData();
+		$item->set( 'title', $title );
 		$item->set( 'description', $this->get_item_description() );
 		$item->set( 'author', $this->get_item_author() );
-		$item->set( 'date', $this->get_item_date() );
+		$item->set( 'date', $date );
 		$item->set( 'link', $this->get_item_link( $media ) );
 		$item->set( 'src', $media );
 		$item->set( 'featured', $this->get_item_featured() );
@@ -373,7 +416,10 @@ class Fetch_Feed {
 		$item->set( 'season', $this->get_itunes_season() );
 		$item->set( 'categories', $this->get_item_cats() );
 		$item->set( 'episode_id', $this->get_episode_id( $media ) );
-		$item->set( 'duration', $this->get_item_duration() );
+		$item->set( 'episode_uid', $identity['episode_uid'] );
+		$item->set( 'identity_source', $identity['identity_source'] );
+		$item->set( 'identity_reliability', $identity['identity_reliability'] );
+		$item->set( 'duration', $duration );
 		$item->set( 'episodetype', $this->get_item_episodetype() );
 		$item->set( 'transcript', $this->get_episode_transcript() );
 		$item->set( 'chapters', $this->get_episode_chapters() );
@@ -909,6 +955,24 @@ class Fetch_Feed {
 			$id = md5( $this->get_item_title() );
 		}
 		return (string) $id;
+	}
+
+	/**
+	 * Get raw RSS GUID, if present.
+	 *
+	 * @since 8.3.0
+	 */
+	private function get_rss_guid() {
+		return $this->item->guid ? trim( (string) $this->item->guid ) : '';
+	}
+
+	/**
+	 * Get raw Atom ID, if present.
+	 *
+	 * @since 8.3.0
+	 */
+	private function get_atom_id() {
+		return isset( $this->item_atom->id ) && $this->item_atom->id ? trim( (string) $this->item_atom->id ) : '';
 	}
 
 	/**

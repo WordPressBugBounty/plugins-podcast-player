@@ -133,20 +133,27 @@ class StorageRegister extends StoreBase {
 	 * @since 1.0.0
 	 *
 	 * @param string $name   Property Name.
-	 * @param string $needle Check if string contained by prop value.
+	 * @param string $needle Check if string matches prop value.
 	 */
 	public function query( $name, $needle ) {
-		if ( $name && $needle && property_exists( $this, $name ) ) {
-			if ( is_array( $this->$name ) ) {
-				$haystack = join( '', $this->$name );
-			} else {
-				$haystack = (string) $this->$name;
+		if ( ! $name || ! $needle || ! property_exists( $this, $name ) ) {
+			return false;
+		}
+
+		$needle = (string) $needle;
+		$values = is_array( $this->$name ) ? $this->$name : array( $this->$name );
+
+		foreach ( $values as $value ) {
+			$value = (string) $value;
+			if ( $value === $needle ) {
+				return $this;
 			}
 
-			if ( false !== strpos( (string) $haystack, (string) $needle ) ) {
+			if ( '' !== $value && $this->is_url_field( $name ) && md5( $value ) === $needle ) {
 				return $this;
 			}
 		}
+
 		return false;
 	}
 
@@ -155,7 +162,7 @@ class StorageRegister extends StoreBase {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string $needle Check if string contained by prop value.
+	 * @param string $needle Check if string matches prop value.
 	 */
 	public function lookup( $needle ) {
 		if ( $this->query( 'object_keys', $needle ) ) {
@@ -170,5 +177,17 @@ class StorageRegister extends StoreBase {
 			return $this;
 		}
 		return false;
+	}
+
+	/**
+	 * Check if the property stores URLs.
+	 *
+	 * @since 8.3.0
+	 *
+	 * @param string $name Property name.
+	 * @return bool
+	 */
+	private function is_url_field( $name ) {
+		return in_array( $name, array( 'feed_url', 'source_url' ), true );
 	}
 }

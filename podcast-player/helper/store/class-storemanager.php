@@ -253,12 +253,20 @@ class StoreManager extends Singleton {
 			return false;
 		}
 
-		$id = $index->get( 'unique_id' );
-		$index->set( 'source_url', esc_url_raw( $source_url ) );
+		$id         = $index->get( 'unique_id' );
+		$source_url = esc_url_raw( $source_url );
+		$urls       = $index->get( 'feed_url' );
+		$urls       = is_array( $urls ) ? $urls : array();
+		array_unshift( $urls, $source_url );
+		$urls = array_values( array_unique( array_filter( $urls ) ) );
+
+		$index->set( 'source_url', $source_url );
+		$index->set( 'feed_url', $urls );
+		$index->set( 'object_keys', array_map( 'md5', $urls ) );
 		$register = $this->get_register();
 		$register[ $id ] = $index;
 		update_option( 'pp-register', $register, false );
-		$this->delete_data( $object_key, 'feed_data' );
+		$this->delete_data( $object_key, 'last_checked' );
 		return true;
 	}
 
@@ -296,7 +304,7 @@ class StoreManager extends Singleton {
 		$register = $this->get_register();
 		$register[ $id ] = $index;
 		update_option( 'pp-register', $register, false );
-		$this->delete_data( $object_key, 'feed_data' );
+		$this->delete_data( $object_key, 'last_checked' );
 		return true;
 	}
 

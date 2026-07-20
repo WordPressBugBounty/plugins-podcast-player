@@ -14,6 +14,7 @@ use Podcast_Player\Frontend\Inc\Display;
 use Podcast_Player\Helper\Functions\Getters as Get_Fn;
 use Podcast_Player\Helper\Functions\Validation as Validation_Fn;
 use Podcast_Player\Helper\Functions\Utility as Utility_Fn;
+use Podcast_Player\Helper\Feed\Episode_Resolver;
 use Podcast_Player\Backend\Admin\Marketing_Context;
 
 /**
@@ -1002,7 +1003,7 @@ class ShortCodeGen {
 			'catlist' => array_filter( array_map( 'trim', $cats ) ),
 			'sortby'  => 'sort_date_desc',
 		);
-		$fields  = array( 'title', 'season', 'categories' );
+		$fields  = array( 'title', 'season', 'categories', 'episode_uid', 'src' );
 		return Get_Fn::get_feed_data( $url, $mods, $fields );
 	}
 
@@ -1020,7 +1021,9 @@ class ShortCodeGen {
 		$options   = array( '' => esc_html__( 'Show All Episodes', 'podcast-player' ) );
 
 		if ( 'feed' === $method ) {
-			$ops       = array_filter( $this->get_feed_data( 'items', $args ) );
+			$feed      = $this->fetch_feed_data( $args );
+			$ops       = is_wp_error( $feed ) ? array() : array_filter( $this->get_feed_options( 'items', $feed ) );
+			$selected  = is_wp_error( $feed ) ? $selected : $this->resolve_selected_feed_episodes( $selected, $feed );
 			$is_hidden = empty( $ops ) ? true : false;
 			$options   = array_merge( $options, $ops );
 		} elseif ( 'post' === $method ) {
@@ -1053,6 +1056,59 @@ class ShortCodeGen {
 		$markup .= $this->label( 'pp_elist', esc_html__( 'Select Episodes to be displayed', 'podcast-player' ), false );
 		$markup .= $this->mu_checkbox( 'pp_elist', $options, $selected, $classes, false );
 		return sprintf( '<div class="pp-episodes-list" %1$s>%2$s</div>', $style, $markup );
+	}
+
+	/**
+	 * Get a formatted feed option list.
+	 *
+	 * @since 8.3.0
+	 *
+	 * @param string $key  Specific key for required data.
+	 * @param array  $feed Feed data.
+	 * @return array
+	 */
+	private function get_feed_options( $key, $feed ) {
+		$flist = Utility_Fn::multi_array_columns( array( 'items', 'seasons', 'categories' ), $feed );
+
+		// Properly format feed items as 'item_key => item_title'.
+		$flist['items'] = array_map(
+			function ( $arr ) {
+				return $arr['title'];
+			},
+			$flist['items']
+		);
+
+		// Properly format seasons list'.
+		$fseasons = array();
+		array_walk(
+			$flist['seasons'],
+			function ( $val, $key ) use ( &$fseasons ) {
+				$fseasons[ '0' . $val ] = esc_html__( 'Season', 'podcast-player' ) . '-' . $val;
+			}
+		);
+		$flist['seasons'] = $fseasons;
+
+		if ( isset( $flist[ $key ] ) ) {
+			return $flist[ $key ];
+		}
+		return array();
+	}
+
+	/**
+	 * Resolve selected feed episode values for checked-state compatibility.
+	 *
+	 * @since 8.3.0
+	 *
+	 * @param array $selected Selected episode values.
+	 * @param array $feed     Feed data.
+	 * @return array
+	 */
+	private function resolve_selected_feed_episodes( $selected, $feed ) {
+		if ( empty( array_filter( (array) $selected ) ) ) {
+			return $selected;
+		}
+
+		return Episode_Resolver::from_feed_data( $feed )->resolve_episode_uids( $selected );
 	}
 
 	/**
