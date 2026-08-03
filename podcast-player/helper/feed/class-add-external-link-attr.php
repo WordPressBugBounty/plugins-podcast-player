@@ -19,7 +19,7 @@ use Podcast_Player\Helper\Core\Singleton;
  *
  * @package    Podcast_Player
  * @subpackage Podcast_Player/Helper
- * @author     vedathemes <contact@vedathemes.com>
+ * @author     vedathemes <contact@easypodcastpro.com>
  */
 class Add_External_Link_Attr extends Singleton {
 

@@ -19,7 +19,7 @@ use Podcast_Player\Helper\Functions\Utility as Utility_Fn;
  *
  * @package    Podcast_Player
  * @subpackage Podcast_Player/Helper
- * @author     vedathemes <contact@vedathemes.com>
+ * @author     vedathemes <contact@easypodcastpro.com>
  */
 class Validation {
 

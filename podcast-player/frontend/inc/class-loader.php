@@ -22,7 +22,7 @@ use Podcast_Player\Frontend\Inc\Icon_Loader;
  *
  * @package    Podcast_Player
  * @subpackage Podcast_Player/public
- * @author     vedathemes <contact@vedathemes.com>
+ * @author     vedathemes <contact@easypodcastpro.com>
  */
 class Loader extends Singleton {
 	/**

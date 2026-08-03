@@ -83,8 +83,38 @@ class Api {
 		}
 
 		if ( $feed_url !== $index->get( 'source_url', 'none' ) ) {
-			$store->add_podcast_source_url( $external_key, $feed_url );
+			$merge = $store->add_podcast_source_url( $external_key, $feed_url );
+
+			// add_podcast_source_url() applies the source only on true or a
+			// completed 'merged'. A 'deferred', 'noop', 'locked', 'error' or
+			// false means the requested URL was NOT set, so do not report success
+			// or hand back a source_url the record does not actually use.
+			$applied = true === $merge
+				|| ( is_array( $merge ) && 'merged' === ( isset( $merge['status'] ) ? $merge['status'] : '' ) );
+			if ( ! $applied ) {
+				$status = is_array( $merge ) && isset( $merge['status'] ) ? $merge['status'] : 'failed';
+				return new \WP_Error(
+					'source_not_applied',
+					sprintf(
+						/* translators: %s: internal status code. */
+						__( 'Podcast Player could not apply the feed source (%s).', 'podcast-player' ),
+						$status
+					)
+				);
+			}
+
 			$index = $store->get_object_index( $external_key );
+
+			// When this caller's record was the one absorbed by a merge it no
+			// longer resolves under its own key, so continue with the survivor.
+			if ( ! $index instanceof StorageRegister
+				&& is_array( $merge ) && ! empty( $merge['survivor_key'] ) ) {
+				$index = $store->get_object_index( $merge['survivor_key'] );
+			}
+
+			if ( ! $index instanceof StorageRegister ) {
+				return new \WP_Error( 'register_failed', __( 'Podcast Player could not resolve the feed record after updating its source.', 'podcast-player' ) );
+			}
 		}
 
 		$metadata = array(
@@ -383,12 +413,32 @@ class Api {
 			}
 		}
 
+		// The veto runs before every path, including the collision path below.
+		// A third party that blocks a source migration must be able to block it
+		// however Podcast Player intends to carry it out.
 		$allow = apply_filters( 'podcast_player_before_source_migration', true, $existing_key, $new_source_url, $old_data, $args );
 		if ( is_wp_error( $allow ) || ! $allow ) {
 			return is_wp_error( $allow ) ? $allow : new \WP_Error( 'migration_blocked', __( 'The source migration was blocked.', 'podcast-player' ) );
 		}
 
+		$source_index = $store->get_object_index( $new_source_url );
+		if ( $source_index instanceof StorageRegister && $source_index->get( 'unique_id', 'none' ) !== $index->get( 'unique_id', 'none' ) ) {
+			$merge = $store->add_podcast_source_url( $existing_key, $new_source_url );
+
+			self::fire_source_merge_action( $merge, $existing_key, $new_source_url, $args );
+
+			return self::get_source_merge_error( $merge );
+		}
+
 		$updated = $store->add_podcast_source_url( $existing_key, $new_source_url );
+		if ( is_array( $updated ) ) {
+			// A collision can appear between the pre-check above and this call.
+			// Consumers must hear about that merge too.
+			self::fire_source_merge_action( $updated, $existing_key, $new_source_url, $args );
+
+			return self::get_source_merge_error( $updated );
+		}
+
 		if ( ! $updated ) {
 			return new \WP_Error( 'source_update_failed', __( 'Podcast Player could not update the feed source.', 'podcast-player' ) );
 		}
@@ -396,6 +446,57 @@ class Api {
 		do_action( 'podcast_player_after_source_migration', $existing_key, $new_source_url, $args );
 
 		return true;
+	}
+
+	/**
+	 * Announce a completed merge that stood in for a source migration.
+	 *
+	 * A merge is not a source migration, so it never fires
+	 * podcast_player_after_source_migration: that action cannot express which
+	 * record survived, which was absorbed, or that the caller is about to be
+	 * handed a WP_Error.
+	 *
+	 * @since 8.3.0
+	 * @param mixed  $merge          Merge result from the store.
+	 * @param string $existing_key   Record key the caller asked about.
+	 * @param string $new_source_url Requested source URL.
+	 * @param array  $args           Caller-supplied migration args.
+	 */
+	private static function fire_source_merge_action( $merge, $existing_key, $new_source_url, $args ) {
+		if ( ! is_array( $merge ) || ! isset( $merge['status'] ) || 'merged' !== $merge['status'] ) {
+			return;
+		}
+
+		do_action(
+			'podcast_player_after_source_merge',
+			isset( $merge['survivor_key'] ) ? $merge['survivor_key'] : '',
+			isset( $merge['absorbed_key'] ) ? $merge['absorbed_key'] : '',
+			$existing_key,
+			$new_source_url,
+			$merge,
+			$args
+		);
+	}
+
+	/**
+	 * Convert a store-level merge result into the public migration contract.
+	 *
+	 * @since 8.3.0
+	 * @param mixed $merge Merge result.
+	 * @return \WP_Error
+	 */
+	private static function get_source_merge_error( $merge ) {
+		$status = is_array( $merge ) && isset( $merge['status'] ) ? $merge['status'] : 'error';
+		if ( 'merged' === $status ) {
+			return new \WP_Error( 'source_merge_completed', __( 'The source belongs to another Podcast Player record. The records were merged instead.', 'podcast-player' ) );
+		}
+		if ( 'deferred' === $status ) {
+			return new \WP_Error( 'source_merge_deferred', __( 'The source belongs to another Podcast Player record. Merge is deferred until its episode identity is updated.', 'podcast-player' ) );
+		}
+		if ( 'locked' === $status ) {
+			return new \WP_Error( 'source_merge_locked', __( 'The source migration is already being processed. Please try again.', 'podcast-player' ) );
+		}
+		return new \WP_Error( 'source_merge_failed', __( 'Podcast Player could not merge the source records.', 'podcast-player' ) );
 	}
 
 	/**

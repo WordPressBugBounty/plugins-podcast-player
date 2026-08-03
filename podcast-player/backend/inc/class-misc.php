@@ -20,7 +20,7 @@ use Podcast_Player\Helper\Core\Singleton;
  * Display podcast player instance.
  *
  * @package    Podcast_Player
- * @author     vedathemes <contact@vedathemes.com>
+ * @author     vedathemes <contact@easypodcastpro.com>
  */
 class Misc extends Singleton {
 

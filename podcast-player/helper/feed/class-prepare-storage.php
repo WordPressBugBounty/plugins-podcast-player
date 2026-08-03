@@ -22,7 +22,7 @@ use Podcast_Player\Helper\Store\ItemData;
  *
  * @package    Podcast_Player
  * @subpackage Podcast_Player/Helper
- * @author     vedathemes <contact@vedathemes.com>
+ * @author     vedathemes <contact@easypodcastpro.com>
  */
 class Prepare_Storage {
 

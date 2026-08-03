@@ -19,7 +19,7 @@ use Podcast_Player\Helper\Core\Singleton;
  *
  * @package    Podcast_Player
  * @subpackage Podcast_Player/public
- * @author     vedathemes <contact@vedathemes.com>
+ * @author     vedathemes <contact@easypodcastpro.com>
  */
 class Display extends Singleton {
 	/**

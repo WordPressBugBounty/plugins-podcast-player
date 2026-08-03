@@ -22,7 +22,7 @@ use Podcast_Player\Helper\Feed\Episode_Resolver;
  * Perform background tasks.
  *
  * @package    Podcast_Player
- * @author     vedathemes <contact@vedathemes.com>
+ * @author     vedathemes <contact@easypodcastpro.com>
  */
 class Background_Tasks extends Singleton {
 

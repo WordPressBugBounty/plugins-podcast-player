@@ -16,7 +16,7 @@ use Podcast_Player\Helper\Core\Singleton;
  * Display podcast player dashboard widget.
  *
  * @package    Podcast_Player
- * @author     vedathemes <contact@vedathemes.com>
+ * @author     vedathemes <contact@easypodcastpro.com>
  */
 class Dashboard_Widget extends Singleton {
 

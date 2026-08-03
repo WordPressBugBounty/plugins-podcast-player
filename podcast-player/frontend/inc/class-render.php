@@ -21,7 +21,7 @@ use Podcast_Player\Helper\Functions\Validation as Validation_Fn;
  *
  * @package    Podcast_Player
  * @subpackage Podcast_Player/public
- * @author     vedathemes <contact@vedathemes.com>
+ * @author     vedathemes <contact@easypodcastpro.com>
  */
 class Render {
 

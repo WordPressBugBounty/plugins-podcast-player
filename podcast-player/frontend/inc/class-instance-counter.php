@@ -15,7 +15,7 @@ use Podcast_Player\Helper\Core\Singleton;
  * Instance counter.
  *
  * @package    Podcast_Player
- * @author     vedathemes <contact@vedathemes.com>
+ * @author     vedathemes <contact@easypodcastpro.com>
  */
 class Instance_Counter extends Singleton {
 	/**

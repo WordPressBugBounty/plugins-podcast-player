@@ -17,7 +17,7 @@ use Podcast_Player\Helper\Core\Singleton;
  * Podcast player premium.
  *
  * @package    Podcast_Player
- * @author     vedathemes <contact@vedathemes.com>
+ * @author     vedathemes <contact@easypodcastpro.com>
  */
 class Icons_Extend extends Singleton {
 

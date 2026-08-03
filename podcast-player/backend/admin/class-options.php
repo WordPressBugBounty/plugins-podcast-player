@@ -22,6 +22,7 @@ use Podcast_Player\Helper\Functions\Validation as Validation_Fn;
 use Podcast_Player\Helper\Store\FeedData;
 use Podcast_Player\Helper\Store\StoreManager;
 use Podcast_Player\Helper\Feed\Fetch_Feed;
+use Podcast_Player\Helper\Feed\Get_Feed;
 use Podcast_Player\Frontend\Inc\Loader as Front_Loader;
 
 /**
@@ -29,7 +30,7 @@ use Podcast_Player\Frontend\Inc\Loader as Front_Loader;
  *
  * @package    Podcast_Player
  * @subpackage Podcast_Player/admin
- * @author     vedathemes <contact@vedathemes.com>
+ * @author     vedathemes <contact@easypodcastpro.com>
  */
 class Options {
 
@@ -99,6 +100,252 @@ class Options {
 		// add_action( 'wp_ajax_nopriv_pp_feed_editor', array( $inst, 'feed_editor_new' ) );
 		add_action( 'wp_ajax_pp_migrate_podcast', array( $inst, 'migrate_podcast_source' ) );
 		add_action( 'wp_ajax_pp_delete_source', array( $inst, 'delete_podcast_source' ) );
+		add_action( 'wp_ajax_pp_resolve_migration', array( $inst, 'resolve_migration' ) );
+		add_action( 'wp_ajax_pp_dismiss_migration', array( $inst, 'dismiss_migration' ) );
+		add_action( 'wp_ajax_pp_mark_migration_seen', array( $inst, 'mark_migration_seen' ) );
+	}
+
+	/**
+	 * Approve a pending duplicate merge or host-migration candidate.
+	 *
+	 * @since 8.3.0
+	 */
+	public function resolve_migration() {
+		check_ajax_referer( 'podcast-player-admin-options-ajax-nonce', 'security' );
+		Utility_Fn::require_capabilities( 'manage_options', 'pp_resolve_migration' );
+
+		$store   = StoreManager::get_instance();
+		$type    = isset( $_POST['mtype'] ) ? sanitize_text_field( wp_unslash( $_POST['mtype'] ) ) : '';
+		$pending = $store->get_pending_merges();
+
+		if ( 'pair' === $type ) {
+			$pair_key = isset( $_POST['pair_key'] ) ? sanitize_text_field( wp_unslash( $_POST['pair_key'] ) ) : '';
+			if ( '' === $pair_key || ! isset( $pending[ $pair_key ] ) ) {
+				$this->json_die( array( 'error' => esc_html__( 'That review item no longer exists.', 'podcast-player' ) ) );
+			}
+			$pair   = $pending[ $pair_key ];
+			$result = $store->merge_podcast_records( $pair['survivor_key'], $pair['absorbed_key'] );
+			$status = is_array( $result ) && isset( $result['status'] ) ? $result['status'] : '';
+			if ( in_array( $status, array( 'merged', 'noop' ), true ) ) {
+				$absorbed = isset( $result['absorbed_key'] ) ? $result['absorbed_key'] : $pair['absorbed_key'];
+				$survivor = isset( $result['survivor_key'] ) ? $result['survivor_key'] : $pair['survivor_key'];
+				// Drops this resolved pair and re-points any other cluster pairs.
+				$store->remap_pending_after_merge( $absorbed, $survivor );
+				$this->json_die( array( 'message' => esc_html__( 'Podcasts merged.', 'podcast-player' ) ) );
+			}
+			if ( 'deferred' === $status ) {
+				$this->json_die( array( 'message' => esc_html__( 'Merge queued; it will finish after the surviving podcast updates.', 'podcast-player' ) ) );
+			}
+			$this->json_die( array( 'error' => esc_html__( 'Unable to merge these podcasts right now. Please try again.', 'podcast-player' ) ) );
+		}
+
+		if ( 'group' === $type ) {
+			$member_keys = $this->get_posted_merge_group_members();
+			if ( count( $member_keys ) < 2 ) {
+				$this->json_die( array( 'error' => esc_html__( 'That review group is no longer available.', 'podcast-player' ) ) );
+			}
+
+			$merged = 0;
+			$guard  = 0;
+			while ( $guard < 20 ) {
+				$guard++;
+				$pairs = $store->get_pending_merge_pairs_for_members( $member_keys );
+				if ( empty( $pairs ) ) {
+					break;
+				}
+
+				$pair   = reset( $pairs );
+				$result = $store->merge_podcast_records( $pair['survivor_key'], $pair['absorbed_key'] );
+				$status = is_array( $result ) && isset( $result['status'] ) ? $result['status'] : '';
+				if ( ! in_array( $status, array( 'merged', 'noop' ), true ) ) {
+					if ( 'deferred' === $status ) {
+						$this->json_die( array( 'notice' => esc_html__( 'These podcasts must update their episode identity before they can be merged. The suggestion has been kept.', 'podcast-player' ) ) );
+					}
+					$this->json_die( array( 'error' => esc_html__( 'Podcast Player could not merge these records.', 'podcast-player' ) ) );
+				}
+
+				$absorbed = isset( $result['absorbed_key'] ) ? $result['absorbed_key'] : $pair['absorbed_key'];
+				$survivor = isset( $result['survivor_key'] ) ? $result['survivor_key'] : $pair['survivor_key'];
+				$store->remap_pending_after_merge( $absorbed, $survivor );
+				$merged++;
+			}
+
+			if ( ! $merged ) {
+				$this->json_die( array( 'error' => esc_html__( 'That review group no longer exists.', 'podcast-player' ) ) );
+			}
+
+			$this->json_die( array( 'message' => esc_html__( 'Podcast records merged.', 'podcast-player' ) ) );
+		}
+
+		if ( 'candidate' === $type ) {
+			$feed_key = isset( $_POST['feed_key'] ) ? sanitize_text_field( wp_unslash( $_POST['feed_key'] ) ) : '';
+			if ( '' === $feed_key ) {
+				$this->json_die( array( 'error' => esc_html__( 'Invalid podcast for this migration.', 'podcast-player' ) ) );
+			}
+			// Only ever set from an explicit request parameter: the client echoes
+			// back the exact target URL the conflict was shown for, and the store
+			// compares it to the live candidate before acting on it.
+			$confirmed = isset( $_POST['confirm_target'] ) ? esc_url_raw( wp_unslash( $_POST['confirm_target'] ) ) : '';
+
+			$applied = $store->apply_migration_candidate( $feed_key, $confirmed );
+			if ( false === $applied ) {
+				$this->json_die( array( 'error' => esc_html__( 'That migration is no longer available.', 'podcast-player' ) ) );
+			}
+
+			$status = is_array( $applied ) && isset( $applied['status'] ) ? $applied['status'] : '';
+
+			if ( 'conflict' === $status ) {
+				$this->json_die( $this->get_migration_conflict_response( $applied ) );
+			}
+			if ( 'deferred' === $status ) {
+				$this->json_die( array( 'notice' => esc_html__( 'The matching podcast must update its episode identity before this source can be moved. The suggestion has been kept.', 'podcast-player' ) ) );
+			}
+			if ( 'noop' === $status ) {
+				$this->json_die( array( 'notice' => esc_html__( 'There was nothing to merge, so the source was left unchanged. The suggestion has been kept.', 'podcast-player' ) ) );
+			}
+
+			$this->json_die( array( 'message' => esc_html__( 'Source updated to the redirected feed.', 'podcast-player' ) ) );
+		}
+
+		$this->json_die( array( 'error' => esc_html__( 'Unexpected review action.', 'podcast-player' ) ) );
+	}
+
+	/**
+	 * Read duplicate group members posted by the admin UI.
+	 *
+	 * @since 8.3.0
+	 * @return array
+	 */
+	private function get_posted_merge_group_members() {
+		$raw = isset( $_POST['member_keys'] ) ? wp_unslash( $_POST['member_keys'] ) : array();
+		if ( is_string( $raw ) ) {
+			$raw = explode( ',', $raw );
+		}
+		if ( ! is_array( $raw ) ) {
+			return array();
+		}
+
+		$members = array();
+		foreach ( $raw as $member ) {
+			$member = sanitize_text_field( $member );
+			if ( '' !== $member ) {
+				$members[] = $member;
+			}
+		}
+
+		return array_values( array_unique( $members ) );
+	}
+
+	/**
+	 * Build the AJAX payload for a source change that did not verify.
+	 *
+	 * Nothing has been written at this point. The response carries the two feed
+	 * identities side by side so the admin decides against the actual evidence
+	 * rather than a bare "are you sure", and echoes the target back so the
+	 * confirmation cannot be replayed against a different candidate.
+	 *
+	 * @since 8.3.0
+	 *
+	 * @param array $result Conflict result from the store.
+	 * @return array
+	 */
+	private function get_migration_conflict_response( $result ) {
+		$detail = isset( $result['detail'] ) && is_array( $result['detail'] ) ? $result['detail'] : array();
+		$status = isset( $detail['status'] ) ? $detail['status'] : 'unverifiable';
+		$old    = isset( $detail['old'] ) && is_array( $detail['old'] ) ? $detail['old'] : array();
+		$new    = isset( $detail['new'] ) && is_array( $detail['new'] ) ? $detail['new'] : array();
+
+		$message = 'mismatch' === $status
+			? esc_html__( 'The new feed does not look like the same podcast. Check the title and author before continuing.', 'podcast-player' )
+			: esc_html__( 'Podcast Player could not confirm the new feed is the same podcast. Check it before continuing.', 'podcast-player' );
+
+		return array(
+			'conflict' => array(
+				'message' => $message,
+				'target'  => esc_url_raw( isset( $result['target'] ) ? $result['target'] : '' ),
+				'old'     => array(
+					'title'  => esc_html( isset( $old['title'] ) ? $old['title'] : '' ),
+					'author' => esc_html( isset( $old['author'] ) ? $old['author'] : '' ),
+				),
+				'new'     => array(
+					'title'  => esc_html( isset( $new['title'] ) ? $new['title'] : '' ),
+					'author' => esc_html( isset( $new['author'] ) ? $new['author'] : '' ),
+				),
+				'labels'  => array(
+					'current' => esc_html__( 'Currently', 'podcast-player' ),
+					'new'     => esc_html__( 'New feed', 'podcast-player' ),
+					'confirm' => esc_html__( 'Migrate anyway', 'podcast-player' ),
+					'unknown' => esc_html__( '(not available)', 'podcast-player' ),
+				),
+			),
+		);
+	}
+
+	/**
+	 * Mark a migration candidate as seen without resolving it.
+	 *
+	 * @since 8.3.0
+	 */
+	public function mark_migration_seen() {
+		check_ajax_referer( 'podcast-player-admin-options-ajax-nonce', 'security' );
+		Utility_Fn::require_capabilities( 'manage_options', 'pp_mark_migration_seen' );
+
+		$store = StoreManager::get_instance();
+		$feed_key = isset( $_POST['feed_key'] ) ? sanitize_text_field( wp_unslash( $_POST['feed_key'] ) ) : '';
+		if ( '' === $feed_key ) {
+			$this->json_die( array( 'error' => esc_html__( 'Invalid podcast for this migration.', 'podcast-player' ) ) );
+		}
+
+		if ( ! $store->mark_migration_candidate_seen( $feed_key ) ) {
+			$this->json_die( array( 'error' => esc_html__( 'That migration is no longer available.', 'podcast-player' ) ) );
+		}
+
+		$this->json_die( array( 'message' => esc_html__( 'Migration notice marked as seen.', 'podcast-player' ) ) );
+	}
+
+	/**
+	 * Dismiss a pending duplicate pair so the scan will not re-queue it.
+	 *
+	 * @since 8.3.0
+	 */
+	public function dismiss_migration() {
+		check_ajax_referer( 'podcast-player-admin-options-ajax-nonce', 'security' );
+		Utility_Fn::require_capabilities( 'manage_options', 'pp_dismiss_migration' );
+
+		$store = StoreManager::get_instance();
+
+		$type = isset( $_POST['mtype'] ) ? sanitize_text_field( wp_unslash( $_POST['mtype'] ) ) : 'pair';
+		if ( 'group' === $type ) {
+			$member_keys = $this->get_posted_merge_group_members();
+			$pairs       = $store->get_pending_merge_pairs_for_members( $member_keys );
+			if ( empty( $pairs ) ) {
+				$this->json_die( array( 'error' => esc_html__( 'That review group no longer exists.', 'podcast-player' ) ) );
+			}
+			foreach ( array_keys( $pairs ) as $pending_pair_key ) {
+				$store->dismiss_pending_merge( $pending_pair_key );
+			}
+			$this->json_die( array( 'message' => esc_html__( 'Podcast records kept separate.', 'podcast-player' ) ) );
+		}
+
+		$pair_key = isset( $_POST['pair_key'] ) ? sanitize_text_field( wp_unslash( $_POST['pair_key'] ) ) : '';
+		$pending  = $store->get_pending_merges();
+		if ( '' === $pair_key || ! isset( $pending[ $pair_key ] ) ) {
+			$this->json_die( array( 'error' => esc_html__( 'That review item no longer exists.', 'podcast-player' ) ) );
+		}
+		$store->dismiss_pending_merge( $pair_key );
+		$this->json_die( array( 'message' => esc_html__( 'Podcast records kept separate.', 'podcast-player' ) ) );
+	}
+
+	/**
+	 * Emit a JSON response and end the request.
+	 *
+	 * @since 8.3.0
+	 *
+	 * @param array $output Response payload.
+	 */
+	private function json_die( $output ) {
+		echo wp_json_encode( $output );
+		wp_die();
 	}
 
 	/**
@@ -468,6 +715,9 @@ class Options {
 					$current_page = 'home';
 					break;
 			}
+			if ( 'home' === $current_page ) {
+				StoreManager::get_instance()->ensure_duplicate_scan_complete();
+			}
 			include_once PODCAST_PLAYER_DIR . 'backend/admin/templates/main.php';
 		}
 	}
@@ -706,7 +956,6 @@ class Options {
 		}
 
 		$store_manager = StoreManager::get_instance();
-		$old_podcast_data = $store_manager->get_data( $podcast_id );
 
 		$obj              = new Fetch_Feed( $source_url );
 		$new_podcast_data = $obj->get_feed_data();
@@ -718,21 +967,44 @@ class Options {
 			wp_die();
 		}
 
-		if ( $old_podcast_data && $old_podcast_data instanceof FeedData ) {
-			$old_author = $old_podcast_data->get( 'author' );
-			$old_title  = $old_podcast_data->get( 'title' );
-			$new_author = $new_podcast_data->get( 'author' );
-			$new_title  = $new_podcast_data->get( 'title' );
-			if ( $old_author !== $new_author || $old_title !== $new_title ) {
-				$output = array(
-					'error' => esc_html__( 'The new feed does not look like the same podcast. Please check the title and author before saving it as the new source.', 'podcast-player' ),
+		// Same two-step confirmation as the review notice. A record whose source
+		// was rewritten by an older version often has no cached feed left, so
+		// there is nothing to compare — that is reported honestly and still
+		// needs a decision, rather than being waved through as it used to be.
+		$confirmed = isset( $_POST['confirm_target'] ) ? esc_url_raw( wp_unslash( $_POST['confirm_target'] ) ) : '';
+		if ( $confirmed !== $source_url ) {
+			$check = Get_Feed::verify_source_target( $podcast_id, $source_url );
+			if ( 'match' !== $check['status'] ) {
+				$this->json_die(
+					$this->get_migration_conflict_response(
+						array(
+							'target' => $source_url,
+							'detail' => $check,
+						)
+					)
 				);
-				echo wp_json_encode( $output );
-				wp_die();
 			}
 		}
 
 		$is_success = $store_manager->add_podcast_source_url( $podcast_id, $source_url );
+		if ( is_array( $is_success ) ) {
+			$status = isset( $is_success['status'] ) ? $is_success['status'] : 'error';
+			if ( 'merged' === $status ) {
+				$output = array(
+					'message' => esc_html__( 'Podcast records merged and the source URL was saved.', 'podcast-player' ),
+				);
+			} elseif ( 'deferred' === $status ) {
+				$output = array(
+					'error' => esc_html__( 'The matching podcast record must update its episode identity before the source can be merged.', 'podcast-player' ),
+				);
+			} else {
+				$output = array(
+					'error' => esc_html__( 'Unable to merge the matching podcast records.', 'podcast-player' ),
+				);
+			}
+			echo wp_json_encode( $output );
+			wp_die();
+		}
 
 		if ( ! $is_success ) {
 			$output = array(

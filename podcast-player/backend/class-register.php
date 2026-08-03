@@ -33,7 +33,7 @@ use Podcast_Player\Backend\Inc\Dashboard_Widget as Dash;
  *
  * @package    Podcast_Player
  * @subpackage Podcast_Player/Backend
- * @author     vedathemes <contact@vedathemes.com>
+ * @author     vedathemes <contact@easypodcastpro.com>
  */
 class Register {
 

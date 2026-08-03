@@ -22,7 +22,7 @@ use Podcast_Player\Helper\Core\Singleton;
  *
  * @package    Podcast_Player
  * @subpackage Podcast_Player/admin
- * @author     vedathemes <contact@vedathemes.com>
+ * @author     vedathemes <contact@easypodcastpro.com>
  */
 class Loader extends Singleton {
 	/**
@@ -195,10 +195,10 @@ class Loader extends Singleton {
 			return;
 		}
 
-		if ( defined( 'PP_PRO_VERSION' ) && version_compare( PP_PRO_VERSION, '5.9.3', '<' ) ) {
+		if ( defined( 'PP_PRO_VERSION' ) && version_compare( PP_PRO_VERSION, '5.9.4', '<' ) ) {
 			?>
 			<div class="notice-warning notice is-dismissible pp-welcome-notice">
-				<p><?php esc_html_e( 'There is an update available to Podcast Player Pro. Please update to Podcast Player Pro v5.9.3. If you have not received an automated update notice, please login to our website and download latest version.', 'podcast-player' ); ?></p>
+				<p><?php esc_html_e( 'There is an update available to Podcast Player Pro. Please update to Podcast Player Pro v5.9.4. If you have not received an automated update notice, please login to our website and download latest version.', 'podcast-player' ); ?></p>
 			</div>
 			<?php
 		}

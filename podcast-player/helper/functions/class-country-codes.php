@@ -20,7 +20,7 @@ namespace Podcast_Player\Helper\Functions;
  *
  * @package    Podcast_Player
  * @subpackage Podcast_Player/Helper
- * @author     vedathemes <contact@vedathemes.com>
+ * @author     vedathemes <contact@easypodcastpro.com>
  */
 class Country_Codes {
 

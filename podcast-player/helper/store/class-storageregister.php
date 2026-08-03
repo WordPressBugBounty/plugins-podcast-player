@@ -83,6 +83,15 @@ class StorageRegister extends StoreBase {
 	protected $is_hidden = false;
 
 	/**
+	 * Whether this register entry is retained only as a non-routable tombstone.
+	 *
+	 * @since 8.3.0
+	 * @access protected
+	 * @var bool
+	 */
+	protected $is_tombstoned = false;
+
+	/**
 	 * Get escape functions.
 	 *
 	 * @since 1.0.0
@@ -97,6 +106,7 @@ class StorageRegister extends StoreBase {
 			'object_keys' => 'arrString',
 			'unique_id'   => 'string',
 			'is_hidden'   => 'bool',
+			'is_tombstoned' => 'bool',
 		);
 	}
 

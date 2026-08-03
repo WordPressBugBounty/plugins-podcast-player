@@ -16,6 +16,31 @@
   padding: 16px;
 }
 
+.toplevel_page_pp-options .pp-duplicate-feed-group {
+  list-style: none;
+}
+
+.toplevel_page_pp-options .pp-duplicate-feed-items {
+  list-style: none;
+}
+
+.toplevel_page_pp-options .pp-duplicate-feed-items > .pp-podcast-list-item {
+  background: #fff;
+}
+
+.toplevel_page_pp-options .pp-podcast-list-item-hidden {
+  opacity: 0.82;
+}
+
+.toplevel_page_pp-options .pp-podcast-list-item-hidden .pp-podcast-title,
+.toplevel_page_pp-options .pp-podcast-list-item-hidden .pp-podcast-url {
+  color: #64748b;
+}
+
+.toplevel_page_pp-options .pp-duplicate-feed-review button {
+  white-space: nowrap;
+}
+
 .toplevel_page_pp-options .pp-podcast-info {
   display: flex;
   flex-direction: column;
@@ -88,12 +113,31 @@
   cursor: pointer;
   padding: 0 !important;
   line-height: 1;
+  position: relative;
 }
 
 .toplevel_page_pp-options .pp-podcast-source-btn .dashicons {
   width: 14px;
   height: 14px;
   font-size: 14px;
+}
+
+.toplevel_page_pp-options .pp-migration-unseen-dot {
+  position: absolute;
+  top: -4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #e11d48;
+  box-shadow: 0 0 0 2px #fff;
+}
+
+[dir="ltr"] .toplevel_page_pp-options .pp-migration-unseen-dot {
+  right: -4px;
+}
+
+[dir="rtl"] .toplevel_page_pp-options .pp-migration-unseen-dot {
+  left: -4px;
 }
 
 .toplevel_page_pp-options .pp-podcast-source-container {
@@ -374,6 +418,18 @@
   position: sticky;
 }
 
+[dir="ltr"] .-right-1{
+  right: -0.25rem;
+}
+
+[dir="rtl"] .-right-1{
+  left: -0.25rem;
+}
+
+.-top-1{
+  top: -0.25rem;
+}
+
 [dir="ltr"] .left-1\/2{
   left: 50%;
 }
@@ -425,6 +481,10 @@
 
 .mb-2{
   margin-bottom: 0.5rem;
+}
+
+.mb-3{
+  margin-bottom: 0.75rem;
 }
 
 .mb-4{
@@ -507,6 +567,10 @@
   display: none;
 }
 
+.h-2\.5{
+  height: 0.625rem;
+}
+
 .h-4{
   height: 1rem;
 }
@@ -517,6 +581,10 @@
 
 .h-9{
   height: 2.25rem;
+}
+
+.w-2\.5{
+  width: 0.625rem;
 }
 
 .w-4{
@@ -629,6 +697,12 @@
   gap: 1.5rem;
 }
 
+.space-y-1 > :not([hidden]) ~ :not([hidden]){
+  --tw-space-y-reverse: 0;
+  margin-top: calc(0.25rem * calc(1 - var(--tw-space-y-reverse)));
+  margin-bottom: calc(0.25rem * var(--tw-space-y-reverse));
+}
+
 .space-y-2 > :not([hidden]) ~ :not([hidden]){
   --tw-space-y-reverse: 0;
   margin-top: calc(0.5rem * calc(1 - var(--tw-space-y-reverse)));
@@ -721,8 +795,17 @@
   border-style: solid;
 }
 
+.border-dashed{
+  border-style: dashed;
+}
+
 .border-none{
   border-style: none;
+}
+
+.border-amber-200{
+  --tw-border-opacity: 1;
+  border-color: rgb(253 230 138 / var(--tw-border-opacity, 1));
 }
 
 .border-amber-300{
@@ -803,6 +886,11 @@
   background-color: rgb(255 241 242 / var(--tw-bg-opacity, 1));
 }
 
+.bg-rose-600{
+  --tw-bg-opacity: 1;
+  background-color: rgb(225 29 72 / var(--tw-bg-opacity, 1));
+}
+
 .bg-sky-50{
   --tw-bg-opacity: 1;
   background-color: rgb(240 249 255 / var(--tw-bg-opacity, 1));
@@ -811,6 +899,11 @@
 .bg-sky-700{
   --tw-bg-opacity: 1;
   background-color: rgb(3 105 161 / var(--tw-bg-opacity, 1));
+}
+
+.bg-slate-100{
+  --tw-bg-opacity: 1;
+  background-color: rgb(241 245 249 / var(--tw-bg-opacity, 1));
 }
 
 .bg-slate-50{
@@ -844,6 +937,10 @@
   padding: 0px;
 }
 
+.p-2{
+  padding: 0.5rem;
+}
+
 .p-3{
   padding: 0.75rem;
 }
@@ -860,6 +957,11 @@
   padding: 1.5rem;
 }
 
+.px-2{
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
 .px-2\.5{
   padding-left: 0.625rem;
   padding-right: 0.625rem;
@@ -873,6 +975,11 @@
 .px-4{
   padding-left: 1rem;
   padding-right: 1rem;
+}
+
+.py-0\.5{
+  padding-top: 0.125rem;
+  padding-bottom: 0.125rem;
 }
 
 .py-1{
@@ -911,6 +1018,10 @@
 
 .pb-3{
   padding-bottom: 0.75rem;
+}
+
+.pt-3{
+  padding-top: 0.75rem;
 }
 
 .pt-4{
@@ -1001,6 +1112,11 @@
   color: rgb(146 64 14 / var(--tw-text-opacity, 1));
 }
 
+.text-amber-900{
+  --tw-text-opacity: 1;
+  color: rgb(120 53 15 / var(--tw-text-opacity, 1));
+}
+
 .text-emerald-700{
   --tw-text-opacity: 1;
   color: rgb(4 120 87 / var(--tw-text-opacity, 1));
@@ -1028,6 +1144,11 @@
 .text-rose-800{
   --tw-text-opacity: 1;
   color: rgb(159 18 57 / var(--tw-text-opacity, 1));
+}
+
+.text-rose-900{
+  --tw-text-opacity: 1;
+  color: rgb(136 19 55 / var(--tw-text-opacity, 1));
 }
 
 .text-sky-700{

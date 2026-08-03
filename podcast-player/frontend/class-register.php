@@ -32,7 +32,7 @@ use Podcast_Player\Frontend\Inc\Icons_Extend;
  *
  * @package    Podcast_Player
  * @subpackage Podcast_Player/Frontend
- * @author     vedathemes <contact@vedathemes.com>
+ * @author     vedathemes <contact@easypodcastpro.com>
  */
 class Register {
 

@@ -26,7 +26,7 @@ use Podcast_Player\Helper\Store\StorageRegister;
  *
  * @package    Podcast_Player
  * @subpackage Podcast_Player/Helper
- * @author     vedathemes <contact@vedathemes.com>
+ * @author     vedathemes <contact@easypodcastpro.com>
  */
 class Getters {
 
@@ -100,6 +100,37 @@ class Getters {
 		}
 
 		return new \WP_Error( 'invalid_url', esc_html__( 'Please provide a valid feed url.', 'podcast-player' ) );
+	}
+
+	/**
+	 * Resolve a feed key received from a public (unauthenticated) request.
+	 *
+	 * Public entry points address a podcast by its registered index key, never by
+	 * its URL. The player always sends md5( $feed_url ) for this reason. Accepting
+	 * a raw URL here would let any visitor make the site fetch a destination of
+	 * their choosing, so a value that looks like a URL is refused outright and the
+	 * remaining value must already resolve to a registered podcast.
+	 *
+	 * Privileged flows (admin screens, the block and widget feed pickers, cron,
+	 * imports) legitimately supply a brand new feed url and must keep using
+	 * get_valid_feed_url() instead.
+	 *
+	 * @since 8.3.1
+	 *
+	 * @param string $key Feed key received from an untrusted request.
+	 * @return string|false Sanitized feed key, or false if it is not a registered feed.
+	 */
+	public static function get_public_feed_key( $key ) {
+		if ( ! is_string( $key ) ) {
+			return false;
+		}
+
+		$key = sanitize_text_field( $key );
+		if ( ! $key || Validation_Fn::is_valid_url( $key ) ) {
+			return false;
+		}
+
+		return self::get_feed_url_from_index( $key ) ? $key : false;
 	}
 
 	/**

@@ -21,7 +21,7 @@ use Podcast_Player\Frontend\Inc\Instance_Counter;
  *
  * @package    Podcast_Player
  * @subpackage Podcast_Player/Helper
- * @author     vedathemes <contact@vedathemes.com>
+ * @author     vedathemes <contact@easypodcastpro.com>
  */
 class Markup {
 

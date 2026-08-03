@@ -24,7 +24,7 @@ use Podcast_Player\Helper\Feed\Episode_Resolver;
  *
  * @package    Podcast_Player
  * @subpackage Podcast_Player/Helper
- * @author     vedathemes <contact@vedathemes.com>
+ * @author     vedathemes <contact@easypodcastpro.com>
  */
 class Utility {
 
@@ -1127,5 +1127,149 @@ class Utility {
 		}
 
 		return new FeedData();
+	}
+
+	/**
+	 * Whether two URLs address the same resource in canonical form.
+	 *
+	 * Deliberately narrow. A permanent redirect that only normalises the address
+	 * — http to https, a trailing slash, host case, a default port — is not a
+	 * host migration and must never raise a review prompt. Everything else is
+	 * left for a human to approve.
+	 *
+	 * The query is compared byte for byte on purpose: a signed or expiring feed
+	 * URL differs from its origin only in the query string, so treating query
+	 * changes as canonical would silently adopt a URL that stops working when
+	 * the token expires.
+	 *
+	 * @since 8.3.0
+	 *
+	 * @param string $first  Original URL.
+	 * @param string $second Resolved URL.
+	 * @return bool
+	 */
+	public static function is_canonical_variant( $first, $second ) {
+		$one = self::canonical_url( $first );
+		$two = self::canonical_url( $second );
+		if ( ! $one || ! $two ) {
+			return false;
+		}
+
+		// Identical schemes, or an http to https upgrade. A downgrade loses
+		// transport security and is never treated as mere normalisation.
+		if ( $one['scheme'] !== $two['scheme']
+			&& ! ( 'http' === $one['scheme'] && 'https' === $two['scheme'] ) ) {
+			return false;
+		}
+
+		return $one['host'] === $two['host']
+			&& $one['port'] === $two['port']
+			&& $one['path'] === $two['path']
+			&& $one['query'] === $two['query'];
+	}
+
+	/**
+	 * Split a URL into normalised parts for comparison.
+	 *
+	 * Returns false when the URL cannot be compared safely — credentials in the
+	 * URL, a non-ASCII host, or no host at all. Callers read false as "not
+	 * canonical", so an uncomparable URL falls through to admin review rather
+	 * than being guessed at.
+	 *
+	 * Percent-encoding is never decoded: %2F and / are different addresses.
+	 *
+	 * @since 8.3.0
+	 *
+	 * @param string $url URL to normalise.
+	 * @return array|false
+	 */
+	public static function canonical_url( $url ) {
+		$parts = wp_parse_url( (string) $url );
+		if ( empty( $parts['host'] ) || empty( $parts['scheme'] ) ) {
+			return false;
+		}
+
+		// Credentials change who is being asked, not just where.
+		if ( isset( $parts['user'] ) || isset( $parts['pass'] ) ) {
+			return false;
+		}
+
+		$host = strtolower( $parts['host'] );
+
+		// Only a well-formed ASCII hostname or a genuine IPv6 literal can be
+		// compared safely. Anything else — an internationalised name needing
+		// IDNA folding, or a malformed host such as "exa mple.com" that
+		// wp_parse_url() will still hand back — defers to review rather than
+		// being guessed at.
+		if ( '[' === substr( $host, 0, 1 ) ) {
+			// Bracketed literal: only accept it when the contents are valid IPv6,
+			// so "[::::]" and the like fall through to review.
+			$literal = substr( $host, 1, -1 );
+			if ( ']' !== substr( $host, -1 ) || ! filter_var( $literal, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6 ) ) {
+				return false;
+			}
+		} elseif ( ! preg_match( '/^[a-z0-9]([a-z0-9\-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9\-]*[a-z0-9])?)*\.?$/', $host ) ) {
+			// A single trailing dot (fully-qualified form) is permitted.
+			return false;
+		}
+
+		$scheme = strtolower( $parts['scheme'] );
+		$port   = isset( $parts['port'] ) ? (int) $parts['port'] : 0;
+		if ( ( 'http' === $scheme && 80 === $port ) || ( 'https' === $scheme && 443 === $port ) ) {
+			$port = 0;
+		}
+
+		return array(
+			'scheme' => $scheme,
+			'host'   => $host,
+			'port'   => $port,
+			'path'   => self::canonical_path( isset( $parts['path'] ) ? $parts['path'] : '' ),
+			// Fragments are never sent to a server, so they cannot distinguish
+			// two feed addresses.
+			'query'  => isset( $parts['query'] ) ? $parts['query'] : '',
+		);
+	}
+
+	/**
+	 * Resolve dot segments and a single trailing slash in a URL path.
+	 *
+	 * Interior empty segments are preserved: collapsing them would make two
+	 * genuinely different addresses compare equal, which is the unsafe
+	 * direction for this comparison.
+	 *
+	 * @since 8.3.0
+	 *
+	 * @param string $path URL path.
+	 * @return string
+	 */
+	private static function canonical_path( $path ) {
+		$path = (string) $path;
+		if ( '' === $path ) {
+			return '/';
+		}
+
+		if ( false !== strpos( $path, '.' ) ) {
+			$segments = array();
+			foreach ( explode( '/', $path ) as $segment ) {
+				if ( '.' === $segment ) {
+					continue;
+				}
+				if ( '..' === $segment ) {
+					array_pop( $segments );
+					continue;
+				}
+				$segments[] = $segment;
+			}
+			$path = implode( '/', $segments );
+		}
+
+		if ( '' === $path ) {
+			return '/';
+		}
+		if ( '/' !== $path && '/' === substr( $path, -1 ) ) {
+			$path = substr( $path, 0, -1 );
+		}
+
+		return '/' === substr( $path, 0, 1 ) ? $path : '/' . $path;
 	}
 }

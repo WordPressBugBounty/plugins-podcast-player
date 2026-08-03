@@ -21,7 +21,7 @@ use Podcast_Player\Helper\Functions\Validation as Validation_Fn;
  *
  * @package    Podcast_Player
  * @subpackage Podcast_Player/Helper
- * @author     vedathemes <contact@vedathemes.com>
+ * @author     vedathemes <contact@easypodcastpro.com>
  */
 class Fetch_Feed {
 
@@ -152,6 +152,24 @@ class Fetch_Feed {
 	public $response_code = '';
 
 	/**
+	 * Final URL reached after following HTTP redirects.
+	 *
+	 * @since  8.3.0
+	 * @access private
+	 * @var    string
+	 */
+	private $resolved_url = '';
+
+	/**
+	 * Permanent-redirect status (301/308) on the original feed URL, else 0.
+	 *
+	 * @since  8.3.0
+	 * @access private
+	 * @var    int
+	 */
+	private $redirect_status = 0;
+
+	/**
 	 * Create initial state of the object.
 	 *
 	 * @since 6.5.0
@@ -194,6 +212,7 @@ class Fetch_Feed {
 		);
 
 		$this->response_code = wp_remote_retrieve_response_code( $this->response );
+		$this->capture_redirect_data();
 		if ( 304 === $this->response_code ) {
 			return;
 		}
@@ -222,6 +241,138 @@ class Fetch_Feed {
 
 		$this->etag          = wp_remote_retrieve_header( $this->response, 'etag' );
 		$this->last_modified = wp_remote_retrieve_header( $this->response, 'last-modified' );
+	}
+
+	/**
+	 * Capture the final resolved URL and any permanent-redirect status.
+	 *
+	 * Reads the redirect history already produced by the single feed request,
+	 * so no extra HTTP request is made and the existing fetch behaviour is
+	 * unchanged. Only a 301/308 on the original URL is treated as permanent.
+	 *
+	 * @since 8.3.0
+	 */
+	private function capture_redirect_data() {
+		$this->resolved_url    = $this->url;
+		$this->redirect_status = 0;
+
+		if ( is_wp_error( $this->response ) || ! is_array( $this->response ) ) {
+			return;
+		}
+
+		$http = isset( $this->response['http_response'] ) ? $this->response['http_response'] : null;
+		if ( ! $http || ! method_exists( $http, 'get_response_object' ) ) {
+			return;
+		}
+
+		$object = $http->get_response_object();
+		if ( ! is_object( $object ) ) {
+			return;
+		}
+
+		if ( ! empty( $object->url ) && Validation_Fn::is_valid_url( (string) $object->url ) ) {
+			$this->resolved_url = (string) $object->url;
+		}
+
+		if ( empty( $object->history ) || ! is_array( $object->history ) ) {
+			return;
+		}
+
+		// history[0] is the response to the original URL; it must be permanent.
+		$first = reset( $object->history );
+		$code  = is_object( $first ) && isset( $first->status_code ) ? (int) $first->status_code : 0;
+		if ( ! in_array( $code, array( 301, 308 ), true ) ) {
+			return;
+		}
+
+		// Any temporary hop in the chain means the final URL is not a permanent
+		// target, so do not treat the resolved URL as a migration destination.
+		foreach ( $object->history as $hop ) {
+			$hop_code = is_object( $hop ) && isset( $hop->status_code ) ? (int) $hop->status_code : 0;
+			if ( in_array( $hop_code, array( 302, 303, 307 ), true ) ) {
+				return;
+			}
+		}
+
+		$this->redirect_status = $code;
+	}
+
+	/**
+	 * Get the iTunes new-feed-url migration signal, if present and valid.
+	 *
+	 * @since 8.3.0
+	 *
+	 * @return string
+	 */
+	public function get_new_feed_url() {
+		if ( ! isset( $this->itunes ) || ! isset( $this->itunes->{'new-feed-url'} ) ) {
+			return '';
+		}
+		$new_feed_url = trim( (string) $this->itunes->{'new-feed-url'} );
+		return Validation_Fn::is_valid_url( $new_feed_url ) ? $new_feed_url : '';
+	}
+
+	/**
+	 * Get the final URL reached after any redirects.
+	 *
+	 * @since 8.3.0
+	 *
+	 * @return string
+	 */
+	public function get_resolved_url() {
+		return $this->resolved_url ? $this->resolved_url : $this->url;
+	}
+
+	/**
+	 * Get the HTTP response code from the feed request.
+	 *
+	 * @since 8.3.0
+	 *
+	 * @return int
+	 */
+	public function get_response_code() {
+		return absint( $this->response_code );
+	}
+
+	/**
+	 * Get permanent-redirect migration data for the original feed URL.
+	 *
+	 * Returns an empty array unless the original URL issued a 301/308 to a
+	 * different valid URL. `same_host` marks a scheme/slash/host-case-only change
+	 * (an alias fold) versus a genuine cross-host migration.
+	 *
+	 * @since 8.3.0
+	 *
+	 * @return array
+	 */
+	public function get_redirect_migration_data() {
+		if ( ! $this->redirect_status || ! Validation_Fn::is_valid_url( $this->resolved_url ) ) {
+			return array();
+		}
+		if ( $this->resolved_url === $this->url ) {
+			return array();
+		}
+		return array(
+			'from'      => $this->url,
+			'to'        => $this->resolved_url,
+			'status'    => $this->redirect_status,
+			'same_host' => self::hosts_match( $this->url, $this->resolved_url ),
+		);
+	}
+
+	/**
+	 * Whether two URLs share the same host (case-insensitive), ignoring scheme.
+	 *
+	 * @since 8.3.0
+	 *
+	 * @param string $first  First URL.
+	 * @param string $second Second URL.
+	 * @return bool
+	 */
+	public static function hosts_match( $first, $second ) {
+		$first_host  = strtolower( (string) wp_parse_url( $first, PHP_URL_HOST ) );
+		$second_host = strtolower( (string) wp_parse_url( $second, PHP_URL_HOST ) );
+		return '' !== $first_host && $first_host === $second_host;
 	}
 
 	/**

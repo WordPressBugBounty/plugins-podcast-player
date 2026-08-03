@@ -24,7 +24,7 @@ use Podcast_Player\Helper\Core\Background_Jobs;
  *
  * @package    Podcast_Player
  * @subpackage Podcast_Player/Helper
- * @author     vedathemes <contact@vedathemes.com>
+ * @author     vedathemes <contact@easypodcastpro.com>
  */
 class Get_Feed {
 
@@ -34,7 +34,7 @@ class Get_Feed {
 	 * @since 8.3.0
 	 * @var int
 	 */
-	private const IDENTITY_VERSION = 2;
+	public const IDENTITY_VERSION = 2;
 
 	/**
 	 * Per-feed lock lifetime for the identity migration fetch.
@@ -51,6 +51,14 @@ class Get_Feed {
 	 * @var int
 	 */
 	private const IDENTITY_MIGRATION_RETRY_TTL = 300;
+
+	/**
+	 * Consecutive qualifying (dead-feed) source failures before auto-promotion.
+	 *
+	 * @since 8.3.0
+	 * @var int
+	 */
+	private const SOURCE_FAILURE_THRESHOLD = 3;
 
 	/**
 	 * Holds feed url for current instance.
@@ -194,6 +202,13 @@ class Get_Feed {
 				$this->set_identity_migration_retry();
 				return $this->retrieve_feed_data( $old_podcast_data );
 			}
+			if ( ! $force_identity_migration
+				&& $this->handle_source_fetch_failure( $obj, $old_podcast_data )
+				&& $old_podcast_data instanceof FeedData ) {
+				// Auto-promotion applied a verified migration target; serve the
+				// last good cache until the next fetch uses the new source.
+				return $this->retrieve_feed_data( $old_podcast_data );
+			}
 			return $raw_data;
 		}
 
@@ -234,6 +249,15 @@ class Get_Feed {
 			delete_transient( $this->get_identity_migration_retry_key() );
 		}
 
+		if ( ! $force_identity_migration ) {
+			// Any live response (200 or 304) proves the source is alive and ends
+			// a consecutive-failure streak; signal detection needs a fresh body.
+			$this->reset_source_failures();
+			if ( '304_use_cache' !== $raw_data ) {
+				$this->detect_migration_signals( $obj, $data, $old_podcast_data );
+			}
+		}
+
 		// Fecilitate new episode import.
 		if ( $this->is_pro && ! empty( $new_episodes ) ) {
 			// If opted, queue new episodes for import.
@@ -244,6 +268,365 @@ class Get_Feed {
 		}
 
 		return $this->retrieve_feed_data( $data );
+	}
+
+	/**
+	 * Record or clear a host-migration candidate from a successful fetch.
+	 *
+	 * A same-host permanent redirect (http->https, a slug change, host case) is
+	 * applied silently: the resolved URL becomes the record source and the old
+	 * URLs stay as aliases. A cross-host permanent redirect or an iTunes
+	 * new-feed-url that resolves to the same podcast is stored as a candidate for
+	 * the notice-gated migrate flow.
+	 *
+	 * @since 8.3.0
+	 *
+	 * @param Fetch_Feed     $obj              Fetch instance for the current feed.
+	 * @param FeedData       $data             Freshly parsed feed data.
+	 * @param FeedData|false $old_podcast_data Previously stored feed data.
+	 */
+	private function detect_migration_signals( $obj, $data, $old_podcast_data ) {
+		$store    = StoreManager::get_instance();
+		$redirect = $obj->get_redirect_migration_data();
+
+		// A permanent redirect that only normalises the address — http to https,
+		// a trailing slash, host case, a default port — is not a migration.
+		// Fold the resolved URL in as an alias so a future player using it
+		// cannot create a duplicate record, and raise nothing for review.
+		if ( ! empty( $redirect ) && Utility_Fn::is_canonical_variant( $this->feed_url, $redirect['to'] ) ) {
+			$store->add_object_alias( $this->feed_url, $redirect['to'] );
+			$this->clear_migration_candidate( $store );
+			return;
+		}
+
+		$target   = '';
+		$type     = '';
+		$verified = false;
+
+		$comparison = 'unverifiable';
+
+		if ( ! empty( $redirect ) ) {
+			// The redirect was followed, so $data is already the destination feed.
+			$target = $redirect['to'];
+			$type   = 'redirect';
+
+			// Three states, not two. A record being fetched for the first time
+			// has nothing to compare against, and "nothing to compare" is not
+			// agreement: recording it as verified would let auto-promotion skip
+			// its own check later on evidence that was never gathered.
+			if ( $old_podcast_data instanceof FeedData ) {
+				$comparison = self::feeds_same_podcast( $old_podcast_data, $data ) ? 'match' : 'mismatch';
+			}
+			$verified = 'match' === $comparison;
+
+			// Fold the resolved URL in as an alias unless we have positive
+			// evidence it serves a different podcast. Absence of evidence is
+			// not evidence of a mismatch, and refusing to fold would let a
+			// future player on the resolved URL create a duplicate record. A
+			// same-host mismatch is still a mismatch: a publisher who repoints
+			// one feed path at an unrelated show must not have that show's URL
+			// aliased onto this record.
+			if ( 'mismatch' !== $comparison ) {
+				$store->add_object_alias( $this->feed_url, $redirect['to'] );
+			}
+		} else {
+			$new_feed_url = $obj->get_new_feed_url();
+			if ( $new_feed_url && $new_feed_url !== $this->feed_url ) {
+				// Destination not fetched yet; verified when promoted.
+				$target = $new_feed_url;
+				$type   = 'new_feed_url';
+			}
+		}
+
+		// No usable signal, or a redirect that demonstrably leads to a different
+		// podcast. An unverifiable redirect still raises a candidate — it is
+		// carried as unverified, so promotion has to earn the check itself once
+		// there is stored data to compare against.
+		if ( ! $target || ( 'redirect' === $type && 'mismatch' === $comparison ) ) {
+			$this->clear_migration_candidate( $store );
+			return;
+		}
+
+		$store->update_data(
+			array(
+				'to'         => esc_url_raw( $target ),
+				'type'       => $type,
+				'verified'   => (bool) $verified,
+				'created_at' => time(),
+			),
+			$this->feed_url,
+			'pp_migration_candidate'
+		);
+	}
+
+	/**
+	 * Remove a stored migration candidate, if any.
+	 *
+	 * @since 8.3.0
+	 *
+	 * @param StoreManager $store Store manager instance.
+	 */
+	private function clear_migration_candidate( $store ) {
+		if ( $store->get_data( $this->feed_url, 'pp_migration_candidate' ) ) {
+			$store->delete_data( $this->feed_url, 'pp_migration_candidate' );
+		}
+	}
+
+	/**
+	 * Reset the consecutive source-failure counter after a good fetch.
+	 *
+	 * @since 8.3.0
+	 */
+	private function reset_source_failures() {
+		$store = StoreManager::get_instance();
+		if ( (int) $store->get_data( $this->feed_url, 'pp_source_failures' ) > 0 ) {
+			$store->delete_data( $this->feed_url, 'pp_source_failures' );
+		}
+	}
+
+	/**
+	 * Count a qualifying source failure and auto-promote when appropriate.
+	 *
+	 * Only explicit HTTP 404/410 responses count as dead-feed signals; transport
+	 * errors, timeouts and 5xx are transient and never increment the counter.
+	 *
+	 * @since 8.3.0
+	 *
+	 * @param Fetch_Feed     $obj              Fetch instance for the current feed.
+	 * @param FeedData|false $old_podcast_data Previously stored feed data.
+	 * @return bool True when a verified candidate was promoted.
+	 */
+	private function handle_source_fetch_failure( $obj, $old_podcast_data ) {
+		if ( ! in_array( $obj->get_response_code(), array( 404, 410 ), true ) ) {
+			return false;
+		}
+
+		$store = StoreManager::get_instance();
+
+		// Serialize the whole increment/verify/promote section per feed with a
+		// dedicated claim lock (distinct from the record lock that
+		// add_podcast_source_url() acquires, so there is no re-entrant deadlock).
+		// A concurrent render that cannot claim simply skips this attempt.
+		// Key the claim by the resolved record, not the URL this request happened
+		// to use. Review approval locks by unique ID, and a lock named after an
+		// alias would not exclude it.
+		$claim_key = 'pp_source_promote_' . $store->get_promotion_lock_key( $this->feed_url );
+		$claim     = $store->acquire_record_lock( $claim_key );
+		if ( ! $claim ) {
+			return false;
+		}
+
+		try {
+			$count = (int) $store->get_data( $this->feed_url, 'pp_source_failures' ) + 1;
+			$store->update_data( $count, $this->feed_url, 'pp_source_failures' );
+
+			if ( $count < self::SOURCE_FAILURE_THRESHOLD ) {
+				return false;
+			}
+
+			$candidate = $store->get_data( $this->feed_url, 'pp_migration_candidate' );
+			if ( ! is_array( $candidate ) || empty( $candidate['to'] ) ) {
+				return false;
+			}
+
+			if ( empty( $candidate['verified'] )
+				&& ! $this->verify_migration_target( $candidate['to'], $old_podcast_data ) ) {
+				return false;
+			}
+
+			// Re-read state immediately before applying: a concurrent successful
+			// fetch may have recovered the source (reset the counter) or replaced
+			// the candidate while we were verifying. Abort rather than promote a
+			// stale target.
+			if ( (int) $store->get_data( $this->feed_url, 'pp_source_failures' ) < self::SOURCE_FAILURE_THRESHOLD ) {
+				return false;
+			}
+			$current = $store->get_data( $this->feed_url, 'pp_migration_candidate' );
+			if ( ! is_array( $current ) || empty( $current['to'] ) || $current['to'] !== $candidate['to'] ) {
+				return false;
+			}
+
+			return $this->promote_migration_candidate( $current );
+		} finally {
+			$store->release_record_lock( $claim_key, $claim );
+		}
+	}
+
+	/**
+	 * Verify a candidate target resolves to the same podcast as the old feed.
+	 *
+	 * @since 8.3.0
+	 *
+	 * @param string         $target           Candidate feed URL.
+	 * @param FeedData|false $old_podcast_data Previously stored feed data.
+	 * @return bool
+	 */
+	private function verify_migration_target( $target, $old_podcast_data ) {
+		if ( ! $old_podcast_data instanceof FeedData ) {
+			return false;
+		}
+		$probe = new Fetch_Feed( $target );
+		$new   = $probe->get_feed_data();
+		if ( ! $new instanceof FeedData ) {
+			return false;
+		}
+		return self::feeds_same_podcast( $old_podcast_data, $new );
+	}
+
+	/**
+	 * Whether two feeds describe the same podcast (title + author match).
+	 *
+	 * @since 8.3.0
+	 *
+	 * @param FeedData $first  First feed.
+	 * @param FeedData $second Second feed.
+	 * @return bool
+	 */
+	/**
+	 * Compare a record against a prospective new source feed.
+	 *
+	 * Public because every path that switches a source — the review notice, the
+	 * manual admin field — must be able to show the admin what it is about to
+	 * do before doing it. Returns three distinct states, not a boolean:
+	 * `unverifiable` is not `mismatch`, and neither is permission.
+	 *
+	 * A record whose source URL was rewritten by an older version frequently has
+	 * no cached feed at all, so there is genuinely nothing to compare. That must
+	 * be reported honestly rather than passed off as agreement.
+	 *
+	 * Fails closed: a fetch failure is `unverifiable`, never `match`.
+	 *
+	 * @since 8.3.0
+	 *
+	 * @param string $object_key Record key being repointed.
+	 * @param string $target     Prospective new source URL.
+	 * @return array
+	 */
+	public static function verify_source_target( $object_key, $target ) {
+		$result = array(
+			'status' => 'unverifiable',
+			'old'    => array( 'title' => '', 'author' => '' ),
+			'new'    => array( 'title' => '', 'author' => '' ),
+		);
+
+		if ( ! Validation_Fn::is_valid_url( $target ) ) {
+			return $result;
+		}
+
+		$store  = StoreManager::get_instance();
+		$index  = $store->get_object_index( $object_key );
+		$record = $index instanceof \Podcast_Player\Helper\Store\StorageRegister
+			? $index->get( 'unique_id', 'none' )
+			: (string) $object_key;
+
+		// Keyed by record AND target: the answer depends on both feeds, so a
+		// match computed for one podcast must never approve another podcast
+		// that happens to share the target URL.
+		$cache_key = 'pp_srcverify_' . md5( $record . '|' . esc_url_raw( $target ) );
+		$cached    = get_transient( $cache_key );
+		if ( is_array( $cached ) && isset( $cached['status'] ) ) {
+			return $cached;
+		}
+
+		$old = $store->get_data( $object_key, 'feed_data' );
+		$obj = new Fetch_Feed( $target );
+		$new = $obj->get_feed_data();
+
+		if ( $old instanceof FeedData ) {
+			$result['old'] = array(
+				'title'  => (string) $old->get( 'title', 'sanitize' ),
+				'author' => (string) $old->get( 'author', 'sanitize' ),
+			);
+		}
+		if ( $new instanceof FeedData ) {
+			$result['new'] = array(
+				'title'  => (string) $new->get( 'title', 'sanitize' ),
+				'author' => (string) $new->get( 'author', 'sanitize' ),
+			);
+			if ( $old instanceof FeedData ) {
+				$result['status'] = self::feeds_same_podcast( $old, $new ) ? 'match' : 'mismatch';
+			}
+		}
+
+		set_transient( $cache_key, $result, 5 * MINUTE_IN_SECONDS );
+		return $result;
+	}
+
+	private static function feeds_same_podcast( $first, $second ) {
+		$first_title  = trim( (string) $first->get( 'title', 'sanitize' ) );
+		$second_title = trim( (string) $second->get( 'title', 'sanitize' ) );
+		if ( '' === $first_title || $first_title !== $second_title ) {
+			return false;
+		}
+
+		// An identical title alone is too weak for an irreversible source switch;
+		// require a second corroborating signal: a non-empty matching author or a
+		// non-empty matching owner email. Two empty values never corroborate.
+		$first_author  = trim( (string) $first->get( 'author', 'sanitize' ) );
+		$second_author = trim( (string) $second->get( 'author', 'sanitize' ) );
+		if ( '' !== $first_author && $first_author === $second_author ) {
+			return true;
+		}
+
+		$first_email  = self::feed_owner_email( $first );
+		$second_email = self::feed_owner_email( $second );
+		return '' !== $first_email && $first_email === $second_email;
+	}
+
+	/**
+	 * Extract a normalized owner email from a feed for verification.
+	 *
+	 * @since 8.3.0
+	 *
+	 * @param FeedData $feed Feed data.
+	 * @return string
+	 */
+	private static function feed_owner_email( $feed ) {
+		$owner = $feed->get( 'owner', 'none' );
+		if ( ! is_array( $owner ) || empty( $owner['email'] ) ) {
+			return '';
+		}
+		return strtolower( trim( (string) $owner['email'] ) );
+	}
+
+	/**
+	 * Apply a verified migration candidate as the new source URL.
+	 *
+	 * Routes through StoreManager::add_podcast_source_url(), which merges when the
+	 * target is already a registered podcast and forces a refetch otherwise.
+	 *
+	 * @since 8.3.0
+	 *
+	 * @param array $candidate Stored candidate data.
+	 * @return bool
+	 */
+	private function promote_migration_candidate( $candidate ) {
+		$store = StoreManager::get_instance();
+
+		// Resolve a durable identity before anything changes. $this->feed_url is
+		// the resolved *source* URL, and applying the candidate replaces it —
+		// after which the record no longer matches that URL at all, so cleanup
+		// keyed on it would silently delete nothing and leave a stale migration
+		// notice plus a failure counter parked at the threshold.
+		$key   = $store->get_promotion_lock_key( $this->feed_url );
+		$index = $store->get_object_index( $key );
+		// The post that actually holds this record's promotion state, captured
+		// before the merge can tombstone it and reroute key lookups elsewhere.
+		$object_id = $index instanceof \Podcast_Player\Helper\Store\StorageRegister ? $index->get( 'object_id', 'none' ) : 0;
+		$applied   = $store->add_podcast_source_url( $key, $candidate['to'] );
+
+		// Only these two actually apply the new source. A `deferred` merge waits
+		// on an identity migration and a `noop` merge (already one record, or a
+		// tombstoned counterpart) returns without touching source_url — clearing
+		// the candidate for either would discard a migration that never
+		// happened, and a dead feed can never re-raise the signal.
+		$ok = true === $applied
+			|| ( is_array( $applied ) && 'merged' === ( isset( $applied['status'] ) ? $applied['status'] : '' ) );
+		if ( ! $ok ) {
+			return false;
+		}
+		$store->delete_object_meta( $object_id, array( 'pp_migration_candidate', 'pp_migration_seen', 'pp_source_failures' ) );
+		return true;
 	}
 
 	/**

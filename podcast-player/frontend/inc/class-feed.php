@@ -23,9 +23,20 @@ use Podcast_Player\Helper\Core\Background_Jobs;
  *
  * @package    Podcast_Player
  * @subpackage Podcast_Player/public
- * @author     vedathemes <contact@vedathemes.com>
+ * @author     vedathemes <contact@easypodcastpro.com>
  */
 class Feed extends Singleton {
+	/**
+	 * Returned by get_ajax_variables() when the requested feed is not available.
+	 *
+	 * Kept distinct from a malformed payload so the player receives the same empty
+	 * response it already handles for an unreachable feed.
+	 *
+	 * @since 8.3.1
+	 * @var string
+	 */
+	const UNAVAILABLE_FEED = 'pp_unavailable_feed';
+
 	/**
 	 * Holds podcast episodes script data for each Podcast instance.
 	 *
@@ -507,6 +518,10 @@ class Feed extends Singleton {
 		if ( false === $val ) {
 			wp_die( -1, 403 );
 		}
+		if ( self::UNAVAILABLE_FEED === $val ) {
+			echo wp_json_encode( array() );
+			wp_die();
+		}
 		if ( null === $val ) {
 			echo wp_json_encode( array( 'error' => esc_html__( 'Invalid request payload.', 'podcast-player' ) ) );
 			wp_die();
@@ -567,6 +582,10 @@ class Feed extends Singleton {
 		$val = $this->get_ajax_variables();
 		if ( false === $val ) {
 			wp_die( -1, 403 );
+		}
+		if ( self::UNAVAILABLE_FEED === $val ) {
+			echo wp_json_encode( array() );
+			wp_die();
 		}
 		if ( null === $val ) {
 			echo wp_json_encode( array( 'error' => esc_html__( 'Invalid request payload.', 'podcast-player' ) ) );
@@ -682,6 +701,15 @@ class Feed extends Singleton {
 			return null;
 		}
 
+		/*
+		 * The player addresses its podcast by the registered feed key, never by
+		 * the feed url. Anything else is refused before it can reach a fetch.
+		 */
+		$feed_key = Get_Fn::get_public_feed_key( $feed_url );
+		if ( ! $feed_key ) {
+			return self::UNAVAILABLE_FEED;
+		}
+
 		$args = wp_parse_args(
 			$args,
 			array(
@@ -701,9 +729,8 @@ class Feed extends Singleton {
 		}
 
 		// Prepare and sanitize/validate feed args array.
-		// Feed URL has been encrypted using md5. Therefore, using esc_html.
 		$new_args = array(
-			'url'            => esc_html( $feed_url ),
+			'url'            => $feed_key,
 			'imgurl'         => esc_url_raw( $args['imgurl'] ),
 			'imgset'         => esc_attr( $args['imgset'] ),
 			'display-style'  => sanitize_text_field( $args['display'] ),
@@ -728,6 +755,16 @@ class Feed extends Singleton {
 			$new_args,
 			$args
 		);
+
+		if ( ! is_array( $args ) ) {
+			return null;
+		}
+
+		/*
+		 * Restore the validated key. The filter receives the request args, so it
+		 * must not be able to point the fetch at a different podcast.
+		 */
+		$args['url'] = $feed_key;
 
 		return array(
 			absint( $loaded ),
