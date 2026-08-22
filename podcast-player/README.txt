@@ -2,9 +2,9 @@
 Contributors: vedathemes
 Tags: podcast, podcasting, rss feed, feed to audio, podcaster
 Requires at least: 4.9
-Tested up to: 7.0
+Tested up to: 7.1
 Requires PHP: 5.6
-Stable tag: 8.3.1
+Stable tag: 8.3.2
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -106,6 +106,9 @@ Podcast player plugin (on its own) does not create and save any cookies and does
 5. Podcast player on large size container
 
 ==Changelog ==
+= 8.3.2 =
+Modify: Compatibility testing with WordPress 7.1
+
 = 8.3.1 =
 * Security: Podcast episode requests made from the player now identify the podcast by its stored feed key only. Previously a feed URL sent with such a request was fetched by the site, which allowed a visitor to make the server request a web address of their choosing and read back anything that parsed as a feed. Reported by ApogeeBytes.
 * Security: The same key-only check now applies to episode share links, transcript requests and episode feedback messages.
