@@ -47,6 +47,7 @@ class PodcastPlayer extends Component {
 		this.fetching = false;
 		this.toggleAttribute = this.toggleAttribute.bind( this );
 		this.onSubmitURL = this.onSubmitURL.bind( this );
+		this.setPreviewElement = this.setPreviewElement.bind( this );
 	}
 
 	apiDataFetch(data, path, callback = false) {
@@ -97,13 +98,13 @@ class PodcastPlayer extends Component {
 		}
 	}
 
-	componentDidUpdate( prevProps ) {
+	componentDidUpdate( prevProps, prevState ) {
 		if (!this.isPremium) return;
 		const { postType: oldPostType, taxonomy: oldTaxonomy, fontFamily: oldFontFamily, terms: oldTerms, sortBy: oldSortBy, filterBy: oldFilterBy, fetchMethod: oldfetchMethod, feedURL: oldFeedURL, catlist: oldCatlist, slist: oldSlist } = prevProps.attributes;
 		const { postType, taxonomy, fontFamily, terms, sortBy, filterBy, fetchMethod, feedURL, slist, catlist } = this.props.attributes;
 		if (oldPostType !== postType) { this.updateTaxonomy() }
 		if (oldTaxonomy !== taxonomy) { this.updateTerms() }
-		if (oldFontFamily !== fontFamily) { this.updateFonts() }
+		if (oldFontFamily !== fontFamily || prevState.fontFamilies !== this.state.fontFamilies) { this.updateFonts() }
 		if (oldTaxonomy !== taxonomy || oldTerms !== terms || oldSortBy !== sortBy || oldFilterBy !== filterBy || oldfetchMethod !== fetchMethod || oldFeedURL !== feedURL || oldCatlist !== catlist || oldSlist !== slist) {
 			this.updateElist();
 		}
@@ -204,26 +205,33 @@ class PodcastPlayer extends Component {
 	updateFonts() {
 		const { fontFamily } = this.props.attributes;
 		const { fontFamilies } = this.state;
-		if (fontFamily) {
-			const family = fontFamilies.filter(font => fontFamily === font.value);
-			if (family.length) {
-				const font = family[0].label;
-				const fontName = font.split( ' ' ).join( '+' );
-				if ( 0 === jQuery( 'link#podcast-player-fonts-css-temp' ).length ) {
-					const gfontUrl = '//fonts.googleapis.com/css?family=' + fontName;
-					const gfontlink = jQuery( '<link>', {
-						id: 'podcast-player-fonts-css-temp',
-						href: gfontUrl,
-						rel: 'stylesheet',
-						type: 'text/css'
-					} );
-					jQuery( 'link:last' ).after( gfontlink );
-				} else {
-					const elem = jQuery('link#podcast-player-fonts-css-temp');
-					const href = elem.attr('href');
-					elem.attr( 'href', href + '%7C' +fontName );
-				}
-			}
+		if (!fontFamily || !this.previewElement || !this.previewElement.ownerDocument) {
+			return;
+		}
+
+		const family = fontFamilies.find(font => fontFamily === font.value);
+		if (!family) return;
+
+		const previewDocument = this.previewElement.ownerDocument;
+		const existingFonts = Array.from(
+			previewDocument.querySelectorAll('link[data-podcast-player-font]')
+		);
+		if (existingFonts.some(link => family.label === link.dataset.podcastPlayerFont)) {
+			return;
+		}
+
+		const fontName = encodeURIComponent(family.label).replace(/%20/g, '+');
+		const fontLink = previewDocument.createElement('link');
+		fontLink.dataset.podcastPlayerFont = family.label;
+		fontLink.href = 'https://fonts.googleapis.com/css?family=' + fontName + '&display=swap';
+		fontLink.rel = 'stylesheet';
+		previewDocument.head.appendChild(fontLink);
+	}
+
+	setPreviewElement(element) {
+		this.previewElement = element;
+		if (element && this.isPremium) {
+			this.updateFonts();
 		}
 	}
 
@@ -1299,10 +1307,12 @@ class PodcastPlayer extends Component {
 					}
 				</InspectorControls>
 				<Disabled>
-					<ServerSideRender
-						block="podcast-player/podcast-player"
-						attributes={ this.props.attributes }
-					/>
+					<div ref={ this.setPreviewElement }>
+						<ServerSideRender
+							block="podcast-player/podcast-player"
+							attributes={ this.props.attributes }
+						/>
+					</div>
 				</Disabled>
 			</Fragment>
 		);

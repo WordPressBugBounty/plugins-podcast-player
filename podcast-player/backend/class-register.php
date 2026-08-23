@@ -105,6 +105,7 @@ class Register {
 		add_action( 'admin_enqueue_scripts', array( $instance, 'enqueue_styles' ) );
 		add_action( 'admin_enqueue_scripts', array( $instance, 'enqueue_scripts' ) );
 		add_action( 'enqueue_block_editor_assets', array( $instance, 'enqueue_editor_scripts' ) );
+		add_action( 'enqueue_block_assets', array( $instance, 'enqueue_editor_content_assets' ) );
 
 		/*
 		 * This script must be loaded before mediaelement-migrate.js to work.

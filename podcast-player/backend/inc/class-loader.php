@@ -13,6 +13,7 @@ namespace Podcast_Player\Backend\Inc;
 
 use Podcast_Player\Helper\Functions\Getters as Get_Fn;
 use Podcast_Player\Helper\Core\Singleton;
+use Podcast_Player\Frontend\Inc\Icon_Loader;
 
 /**
  * The admin-specific functionality of the plugin.
@@ -90,6 +91,55 @@ class Loader extends Singleton {
 	 * @since    1.0.0
 	 */
 	public function enqueue_editor_scripts() {
+		$editor_data   = $this->get_editor_data();
+		$cdata         = $editor_data['script_data'];
+		$ppjs_settings = $editor_data['mediaelement_settings'];
+
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+		if ( is_customize_preview() || ( $screen && $screen->base === 'widgets' ) ) {
+			$deps = array( 'wp-blocks', 'wp-i18n', 'wp-element', 'wp-components', 'wp-api-fetch', 'wp-block-editor', 'wp-server-side-render', 'jquery' );
+		} else {
+			$deps = array( 'wp-blocks', 'wp-i18n', 'wp-element', 'wp-components', 'wp-editor', 'wp-api-fetch', 'wp-block-editor', 'wp-server-side-render', 'jquery' );
+		}
+
+		wp_enqueue_script(
+			'podcast-player-block-js',
+			PODCAST_PLAYER_URL . 'backend/js/blocks.build.js',
+			$deps,
+			PODCAST_PLAYER_VERSION,
+			true
+		);
+
+		$this->enqueue_editor_player_assets( $cdata, $ppjs_settings );
+	}
+
+	/**
+	 * Enqueue player assets inside the block editor content iframe.
+	 *
+	 * WordPress 7.1 always renders post content in an iframe. Assets enqueued on
+	 * enqueue_block_editor_assets belong to the editor UI document, while assets
+	 * enqueued here are also collected for the editor content document.
+	 *
+	 * @since 8.3.2
+	 */
+	public function enqueue_editor_content_assets() {
+		// The frontend has its own conditional asset-loading path.
+		if ( ! is_admin() ) {
+			return;
+		}
+
+		$editor_data = $this->get_editor_data();
+		$this->enqueue_editor_player_assets( $editor_data['script_data'], $editor_data['mediaelement_settings'] );
+	}
+
+	/**
+	 * Build data shared by the block controls and rendered player preview.
+	 *
+	 * @since 8.3.2
+	 *
+	 * @return array Editor script data and MediaElement settings.
+	 */
+	private function get_editor_data() {
 		$menus    = wp_get_nav_menus();
 		$menus    = wp_list_pluck( $menus, 'name', 'term_id' );
 		$menu_arr = array();
@@ -114,23 +164,22 @@ class Loader extends Singleton {
 		$cdata['menu']  = $menu_arr;
 		$cdata['style'] = $style_arr;
 		$cdata['stSup'] = Get_Fn::get_style_supported();
-		$ppjs_settings  = apply_filters( 'podcast_player_mediaelement_settings', array() );
 
-		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
-		if ( is_customize_preview() || ( $screen && $screen->base === 'widgets' ) ) {
-			$deps = array( 'wp-blocks', 'wp-i18n', 'wp-element', 'wp-components', 'wp-api-fetch', 'wp-block-editor', 'wp-server-side-render', 'jquery' );
-		} else {
-			$deps = array( 'wp-blocks', 'wp-i18n', 'wp-element', 'wp-components', 'wp-editor', 'wp-api-fetch', 'wp-block-editor', 'wp-server-side-render', 'jquery' );
-		}
-
-		wp_enqueue_script(
-			'podcast-player-block-js',
-			PODCAST_PLAYER_URL . 'backend/js/blocks.build.js',
-			$deps,
-			PODCAST_PLAYER_VERSION,
-			true
+		return array(
+			'script_data'          => $cdata,
+			'mediaelement_settings' => apply_filters( 'podcast_player_mediaelement_settings', array() ),
 		);
+	}
 
+	/**
+	 * Enqueue assets used by the server-rendered player preview.
+	 *
+	 * @since 8.3.2
+	 *
+	 * @param array $cdata         Editor script data.
+	 * @param array $ppjs_settings MediaElement settings.
+	 */
+	private function enqueue_editor_player_assets( $cdata, $ppjs_settings ) {
 		wp_enqueue_style(
 			'podcast-player-block-css',
 			PODCAST_PLAYER_URL . 'frontend/css/podcast-player-editor.css',
@@ -148,6 +197,11 @@ class Loader extends Singleton {
 
 		wp_localize_script( 'ppeditor', 'podcastPlayerData', $cdata );
 		wp_localize_script( 'ppeditor', 'ppmejsSettings', $ppjs_settings );
+		wp_localize_script(
+			'ppeditor',
+			'podcastPlayerIcons',
+			array( 'markup' => Icon_Loader::get_instance()->get_admin_icons_markup() )
+		);
 	}
 
 	/**
@@ -195,10 +249,10 @@ class Loader extends Singleton {
 			return;
 		}
 
-		if ( defined( 'PP_PRO_VERSION' ) && version_compare( PP_PRO_VERSION, '5.9.5', '<' ) ) {
+		if ( defined( 'PP_PRO_VERSION' ) && version_compare( PP_PRO_VERSION, '5.9.6', '<' ) ) {
 			?>
 			<div class="notice-warning notice is-dismissible pp-welcome-notice">
-				<p><?php esc_html_e( 'There is an update available to Podcast Player Pro. Please update to Podcast Player Pro v5.9.5. If you have not received an automated update notice, please login to our website and download latest version.', 'podcast-player' ); ?></p>
+				<p><?php esc_html_e( 'There is an update available to Podcast Player Pro. Please update to Podcast Player Pro v5.9.6. If you have not received an automated update notice, please login to our website and download latest version.', 'podcast-player' ); ?></p>
 			</div>
 			<?php
 		}

@@ -68,15 +68,29 @@ class Icon_Loader extends Singleton {
 	 * @since  6.0.0
 	 */
 	public function add_admin_icons() {
-		$icons = '<svg style="position: absolute; width: 0; height: 0; overflow: hidden;" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><defs>';
+		echo $this->get_admin_icons_markup(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	}
+
+	/**
+	 * Get all icon definitions used by admin player previews.
+	 *
+	 * The markup can be printed in a traditional admin document or inserted by
+	 * an editor script into the block editor content iframe.
+	 *
+	 * @since 8.3.2
+	 *
+	 * @return string SVG icon definitions markup.
+	 */
+	public function get_admin_icons_markup() {
+		$icons = '<svg id="podcast-player-admin-icon-definitions" style="position: absolute; width: 0; height: 0; overflow: hidden;" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" focusable="false"><defs>';
 
 		$icons_def = $this->get_font_icons_def();
-		foreach ( $icons_def as $key => $icon ) {
+		foreach ( $icons_def as $icon ) {
 			$icons .= $icon;
 		}
 
 		$icons .= '</defs></svg>';
-		echo $icons; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		return $icons;
 	}
 
 	/**

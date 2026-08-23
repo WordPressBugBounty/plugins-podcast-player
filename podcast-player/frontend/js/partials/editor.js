@@ -12,6 +12,19 @@ import MediaElem from './mediaelem';
 	document.addEventListener( 'animationstart', playerAdded, false ); // Standard + firefox
 	document.addEventListener( 'webkitAnimationStart', playerAdded, false ); // Chrome + Safari
 
+	function addIconDefinitions() {
+		const iconData = window.podcastPlayerIcons || {};
+		if (
+			! document.body ||
+			! iconData.markup ||
+			document.getElementById('podcast-player-admin-icon-definitions')
+		) {
+			return;
+		}
+
+		document.body.insertAdjacentHTML('beforeend', iconData.markup);
+	}
+
 	function playerAdded(e) {
 		if ('playerAdded' !== e.animationName) {
 			return;
@@ -20,6 +33,8 @@ import MediaElem from './mediaelem';
 		if (! $(e.target).hasClass('pp-podcast') ) {
 			return;
 		}
+
+		addIconDefinitions();
 
 		if ($(e.target).hasClass('pp-podcast-added')) {
 			return;
