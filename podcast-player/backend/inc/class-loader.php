@@ -249,10 +249,10 @@ class Loader extends Singleton {
 			return;
 		}
 
-		if ( defined( 'PP_PRO_VERSION' ) && version_compare( PP_PRO_VERSION, '5.9.6', '<' ) ) {
+		if ( defined( 'PP_PRO_VERSION' ) && version_compare( PP_PRO_VERSION, '5.9.7', '<' ) ) {
 			?>
 			<div class="notice-warning notice is-dismissible pp-welcome-notice">
-				<p><?php esc_html_e( 'There is an update available to Podcast Player Pro. Please update to Podcast Player Pro v5.9.6. If you have not received an automated update notice, please login to our website and download latest version.', 'podcast-player' ); ?></p>
+				<p><?php esc_html_e( 'There is an update available to Podcast Player Pro. Please update to Podcast Player Pro v5.9.7. If you have not received an automated update notice, please login to our website and download latest version.', 'podcast-player' ); ?></p>
 			</div>
 			<?php
 		}

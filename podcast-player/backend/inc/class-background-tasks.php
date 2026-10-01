@@ -201,7 +201,7 @@ class Background_Tasks extends Singleton {
 
                     // 2. Force a correct "filename" for WP regardless of the remote URL
                     // Try using MIME type to get correct extension
-                    $headers  = wp_remote_head( $image_url );
+                    $headers  = wp_safe_remote_request( $image_url, array( 'method' => 'HEAD', 'timeout' => 10 ) );
                     $mime     = wp_remote_retrieve_header( $headers, 'content-type' );
                     $ext      = Get_Fn::get_extension_from_mime( $mime );
                     $filename = $lookup['filename_stem'] . '.' . $ext;

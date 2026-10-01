@@ -4,7 +4,7 @@ Tags: podcast, podcasting, rss feed, feed to audio, podcaster
 Requires at least: 4.9
 Tested up to: 7.1
 Requires PHP: 5.6
-Stable tag: 8.3.3
+Stable tag: 8.3.4
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -106,6 +106,12 @@ Podcast player plugin (on its own) does not create and save any cookies and does
 5. Podcast player on large size container
 
 ==Changelog ==
+= 8.3.4 =
+* Security: Use safe HTTP requests when checking remote episode artwork, preventing requests to unsafe URLs.
+* Security: Exclude private, draft, and unpublished items from Podcast Player Pro episode requests that supply post IDs.
+* Security: Escape Podcast Player Pro social sharing titles and URLs in Open Graph and Twitter metadata.
+* Security: Verify SSL certificates when activating or deactivating Podcast Player Pro licenses.
+
 = 8.3.3 =
 * Bug Fix: Restored podcast player assets, SVG icons, and Google Fonts in the WordPress 7.1 block editor.
 
