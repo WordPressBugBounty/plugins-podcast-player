@@ -12,14 +12,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use Podcast_Player\Helper\Functions\Markup as Markup_Fn;
 use Podcast_Player\Backend\Admin\Marketing_Context;
+use Podcast_Player\Backend\Admin\Pro_Offer;
 
 $is_pro_installed  = defined( 'PP_PRO_VERSION' );
 $is_license_markup = function_exists( 'pp_pro_license_options' );
 $is_freemius_pro   = $is_pro_installed && function_exists( 'pp_fs' ) && ! $is_license_markup;
 $license_status    = get_option( 'pp_pro_license_status' );
 $license_key       = trim( (string) get_option( 'pp_pro_license_key' ) );
-$has_podcasts        = Marketing_Context::has_podcasts();
-$site_recommendation = Marketing_Context::get_site_recommendation();
+$has_podcasts      = Marketing_Context::has_podcasts();
+$show_pro_offer    = Pro_Offer::should_show();
 
 $pro_badge_text  = esc_html__( 'Podcast Player Pro', 'podcast-player' );
 $pro_badge_class = 'border-none bg-green-600 text-white font-semibold';
@@ -53,11 +54,32 @@ if ( ! $is_pro_installed && ! $has_podcasts ) {
 
 ?>
 
-<div id="pp-options-page" class="pp-options-page">
+<div id="pp-options-page" class="<?php echo esc_attr( $show_pro_offer ? 'pp-options-page pp-has-pro-offer' : 'pp-options-page' ); ?>">
+	<?php if ( $show_pro_offer ) : ?>
+		<div class="pp-pro-offer" role="region" aria-label="<?php esc_attr_e( 'Podcast Player Pro offer', 'podcast-player' ); ?>">
+			<div class="pp-pro-offer-content">
+				<strong><?php esc_html_e( '20% off Podcast Player Pro', 'podcast-player' ); ?></strong>
+				<span>
+					<?php
+					/* translators: %s: the final date of the discount offer. */
+					echo esc_html( sprintf( __( 'Limited-time offer · Ends %s', 'podcast-player' ), date_i18n( 'F j, Y', strtotime( Pro_Offer::END_DATE ) ) ) );
+					?>
+				</span>
+			</div>
+			<a class="pp-pro-offer-link" href="<?php echo esc_url( Pro_Offer::checkout_url() ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Get 20% off', 'podcast-player' ); ?></a>
+			<form class="pp-pro-offer-close-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+				<input type="hidden" name="action" value="pp_dismiss_pro_offer">
+				<?php wp_nonce_field( 'pp_dismiss_pro_offer' ); ?>
+				<button type="submit" class="pp-pro-offer-close" aria-label="<?php esc_attr_e( 'Dismiss this offer', 'podcast-player' ); ?>" title="<?php esc_attr_e( 'Dismiss this offer', 'podcast-player' ); ?>">
+					<span class="dashicons dashicons-no-alt" aria-hidden="true"></span>
+				</button>
+			</form>
+		</div>
+	<?php endif; ?>
 	<div class="pp-options-header border-b border-slate-200/90 bg-slate-900" style="background-color:#1f2937;">
 		<div class="mx-auto 2xl:w-full max-w-[1280px] min-w-0 px-4 py-5 sm:px-6 lg:px-8">
 			<div class="flex flex-wrap items-start justify-between gap-4">
-				<div class="pp-options-title min-w-0 flex-1">
+				<div class="pp-options-title min-w-[180px] flex-1">
 					<p class="mb-1 text-xs font-semibold uppercase tracking-[0.22em] text-slate-300"><?php esc_html_e( 'Admin Dashboard', 'podcast-player' ); ?></p>
 					<h1 class="m-0 text-2xl font-semibold tracking-tight text-white sm:text-[28px]">
 						<a class="pp-options-title-link text-inherit no-underline hover:text-slate-200" href="https://easypodcastpro.com/podcast-player/"><?php esc_html_e( 'Podcast Player', 'podcast-player' ); ?></a>
@@ -123,22 +145,6 @@ if ( ! $is_pro_installed && ! $has_podcasts ) {
 				</div>
 			</div>
 		</div>
-		<?php if ( $site_recommendation ) : ?>
-			<div class="pp-site-recommendation rounded-sm border border-solid border-slate-200 bg-white p-4" data-recommendation-id="<?php echo esc_attr( $site_recommendation['id'] ); ?>">
-				<div class="flex items-start justify-between gap-3">
-					<div class="min-w-0">
-						<p class="m-0 text-xs font-semibold uppercase tracking-wide text-slate-500"><?php esc_html_e( 'Site Suggestion', 'podcast-player' ); ?></p>
-						<div class="mt-1 text-sm leading-relaxed text-slate-700">
-							<a class="font-semibold text-sky-700 no-underline hover:underline" href="<?php echo esc_url( $site_recommendation['url'] ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( $site_recommendation['link_label'] ); ?></a>
-							<span> <?php echo esc_html( $site_recommendation['description'] ); ?></span>
-						</div>
-					</div>
-					<button type="button" class="pp-site-recommendation-dismiss inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-slate-200 bg-white p-0 text-slate-500 hover:border-slate-300 hover:text-slate-800" aria-label="<?php esc_attr_e( 'Dismiss site suggestion', 'podcast-player' ); ?>">
-						<span class="dashicons dashicons-no-alt" aria-hidden="true"></span>
-					</button>
-				</div>
-			</div>
-		<?php endif; ?>
 	</div>
 	<div class="pp-action-feedback fixed left-1/2 top-5 z-50 -translate-x-1/2 rounded-lg border border-slate-300 bg-white/95 px-3 py-2 shadow-md" id="pp-action-feedback">
 		<span class="dashicons dashicons-update"></span>
@@ -154,41 +160,12 @@ if ( ! $is_pro_installed && ! $has_podcasts ) {
 		const panel = document.getElementById('pp-header-popover-panel');
 		const moreStylesValue = <?php echo wp_json_encode( Marketing_Context::MORE_STYLES ); ?>;
 		const moreStylesUrl = <?php echo wp_json_encode( Marketing_Context::PRO_URL ); ?>;
-		const siteSuggestion = document.querySelector('.pp-site-recommendation[data-recommendation-id]');
-		const dismissedSiteSuggestionsKey = 'ppDismissedSiteSuggestions';
 
 		document.querySelectorAll('select.podcast-player-pp-display-style').forEach(function(select) {
 			if (select.value !== moreStylesValue) {
 				select.setAttribute('data-pp-previous-style', select.value);
 			}
 		});
-
-		if (siteSuggestion) {
-			const recommendationId = siteSuggestion.getAttribute('data-recommendation-id');
-			let dismissedSiteSuggestions = [];
-			try {
-				dismissedSiteSuggestions = JSON.parse(window.localStorage.getItem(dismissedSiteSuggestionsKey) || '[]');
-			} catch (e) {
-				dismissedSiteSuggestions = [];
-			}
-			if (!Array.isArray(dismissedSiteSuggestions)) {
-				dismissedSiteSuggestions = [];
-			}
-			if (dismissedSiteSuggestions.indexOf(recommendationId) !== -1) {
-				siteSuggestion.remove();
-			} else {
-				const dismissButton = siteSuggestion.querySelector('.pp-site-recommendation-dismiss');
-				if (dismissButton) {
-					dismissButton.addEventListener('click', function() {
-						dismissedSiteSuggestions.push(recommendationId);
-						try {
-							window.localStorage.setItem(dismissedSiteSuggestionsKey, JSON.stringify(Array.from(new Set(dismissedSiteSuggestions))));
-						} catch (e) {}
-						siteSuggestion.remove();
-					});
-				}
-			}
-		}
 
 		document.addEventListener('focusin', function(e) {
 			const select = e.target && e.target.closest ? e.target.closest('select.podcast-player-pp-display-style') : null;

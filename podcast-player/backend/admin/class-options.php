@@ -94,6 +94,7 @@ class Options {
 		add_action( 'init', array( $inst, 'declare_admin_sections' ) );
 		add_action( 'admin_menu', array( $inst, 'add_options_page' ) );
 		add_action( 'admin_init', array( $inst, 'add_settings' ) );
+		add_action( 'admin_post_pp_dismiss_pro_offer', array( Pro_Offer::class, 'dismiss' ) );
 		add_action( 'admin_enqueue_scripts', array( $inst, 'page_scripts' ) );
 		add_action( 'podcast_player_options_page_content', array( $inst, 'display_content' ) );
 		add_action( 'wp_ajax_pp_feed_editor', array( $inst, 'feed_editor_new' ) );
