@@ -27,6 +27,9 @@ class PlayEpisode {
 	constructor(id) {
 
 		this.id = id;
+		this.eventNamespace = '.ppPlay' + id;
+		this.destroyed = false;
+		this.timers = new Set();
 		this.podcast = props[id].podcast;
 		this.list = props[id].list;
 		this.episode = props[id].episode;
@@ -61,11 +64,31 @@ class PlayEpisode {
 		this.runCookieUpdate = false;
 		this.listItem = false;
 		this.audioFirstPlay = true;
-		setTimeout(() => {this.timeOut = true}, 3000);
+		this.schedule(() => {this.timeOut = true}, 3000);
 
 		this.dispatchAnalyticsAction( 'podcast_player_analytics_ready' );
 
 		this.events();
+	}
+
+	/** Track deferred playback and cookie work for this instance. */
+	schedule(callback, delay) {
+		if (this.destroyed) return;
+		const timer = setTimeout(() => {
+			this.timers.delete(timer);
+			if (!this.destroyed) callback();
+		}, delay);
+		this.timers.add(timer);
+		return timer;
+	}
+
+	destroy() {
+		this.destroyed = true;
+		this.runCookieUpdate = false;
+		jQuery(window).off(this.eventNamespace);
+		if (this.modal) this.modal.find('.pp-modal-tabs-list').off(this.eventNamespace);
+		this.timers.forEach(timer => clearTimeout(timer));
+		this.timers.clear();
 	}
 
 	/**
@@ -129,7 +152,7 @@ class PlayEpisode {
 
 				// Let's shift focus inside modal window for better keyboard navigation.
 				if (isModalView && modal) {
-					setTimeout(() => {
+					_this.schedule(() => {
 						modal.find('.ppjs__audio-controls button').first().focus();
 					}, 200);
 				}
@@ -162,7 +185,7 @@ class PlayEpisode {
 		if (modal) {
 			const listWrapper = modal.find('.pp-modal-tabs-list');
 			if (listWrapper.length) {
-				listWrapper.on('click', '.pod-entry__mplay,.pod-entry__title a, .pod-entry__featured', function(e) {
+				listWrapper.on('click' + this.eventNamespace, '.pod-entry__mplay,.pod-entry__title a, .pod-entry__featured', function(e) {
 					const entry = jQuery(this).closest('.pod-entry');
 					const minstance = modal.find('.modal-' + _this.instance);
 					if (minstance.length) {
@@ -190,7 +213,7 @@ class PlayEpisode {
 			e.preventDefault();
 			_this.copyLink();
 		});
-		jQuery(window).on( 'load', function() {
+		jQuery(window).on( 'load' + this.eventNamespace, function() {
 			if (! _this.podcast.parent().hasClass('pp-sticky-player') ) {
 				return;
 			}
@@ -296,7 +319,7 @@ class PlayEpisode {
 		const details = props.readCookie('ppCookie');
 		details.time = this.media.currentTime;
 		props.createCookie('ppCookie', details, 7);
-		setTimeout(() => { this.updateEpisodeCookie(src) }, 4000);
+		this.schedule(() => { this.updateEpisodeCookie(src) }, 4000);
 	}
 
 	/**
@@ -786,7 +809,7 @@ class PlayEpisode {
 		// Wait for data preload, if not already loaded.
 		if (false === props[this.id].fetched) {
 			if (false === this.timeOut) {
-				setTimeout(() => {_this.play()}, 200);
+				this.schedule(() => {_this.play()}, 200);
 			}
 			return;
 		}
@@ -859,7 +882,7 @@ class PlayEpisode {
 		// Wait for data preload, if not already loaded.
 		if (false === props[this.id].fetched) {
 			if (false === this.timeOut) {
-				setTimeout(() => {_this.playModal()}, 200);
+				this.schedule(() => {_this.playModal()}, 200);
 			}
 			return;
 		}
@@ -905,7 +928,7 @@ class PlayEpisode {
 		// Wait for data preload, if not already loaded.
 		if (false === props[this.id].fetched) {
 			if (false === this.timeOut) {
-				setTimeout(() => {_this.showStickyPlayer()}, 200);
+				this.schedule(() => {_this.showStickyPlayer()}, 200);
 			}
 			return;
 		}
@@ -973,7 +996,7 @@ class PlayEpisode {
 				if (this.msgMediaObj) this.msgMediaObj.media.play();
 				this.player.addClass('msg-playing');
 			} else {
-				setTimeout(() => { this.deferredPlay(time) }, 1000);
+				this.schedule(() => { this.deferredPlay(time) }, 1000);
 			}
 		}
 	}

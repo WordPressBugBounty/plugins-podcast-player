@@ -441,6 +441,7 @@ class Feed extends Singleton {
 		// TODO: If multiple instances of same podcast on a page. Data loaded multiple times. Need to fix.
 		// Settings for current podcast instance.
 		$ajax_args = array(
+			'cover-override' => ! empty( $args['cover-override'] ),
 			'imgurl'  => esc_url( $args['imgurl'] ),
 			'imgset'  => esc_attr( $args['imgset'] ),
 			'display' => esc_html( $args['display-style'] ),
@@ -731,6 +732,7 @@ class Feed extends Singleton {
 		// Prepare and sanitize/validate feed args array.
 		$new_args = array(
 			'url'            => $feed_key,
+			'cover-override' => ! empty( $args['cover-override'] ),
 			'imgurl'         => esc_url_raw( $args['imgurl'] ),
 			'imgset'         => esc_attr( $args['imgset'] ),
 			'display-style'  => sanitize_text_field( $args['display'] ),

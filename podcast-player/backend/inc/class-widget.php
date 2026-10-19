@@ -175,7 +175,31 @@ class Widget extends \WP_Widget {
 			echo $args['before_title'] . $title . $args['after_title']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		}
 
-		$display_args = apply_filters(
+		$display_args = $this->get_display_args( $instance );
+
+		$display = Display::get_instance();
+		$display->init( $display_args, false );
+		echo $args['after_widget']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	}
+
+	/**
+	 * Shared defaults for integrations using the widget settings format.
+	 *
+	 * @return array
+	 */
+	public function get_defaults() {
+		return $this->defaults;
+	}
+
+	/**
+	 * Map widget settings to the shared renderer, including Pro extensions.
+	 *
+	 * @param array $instance Widget settings.
+	 * @return array
+	 */
+	public function get_display_args( $instance ) {
+		$instance = wp_parse_args( (array) $instance, $this->defaults );
+		return apply_filters(
 			'podcast_player_widget_display',
 			array(
 				'url'               => $instance['feed_url'],
@@ -233,9 +257,6 @@ class Widget extends \WP_Widget {
 			$instance
 		);
 
-		$display = Display::get_instance();
-		$display->init( $display_args, false );
-		echo $args['after_widget']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 
 	/**

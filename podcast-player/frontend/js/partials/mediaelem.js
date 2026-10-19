@@ -150,8 +150,9 @@ class MediaElem {
             this.media.addEventListener('pause', () => this.updateVideoLayers());
             this.media.addEventListener('ended', () => this.updateVideoLayers());
             this.media.addEventListener('timeupdate', () => this.updateVideoLayers());
-            document.addEventListener('fullscreenchange', () => this.updateFullscreenState());
-            document.addEventListener('webkitfullscreenchange', () => this.updateFullscreenState());
+            this.fullscreenListener = () => this.updateFullscreenState();
+            document.addEventListener('fullscreenchange', this.fullscreenListener);
+            document.addEventListener('webkitfullscreenchange', this.fullscreenListener);
             if (fullscreenButton) {
                 fullscreenButton.addEventListener('click', this.toggleFullscreen.bind(this));
             }
@@ -529,6 +530,16 @@ class MediaElem {
         if (button) {
             button.classList.toggle('ppjs__unfullscreen', fullscreen);
         }
+    }
+
+    destroy() {
+        if (this.media) this.media.pause();
+        this.destroyHls();
+        if (this.fullscreenListener) {
+            document.removeEventListener('fullscreenchange', this.fullscreenListener);
+            document.removeEventListener('webkitfullscreenchange', this.fullscreenListener);
+        }
+        if (MediaElem.currentlyPlayingInstance === this) MediaElem.currentlyPlayingInstance = null;
     }
 
     removeMeJs() {

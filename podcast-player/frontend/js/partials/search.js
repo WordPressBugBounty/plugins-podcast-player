@@ -55,6 +55,11 @@ class SearchEpisodes {
 		this.events();
 	}
 
+	destroy() {
+		clearTimeout(this.localTimeOut);
+		clearTimeout(this.serverTimeOut);
+	}
+
 	/**
 	 * PodcastTabs event handling.
 	 * 
@@ -274,6 +279,7 @@ class SearchEpisodes {
 			type: 'POST',
 			timeout: 4000,
 			success: response => {
+				if (!this.podcast[0].isConnected) return;
 				let details = this.parseResponse(response);
 				if (!details) {
 					this.flushSearchResults();
@@ -337,6 +343,7 @@ class SearchEpisodes {
 			type: 'POST',
 			timeout: 4000,
 			success: response => {
+				if (!this.podcast[0].isConnected) return;
 				let details = this.parseResponse(response);
 				if (!details) {
 					this.flushSearchResults();

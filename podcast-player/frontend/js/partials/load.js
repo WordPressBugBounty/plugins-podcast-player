@@ -12,6 +12,7 @@ class LoadmoreEpisodes {
 	constructor(id) {
 
 		this.id = id;
+		this.eventNamespace = '.ppLoad' + id;
 		this.podcast = props[id].podcast;
 		this.settings = props[id].settings;
 		this.instance = props[id].instance;
@@ -29,6 +30,10 @@ class LoadmoreEpisodes {
 		this.events();
 	}
 
+	destroy() {
+		if (this.auxList) this.auxList.off(this.eventNamespace);
+	}
+
 	/**
 	 * PodcastTabs event handling.
 	 * 
@@ -44,7 +49,7 @@ class LoadmoreEpisodes {
 
 		// Play Modal playlist.
 		if (this.auxList && this.auxList.length) {
-			this.auxList.on('click', '.episode-list__load-more', function() {
+			this.auxList.on('click' + this.eventNamespace, '.episode-list__load-more', function() {
 				const minstance = _this.modal.find('.modal-' + _this.instance);
 				if (minstance.length) {
 					_this.loadEpisodes(true);
@@ -274,6 +279,7 @@ class LoadmoreEpisodes {
 			type: 'POST',
 			timeout: 4000,
 			success: response => {
+				if (!this.podcast[0].isConnected) return;
 				const details = JSON.parse( response );
 
 				if (data.src === data.link) {
@@ -340,6 +346,7 @@ class LoadmoreEpisodes {
 			type: 'POST',
 			timeout: 4000,
 			success: response => {
+				if (!this.podcast[0].isConnected) return;
 				const details = JSON.parse( response );
 
 				// Update total number of episodes fetched.
@@ -408,6 +415,7 @@ class LoadmoreEpisodes {
 			type: 'POST',
 			timeout: 4000,
 			success: response => {
+				if (!this.podcast[0].isConnected) return;
 				const details = JSON.parse( response );
 				if (jQuery.isEmptyObject(details)) {
 					load.offset = 0;

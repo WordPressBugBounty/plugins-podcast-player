@@ -12,6 +12,10 @@ class MediaElements {
 	constructor(id) {
 
 		this.id = id;
+		this.eventNamespace = '.ppMedia' + id;
+		this.destroyed = false;
+		this.timers = new Set();
+		this.stickyCallback = this.autoSticky.bind(this);
 		this.podcast = props[id].podcast;
 		this.mediaObj = props[id].mediaObj;
 		this.msgMediaObj = props[id].msgMediaObj;
@@ -36,7 +40,7 @@ class MediaElements {
 		this.fetched = props[id].fetched;
 		this.timeOut = false;
 		this.autostickytimer = false;
-		setTimeout(() => {this.timeOut = true}, 3000);
+		this.schedule(() => {this.timeOut = true}, 3000);
 
 		this.modControlMarkup();
 		this.modLayersMarkup();
@@ -61,6 +65,25 @@ class MediaElements {
 		this.events();
 	}
 
+	/** Track deferred work so removed players cannot keep polling. */
+	schedule(callback, delay) {
+		if (this.destroyed) return;
+		const timer = setTimeout(() => {
+			this.timers.delete(timer);
+			if (!this.destroyed) callback();
+		}, delay);
+		this.timers.add(timer);
+		return timer;
+	}
+
+	destroy() {
+		this.destroyed = true;
+		jQuery(document).off(this.eventNamespace);
+		this.timers.forEach(timer => clearTimeout(timer));
+		this.timers.clear();
+		if (props.currentlyPlaying === this.stickyCallback) props.currentlyPlaying = false;
+	}
+
 	/**
 	 * PodcastTabs event handling.
 	 * 
@@ -69,7 +92,7 @@ class MediaElements {
 	events() {
 		const _this = this;
 
-		jQuery(document).on('click', (e) => {
+		jQuery(document).on('click' + this.eventNamespace, (e) => {
 			const elem = jQuery(e.target);
 			const wrap = elem.closest('.toggled-window');
 			jQuery('.toggled-window').removeClass('toggled-window');
@@ -82,7 +105,7 @@ class MediaElements {
 			}
 		});
 
-		jQuery(document).on('keyup', function(event) {
+		jQuery(document).on('keyup' + this.eventNamespace, function(event) {
 			if ('Escape' === event.key) {
 				jQuery('.toggled-window').removeClass('toggled-window');
 			}
@@ -242,7 +265,7 @@ class MediaElements {
 	btnPlayMedia() {
 
 		if (!this.podcast.hasClass('postview')) {
-			props.currentlyPlaying = this.autoSticky.bind(this);
+			props.currentlyPlaying = this.stickyCallback;
 		} else {
 			props.currentlyPlaying = false;
 		}
@@ -265,7 +288,7 @@ class MediaElements {
 		}
 		if (this.media.readyState >= 0 && this.media.readyState < 4 ) {
 			this.plBtn.addClass('buffering');
-			setTimeout(() => { this.bufferedPlay() }, 250);
+			this.schedule(() => { this.bufferedPlay() }, 250);
 		} else {
 			this.plBtn.removeClass('buffering');
 			this.plBtn.addClass('playing');
@@ -481,13 +504,14 @@ class MediaElements {
 	 * @since 1.3
 	 */
 	 modMediaMarkup() {
+		if (this.destroyed || !props[this.id]) return;
 
 		const _this = this;
 
 		// Wait for data preload, if not already loaded.
 		if (false === props[this.id].fetched) {
 			if (false === this.timeOut) {
-				setTimeout(() => {_this.modMediaMarkup()}, 200);
+				this.schedule(() => {_this.modMediaMarkup()}, 200);
 			}
 			return;
 		}
@@ -575,7 +599,7 @@ class MediaElements {
 				this.modalObj.create(this.singleWrap, this.mediaObj, this.msgMediaObj, false, false);
 			}
 		}
-		setTimeout(() => {
+		this.schedule(() => {
 			this.autostickytimer = false;
 		}, 66);
 	}

@@ -4,7 +4,7 @@ Tags: podcast, podcasting, rss feed, feed to audio, podcaster
 Requires at least: 4.9
 Tested up to: 7.1
 Requires PHP: 5.6
-Stable tag: 8.3.5
+Stable tag: 8.3.6
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -106,6 +106,9 @@ Podcast player plugin (on its own) does not create and save any cookies and does
 5. Podcast player on large size container
 
 ==Changelog ==
+= 8.3.6 =
+* New: Native Elementor widget with the existing player options, including Podcast Player Pro options when Pro is active. Existing WordPress widgets, shortcodes and editor blocks remain supported.
+
 = 8.3.4 =
 * Security: Use safe HTTP requests when checking remote episode artwork, preventing requests to unsafe URLs.
 * Security: Exclude private, draft, and unpublished items from Podcast Player Pro episode requests that supply post IDs.

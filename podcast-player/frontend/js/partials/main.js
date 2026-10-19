@@ -17,6 +17,46 @@ import MediaElem from './mediaelem';
 		createPodcast(podcast);
 	} );
 
+	// Elementor replaces widget markup when settings change, without reloading the page.
+	let elementorRegistered = false;
+	function registerElementorPlayer() {
+		if (elementorRegistered || !window.elementorFrontend || !window.elementorFrontend.hooks) return;
+		elementorRegistered = true;
+		const Base = window.elementorModules && window.elementorModules.frontend.handlers.Base;
+		if (!Base) return;
+		class ElementorPlayer extends Base {
+			onInit() {
+				super.onInit();
+				this.players = [];
+				this.$element.find('.pp-podcast').each((index, node) => {
+					createPodcast($(node));
+					this.players.push({ id: node.id, node });
+				});
+			}
+			onDestroy() {
+				(this.players || []).forEach(({ id, node }) => queueMicrotask(() => {
+					// Repeated ready events can replace the handler while keeping the same DOM.
+					if (node.isConnected) return;
+					const data = props[id];
+					if (!data || data.podcast[0] !== node) return;
+					if (data.controller) data.controller.destroy();
+					if (data.modal && data.modal.mediaObj === data.mediaObj) data.modal.modalClose();
+					[data.mediaObj, data.msgMediaObj].filter(Boolean).forEach(media => media.destroy());
+					// Playback can move this element into the shared modal outside the widget.
+					data.singleWrap.remove();
+					delete props[id];
+					delete props.podcastPlayerData[id];
+				}));
+				super.onDestroy();
+			}
+		}
+		window.elementorFrontend.hooks.addAction('frontend/element_ready/podcast-player.default', scope => {
+			window.elementorFrontend.elementsHandler.addHandler(ElementorPlayer, { $element: scope });
+		});
+	}
+	$(window).on('elementor/frontend/init', registerElementorPlayer);
+	registerElementorPlayer();
+
 	document.addEventListener('animationstart', playerAdded, false); // Standard + firefox
 	document.addEventListener('MSAnimationStart', playerAdded, false); // IE
 	document.addEventListener('webkitAnimationStart', playerAdded, false); // Chrome + Safari
@@ -61,7 +101,7 @@ import MediaElem from './mediaelem';
 		const instance = id.replace('pp-podcast-', '');
 		props[id] = {podcast, mediaObj, settings, list, episode, msgMediaObj, amsg, episodes, single, player, modal, singleWrap, fetched, instance};
 		podcast.addClass('pp-podcast-added');
-		new Podcast(id);
+		props[id].controller = new Podcast(id);
 	}
 
 	if ( spodcast.length ) $( 'html, body' ).animate({ scrollTop: spodcast.offset().top - 200 }, 400 );

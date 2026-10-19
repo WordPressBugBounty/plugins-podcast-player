@@ -59,9 +59,16 @@ class Podcast {
 	events() {
 
 		clearTimeout(this.resizeTimeout);
-		jQuery(window).on('resize', () => {
+		jQuery(window).on('resize.ppPodcast' + this.id, () => {
 			this.resizeTimeout = setTimeout(this.playerStyleUpdate.bind(this), 100);
 		});
+	}
+
+	// Release player controllers when a page builder removes this instance.
+	destroy() {
+		clearTimeout(this.resizeTimeout);
+		jQuery(window).off('resize.ppPodcast' + this.id);
+		[this.mediaManager, this.playManager, this.searchManager, props[this.id]?.loadMore].filter(Boolean).forEach(controller => controller.destroy());
 	}
 
 	/**
@@ -71,6 +78,7 @@ class Podcast {
 	 */
 	playerStyleUpdate() {
 
+		if (!props[this.id]) return;
 		const podcast = props[this.id].podcast;
 		const width = podcast.width();
 		const widthClass = this.getWidthClass(width);
@@ -120,7 +128,7 @@ class Podcast {
 	 */
 	mediaElements() {
 
-		new MediaElements(this.id);
+		this.mediaManager = new MediaElements(this.id);
 	}
 
 	/**
@@ -130,7 +138,7 @@ class Podcast {
 	 */
 	entryEpisodes() {
 
-		new PlayEpisode(this.id);
+		this.playManager = new PlayEpisode(this.id);
 	}
 
 	/**
@@ -148,7 +156,7 @@ class Podcast {
 	 */
 	searchEpisodes() {
 
-		new SearchEpisodes(this.id);
+		this.searchManager = new SearchEpisodes(this.id);
 	}
 }
 

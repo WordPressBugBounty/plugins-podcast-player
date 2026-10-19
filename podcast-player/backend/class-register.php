@@ -135,6 +135,7 @@ class Register {
 	 * @param object $instance PP admin loader instance.
 	 */
 	public static function elementor_support( $instance ) {
+		\Podcast_Player\Integration\Elementor::init();
 		add_action(
 			'elementor/editor/before_enqueue_scripts',
 			array( $instance, 'enqueue_styles' )

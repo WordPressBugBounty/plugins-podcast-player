@@ -1,0 +1,35 @@
+/* Match the Podcast Player block icon while inheriting Elementor's icon color. */
+.pp-elementor-icon::before {
+    content: "";
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    background-color: currentColor;
+    -webkit-mask: url("podcast-player-icon.svg") center / contain no-repeat;
+    mask: url("podcast-player-icon.svg") center / contain no-repeat;
+}
+
+/* Keep multiple selectors recognizable as dropdowns, including after selection. */
+.elementor-control-type-pp-query .select2-selection--multiple {
+    position: relative;
+    padding-inline-end: 26px;
+    cursor: pointer;
+}
+
+.elementor-control-type-pp-query .select2-selection--multiple::after {
+    content: "";
+    position: absolute;
+    inset-inline-end: 10px;
+    top: 50%;
+    width: 6px;
+    height: 6px;
+    border-right: 1px solid currentColor;
+    border-bottom: 1px solid currentColor;
+    transform: translateY(-75%) rotate(45deg);
+    opacity: 0.65;
+    pointer-events: none;
+}
+
+.elementor-control-type-pp-query .select2-selection--multiple .select2-selection__clear {
+    margin-inline-end: 12px;
+}
