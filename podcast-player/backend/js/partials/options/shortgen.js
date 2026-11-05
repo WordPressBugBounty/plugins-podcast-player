@@ -442,18 +442,44 @@ class ShortcodeGenerator {
 	 *
 	 * @since 2.6.0
 	 */
-	copyShortcodeText(link) {
+	async copyShortcodeText(link) {
 		const wrapper = link.closest('.pp-shortcode-copy');
 		const text = wrapper.find('.pp-shortcode-text code').text();
-		// Create a temporary textarea to copy the text
-		var tempTextarea = jQuery("<textarea>");
-		jQuery("body").append(tempTextarea);
-		tempTextarea.val(text).select();
-		document.execCommand("copy");
-		tempTextarea.remove();
+		let copied = false;
 
-		// Notify the user.
-		this.newResponse('Shortcode copied to clipboard', 'pp-success');
+		try {
+			if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+				await navigator.clipboard.writeText(text);
+				copied = true;
+			}
+		} catch (error) {
+			// Clipboard permissions can be denied. Try the legacy method below.
+		}
+
+		if (!copied) {
+			const focusedElement = document.activeElement;
+			const tempTextarea = jQuery('<textarea readonly tabindex="-1">')
+				.css({ position: 'fixed', top: '0', left: '-9999px' })
+				.val(text);
+			try {
+				jQuery('body').append(tempTextarea);
+				tempTextarea[0].focus();
+				tempTextarea[0].select();
+				copied = document.execCommand('copy');
+			} catch (error) {
+				copied = false;
+			} finally {
+				tempTextarea.remove();
+				if (focusedElement && focusedElement.isConnected) {
+					focusedElement.focus({ preventScroll: true });
+				}
+			}
+		}
+
+		this.newResponse(
+			copied ? 'Shortcode copied to clipboard' : 'Unable to copy shortcode. Please select and copy it manually.',
+			copied ? 'pp-success' : 'pp-error'
+		);
 	}
 }
 

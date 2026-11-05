@@ -13,11 +13,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class Pro_Offer {
 
-	const CAMPAIGN_ID  = 'offer20-new-purchases-v2';
-	const COUPON_CODE  = 'offer20';
+	const CAMPAIGN_ID  = 'black-friday-2026-offer30';
+	const COUPON_CODE  = 'offer30';
 	const PRODUCT_ID   = '19325';
 	const DISMISS_KEY  = 'podcast_player_dismissed_pro_offer';
-	const END_DATE     = '2026-10-31';
+	const END_DATE     = '2026-11-30';
 
 	/**
 	 * Detect active Pro functionality in either edition.

@@ -22,7 +22,9 @@ $license_key       = trim( (string) get_option( 'pp_pro_license_key' ) );
 $has_podcasts      = Marketing_Context::has_podcasts();
 $show_pro_offer    = Pro_Offer::should_show();
 
-$pro_badge_text  = esc_html__( 'Podcast Player Pro', 'podcast-player' );
+$pro_badge_text  = $show_pro_offer
+	? esc_html__( 'Podcast Player Pro (Black Friday: 30% off)', 'podcast-player' )
+	: esc_html__( 'Podcast Player Pro', 'podcast-player' );
 $pro_badge_class = 'border-none bg-green-600 text-white font-semibold';
 $show_pro_badge   = true;
 $show_pro_popover = true;
@@ -58,15 +60,15 @@ if ( ! $is_pro_installed && ! $has_podcasts ) {
 	<?php if ( $show_pro_offer ) : ?>
 		<div class="pp-pro-offer" role="region" aria-label="<?php esc_attr_e( 'Podcast Player Pro offer', 'podcast-player' ); ?>">
 			<div class="pp-pro-offer-content">
-				<strong><?php esc_html_e( '20% off Podcast Player Pro', 'podcast-player' ); ?></strong>
+				<strong><?php esc_html_e( 'Black Friday: 30% off Podcast Player Pro', 'podcast-player' ); ?></strong>
 				<span>
 					<?php
 					/* translators: %s: the final date of the discount offer. */
-					echo esc_html( sprintf( __( 'Limited-time offer · Ends %s', 'podcast-player' ), date_i18n( 'F j, Y', strtotime( Pro_Offer::END_DATE ) ) ) );
+					echo esc_html( sprintf( __( 'Use code offer30 · Ends %s', 'podcast-player' ), date_i18n( 'F j, Y', strtotime( Pro_Offer::END_DATE ) ) ) );
 					?>
 				</span>
 			</div>
-			<a class="pp-pro-offer-link" href="<?php echo esc_url( Pro_Offer::checkout_url() ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Get 20% off', 'podcast-player' ); ?></a>
+			<a class="pp-pro-offer-link" href="<?php echo esc_url( Pro_Offer::checkout_url() ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Get 30% off', 'podcast-player' ); ?></a>
 			<form class="pp-pro-offer-close-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 				<input type="hidden" name="action" value="pp_dismiss_pro_offer">
 				<?php wp_nonce_field( 'pp_dismiss_pro_offer' ); ?>

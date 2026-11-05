@@ -15,6 +15,7 @@ use Podcast_Player\Helper\Functions\Utility as Utility_Fn;
 use Podcast_Player\Helper\Store\StoreManager;
 use Podcast_Player\Helper\Store\FeedData;
 use Podcast_Player\Helper\Core\Singleton;
+use Podcast_Player\Backend\Admin\Pro_Offer;
 
 /**
  * Display podcast player instance.
@@ -52,13 +53,17 @@ class Misc extends Singleton {
 			$links
 		);
 
-		if ( defined( 'PP_PRO_VERSION' ) ) {
+		if ( Pro_Offer::is_pro_active() ) {
 			return $links;
 		}
 
+		$show_offer = Pro_Offer::should_show();
+		$pro_url    = $show_offer ? Pro_Offer::checkout_url() : 'https://easypodcastpro.com/podcast-player/';
+		$pro_label  = $show_offer ? __( 'Get Pro (30% off)', 'podcast-player' ) : __( 'Get Pro', 'podcast-player' );
+
 		$links = array_merge(
 			array(
-				'<a href="' . esc_url( 'https://easypodcastpro.com/podcast-player/' ) . '" style="color: #35b747; font-weight: 700;">' . __( 'Get Pro', 'podcast-player' ) . '</a>',
+				'<a href="' . esc_url( $pro_url ) . '" style="color: #a12655; font-weight: 700;">' . esc_html( $pro_label ) . '</a>',
 			),
 			$links
 		);
